@@ -10,30 +10,21 @@ struct {
   char mesh_vb [MAX_STR];
   char mesh_uv [MAX_STR];
 } g_resources = {
-  .mesh_ib = "mesh/MeshIB.binary",
-  .mesh_vb = "mesh/MeshVB.binary",
-  .mesh_uv = "mesh/MeshUV.binary",
+  .mesh_ib = "meshes/MeshIB.binary",
+  .mesh_vb = "meshes/MeshVB.binary",
+  .mesh_uv = "meshes/MeshUV.binary",
 };
 
-#include "mesh/MeshIBVB.h"
-#include "mesh/MeshUV.h"
+#define GPUMESH_NO_HEADER_IMPORT
+#include "meshes/MeshIBVB.h"
+#include "meshes/MeshUV.h"
 
 struct gpu_cmd_t g_draw_commands[e_draw_count];
 
 int main() {
-  {
-    char * path_exe = GpuSysGetBasePath();
-    for (int i = 0, size = sizeof(g_resources); i < size; i += MAX_STR) {
-      char path_res[MAX_STR] = {0};
-      memcpy(path_res, (char *)&g_resources + i, MAX_STR);
-      snprintf((char *)&g_resources + i, MAX_STR, "%s%s", path_exe, path_res);
-    }
-    free(path_exe);
-  }
-
   Display * dpy = NULL;
   Window win = 0;
-  GpuWindow("Drawing Text", 1280, 720, 4, NULL, &dpy, &win);
+  GpuWindow("Drawing Text", sizeof("Drawing Text"), 1280, 720, 4, NULL, &dpy, &win);
   GpuSetDebugCallback(GpuDebugCallback);
 
   unsigned di_buf = 0;
@@ -113,5 +104,7 @@ int main() {
   }
 
 exit:;
+  XDestroyWindow(dpy, win);
+  XCloseDisplay(dpy);
   return 0;
 }

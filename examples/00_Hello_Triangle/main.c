@@ -1,12 +1,11 @@
 #include "../../gpulib.h"
 
-#define auto __auto_type
 typedef struct { float x, y, z; } vec3;
 
 int main() {
   Display * dpy = NULL;
   Window win = 0;
-  GpuWindow("Hello Triangle", 1280, 720, 4, NULL, &dpy, &win);
+  GpuWindow("Hello Triangle", sizeof("Hello Triangle"), 1280, 720, 4, NULL, &dpy, &win);
   GpuSetDebugCallback(GpuDebugCallback);
 
   unsigned vertices_id = 0;
@@ -16,13 +15,13 @@ int main() {
   vertices[2] = (vec3){-0.5, -0.5, 0.0};
 
   unsigned indices_id = 0;
-  auto indices = GpuCallocIndices(3, &indices_id);
+  unsigned * indices = GpuCallocIndices(3, &indices_id);
   indices[0] = 0;
   indices[1] = 1;
   indices[2] = 2;
 
   unsigned commands_id = 0;
-  auto commands = GpuCallocCommands(1, &commands_id);
+  struct gpu_cmd_t * commands = GpuCallocCommands(1, &commands_id);
   commands[0].count = 3;
   commands[0].instance_count = 1;
 
@@ -66,5 +65,7 @@ int main() {
   }
 
 exit:;
+  XDestroyWindow(dpy, win);
+  XCloseDisplay(dpy);
   return 0;
 }

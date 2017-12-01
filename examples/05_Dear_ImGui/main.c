@@ -5,7 +5,7 @@ int main() {
   char scancodes[256 * 5] = {0};
   Display * dpy = NULL;
   Window win = 0;
-  GpuWindow("Dear ImGui", 1280, 720, 4, scancodes, &dpy, &win);
+  GpuWindow("Dear ImGui", sizeof("Dear ImGui"), 1280, 720, 4, scancodes, &dpy, &win);
   GpuSetDebugCallback(GpuDebugCallback);
 
   ImguiInit(dpy, win, scancodes);
@@ -17,13 +17,7 @@ int main() {
   style->WindowRounding    = 0;
   style->FrameRounding     = 0;
 
-  {
-    char font[10000] = {0};
-    char * base_path = GpuSysGetBasePath();
-    snprintf(font, 10000, "%s%s", base_path, "NotoSans.ttf");
-    free(base_path);
-    ImFontAtlas_AddFontFromFileTTF(io->Fonts, font, 24, NULL, NULL);
-  }
+  ImFontAtlas_AddFontFromFileTTF(io->Fonts, "NotoSans.ttf", 24, NULL, NULL);
 
   for (Atom quit = XInternAtom(dpy, "WM_DELETE_WINDOW", 0);;) {
     for (XEvent event = {0}; XPending(dpy);) {
@@ -82,5 +76,7 @@ int main() {
 
 exit:;
   ImguiDeinit();
+  XDestroyWindow(dpy, win);
+  XCloseDisplay(dpy);
   return 0;
 }

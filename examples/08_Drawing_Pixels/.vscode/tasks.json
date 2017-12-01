@@ -4,7 +4,7 @@
     {
       "taskName": "Build",
       "type": "shell",
-      "command": "$(clang -Werror=implicit-function-declaration -Werror=unreachable-code -Werror=sequence-point -Werror=uninitialized -Werror=unused-result -Werror=return-type -Werror=covered-switch-default -Werror=switch-default -Werror=switch-enum -Werror=switch -Wno-incompatible-pointer-types-discards-qualifiers main.c -lX11 -lXrender -lXi -lGL -lm -g)",
+      "command": "$(clang -Werror=implicit-function-declaration -Werror=unreachable-code -Werror=sequence-point -Werror=uninitialized -Werror=unused-result -Werror=return-type -Werror=covered-switch-default -Werror=switch-default -Werror=switch-enum -Werror=switch -Wno-incompatible-pointer-types-discards-qualifiers -Werror=visibility -o main -nostdlib ../../stdlib/main.s main.c -lX11 -lXrender -lXi -lGL -ldl -g)",
       "args": [],
       "group": {
         "kind": "build",

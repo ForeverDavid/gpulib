@@ -1,7 +1,17 @@
+#include "../../stdlib/stdlib.h"
+
+void * (*ProfCalloc)(size_t, size_t);
+void (*ProfFree)(void *);
+
 //#define USE_TINYPROFILER
+#define TINYPROFILER_NO_HEADER_IMPORT
+#define TINYPROFILER_MAX_JSON_LINE_LENGTH 10000
+#define TINYPROFILER_OUTPUT_STRING(x) print(TINYPROFILER_MAX_JSON_LINE_LENGTH, "%s", x)
+#define TINYPROFILER_CALLOC ProfCalloc
+#define TINYPROFILER_FREE ProfFree
 #include "../../tinyprofiler.h"
+
 #include "../../gpulib.h"
-#include <sys/time.h>
 
 typedef struct { float x, y, z; }    vec3;
 typedef struct { float x, y, z, w; } vec4;
@@ -23,13 +33,13 @@ struct {
   char vs_quad     [MAX_STR];
   char fs_quad     [MAX_STR];
 } g_resources = {
-  .mesh_ib      = "data/meshes/MeshIB.binary",
-  .mesh_id      = "data/meshes/MeshID.binary",
-  .mesh_normals = "data/meshes/MeshNormals.binary",
-  .mesh_uv      = "data/meshes/MeshUV.binary",
-  .mesh_vb      = "data/meshes/MeshVB.binary",
-  .textures     = "data/textures/textures.binary",
-  .cubemaps     = "data/textures/cubemaps.binary",
+  .mesh_ib      = "meshes/MeshIB.binary",
+  .mesh_id      = "meshes/MeshID.binary",
+  .mesh_normals = "meshes/MeshNormals.binary",
+  .mesh_uv      = "meshes/MeshUV.binary",
+  .mesh_vb      = "meshes/MeshVB.binary",
+  .textures     = "textures/textures.binary",
+  .cubemaps     = "textures/cubemaps.binary",
   .vs_cube      = "shaders/cube.vert",
   .fs_cube      = "shaders/cube.frag",
   .vs_mesh      = "shaders/mesh.vert",
@@ -71,9 +81,9 @@ static inline vec4 qrot(vec4 p, vec4 v) {
   return qmul(qmul(v, p), qinv(v));
 }
 
-static inline float sindegdiv2(float d) { return (float)sin(d * (M_PI / 180.0) / 2.0); }
-static inline float cosdegdiv2(float d) { return (float)cos(d * (M_PI / 180.0) / 2.0); }
-static inline float tandegdiv2(float d) { return (float)tan(d * (M_PI / 180.0) / 2.0); }
+static inline float sindegdiv2(float d) { return fsin(d * (M_PI / 180.0) / 2.0); }
+static inline float cosdegdiv2(float d) { return fcos(d * (M_PI / 180.0) / 2.0); }
+static inline float tandegdiv2(float d) { return ftan(d * (M_PI / 180.0) / 2.0); }
 
 static inline unsigned long GetTimeMs() {
   struct timeval tv;
@@ -81,29 +91,24 @@ static inline unsigned long GetTimeMs() {
   return tv.tv_sec * 1000UL + tv.tv_usec / 1000UL;
 }
 
-#include "data/meshes/MeshIBVB.h"
-#include "data/meshes/MeshID.h"
-#include "data/meshes/MeshNormals.h"
-#include "data/meshes/MeshUV.h"
+#define GPUMESH_NO_HEADER_IMPORT
+#include "meshes/MeshIBVB.h"
+#include "meshes/MeshID.h"
+#include "meshes/MeshNormals.h"
+#include "meshes/MeshUV.h"
 
 struct gpu_cmd_t g_draw_commands[e_draw_count];
 
 int main() {
+  GpuSysGetLibcProcedureAddresses();
+  ProfCalloc = g_gpulib_libc.calloc;
+  ProfFree = g_gpulib_libc.free;
   profAlloc(1000000);
-  {
-    char * path_exe = GpuSysGetBasePath();
-    for (int i = 0, size = sizeof(g_resources); i < size; i += MAX_STR) {
-      char path_res[MAX_STR] = {0};
-      memcpy(path_res, (char *)&g_resources + i, MAX_STR);
-      snprintf((char *)&g_resources + i, MAX_STR, "%s%s", path_exe, path_res);
-    }
-    free(path_exe);
-  }
 
   char scancodes[256 * 5] = {0};
   Display * dpy = NULL;
   Window win = 0;
-  GpuWindow("Instancing and MRT", 1280, 720, 4, scancodes, &dpy, &win);
+  GpuWindow("Instancing and MRT", sizeof("Instancing and MRT"), 1280, 720, 4, scancodes, &dpy, &win);
   GpuSetDebugCallback(GpuDebugCallback);
 
   profB("Mesh upload");
@@ -238,41 +243,41 @@ int main() {
         }
         break; case KeyPress: {
           char * scancode = &scancodes[event.xkey.keycode * 5];
-          if (strcmp(scancode, "AC03") == 0) key_d = 1;
-          if (strcmp(scancode, "AC01") == 0) key_a = 1;
-          if (strcmp(scancode, "AD03") == 0) key_e = 1;
-          if (strcmp(scancode, "AD01") == 0) key_q = 1;
-          if (strcmp(scancode, "AD02") == 0) key_w = 1;
-          if (strcmp(scancode, "AC02") == 0) key_s = 1;
-          if (strcmp(scancode, "AE01") == 0) key_1 = 1;
-          if (strcmp(scancode, "AE02") == 0) key_2 = 1;
-          if (strcmp(scancode, "AE03") == 0) key_3 = 1;
-          if (strcmp(scancode, "AE04") == 0) key_4 = 1;
-          if (strcmp(scancode, "AE05") == 0) key_5 = 1;
-          if (strcmp(scancode, "AE06") == 0) key_6 = 1;
-          if (strcmp(scancode, "AE07") == 0) key_7 = 1;
-          if (strcmp(scancode, "AE08") == 0) key_8 = 1;
-          if (strcmp(scancode, "AE09") == 0) key_9 = 1;
-          if (strcmp(scancode, "AE10") == 0) key_0 = 1;
+          if (nstreq(4, scancode, "AC03")) key_d = 1;
+          if (nstreq(4, scancode, "AC01")) key_a = 1;
+          if (nstreq(4, scancode, "AD03")) key_e = 1;
+          if (nstreq(4, scancode, "AD01")) key_q = 1;
+          if (nstreq(4, scancode, "AD02")) key_w = 1;
+          if (nstreq(4, scancode, "AC02")) key_s = 1;
+          if (nstreq(4, scancode, "AE01")) key_1 = 1;
+          if (nstreq(4, scancode, "AE02")) key_2 = 1;
+          if (nstreq(4, scancode, "AE03")) key_3 = 1;
+          if (nstreq(4, scancode, "AE04")) key_4 = 1;
+          if (nstreq(4, scancode, "AE05")) key_5 = 1;
+          if (nstreq(4, scancode, "AE06")) key_6 = 1;
+          if (nstreq(4, scancode, "AE07")) key_7 = 1;
+          if (nstreq(4, scancode, "AE08")) key_8 = 1;
+          if (nstreq(4, scancode, "AE09")) key_9 = 1;
+          if (nstreq(4, scancode, "AE10")) key_0 = 1;
         }
         break; case KeyRelease: {
           char * scancode = &scancodes[event.xkey.keycode * 5];
-          if (strcmp(scancode, "AC03") == 0) key_d = 0;
-          if (strcmp(scancode, "AC01") == 0) key_a = 0;
-          if (strcmp(scancode, "AD03") == 0) key_e = 0;
-          if (strcmp(scancode, "AD01") == 0) key_q = 0;
-          if (strcmp(scancode, "AD02") == 0) key_w = 0;
-          if (strcmp(scancode, "AC02") == 0) key_s = 0;
-          if (strcmp(scancode, "AE01") == 0) key_1 = 0;
-          if (strcmp(scancode, "AE02") == 0) key_2 = 0;
-          if (strcmp(scancode, "AE03") == 0) key_3 = 0;
-          if (strcmp(scancode, "AE04") == 0) key_4 = 0;
-          if (strcmp(scancode, "AE05") == 0) key_5 = 0;
-          if (strcmp(scancode, "AE06") == 0) key_6 = 0;
-          if (strcmp(scancode, "AE07") == 0) key_7 = 0;
-          if (strcmp(scancode, "AE08") == 0) key_8 = 0;
-          if (strcmp(scancode, "AE09") == 0) key_9 = 0;
-          if (strcmp(scancode, "AE10") == 0) key_0 = 0;
+          if (nstreq(4, scancode, "AC03")) key_d = 0;
+          if (nstreq(4, scancode, "AC01")) key_a = 0;
+          if (nstreq(4, scancode, "AD03")) key_e = 0;
+          if (nstreq(4, scancode, "AD01")) key_q = 0;
+          if (nstreq(4, scancode, "AD02")) key_w = 0;
+          if (nstreq(4, scancode, "AC02")) key_s = 0;
+          if (nstreq(4, scancode, "AE01")) key_1 = 0;
+          if (nstreq(4, scancode, "AE02")) key_2 = 0;
+          if (nstreq(4, scancode, "AE03")) key_3 = 0;
+          if (nstreq(4, scancode, "AE04")) key_4 = 0;
+          if (nstreq(4, scancode, "AE05")) key_5 = 0;
+          if (nstreq(4, scancode, "AE06")) key_6 = 0;
+          if (nstreq(4, scancode, "AE07")) key_7 = 0;
+          if (nstreq(4, scancode, "AE08")) key_8 = 0;
+          if (nstreq(4, scancode, "AE09")) key_9 = 0;
+          if (nstreq(4, scancode, "AE10")) key_0 = 0;
         }
         break; case GenericEvent: {
           if (XGetEventData(dpy, &event.xcookie) &&
@@ -321,7 +326,7 @@ int main() {
 
     profB("Instance pos update");
     for (int i = 0; i < (30 + 30 + 30); i += 1)
-      instance_pos[i].y = (float)(sin(t_curr * 0.0015 + i * 0.5) * 0.3);
+      instance_pos[i].y = fsin((t_curr - t_init) * 0.0015 + i * 0.5) * 0.3;
     profE("Instance pos update");
 
     profB("Uniforms");
@@ -379,6 +384,8 @@ int main() {
   }
 
 exit:;
+  XDestroyWindow(dpy, win);
+  XCloseDisplay(dpy);
   profPrintAndFree();
   return 0;
 }

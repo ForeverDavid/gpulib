@@ -1,7 +1,6 @@
 #pragma once
 
 #include "imgui/cimgui.h"
-#include <sys/time.h>
 
 struct ImVec2 {
   float x, y;
@@ -203,7 +202,7 @@ static char    * g_ig_clipboard_copy = NULL;
 static char    * g_ig_clipboard_paste = NULL;
 static unsigned  g_ig_clipboard_paste_sleep_microseconds = 100000; // 1/10 of a second
 
-static inline void ImguiRenderDrawList(struct ImDrawData * draw_data) {
+void ImguiRenderDrawList(struct ImDrawData * draw_data) {
   struct ImGuiIO * io = igGetIO();
 
   struct ImVec2 fb_scale = io->DisplayFramebufferScale;
@@ -312,7 +311,7 @@ static inline void ImguiRenderDrawList(struct ImDrawData * draw_data) {
   glEnable(0x0B44);  // GL_CULL_FACE
 }
 
-static inline char * ImguiGetClipboardText() {
+char * ImguiGetClipboardText() {
   Atom incr_atom = XInternAtom(g_ig_dpy, "INCR", 0);
   Atom xsel_atom = XInternAtom(g_ig_dpy, "XSEL_DATA", 0);
   Atom utf8_atom = XInternAtom(g_ig_dpy, "UTF8_STRING", 1);
@@ -352,12 +351,12 @@ static inline char * ImguiGetClipboardText() {
                          &remain,
                          (unsigned char**)&data);
 
-      usleep(g_ig_clipboard_paste_sleep_microseconds);
+      g_gpulib_libc.usleep(g_ig_clipboard_paste_sleep_microseconds);
 
       if (target == incr_atom) {
         XFree(data);
         data = NULL;
-        free(g_ig_clipboard_paste);
+        g_gpulib_libc.free(g_ig_clipboard_paste);
         g_ig_clipboard_paste = NULL;
 
         for (size_t total = 1;;) {
@@ -374,13 +373,13 @@ static inline char * ImguiGetClipboardText() {
                              &remain,
                              (unsigned char**)&data);
 
-          usleep(g_ig_clipboard_paste_sleep_microseconds);
+          g_gpulib_libc.usleep(g_ig_clipboard_paste_sleep_microseconds);
 
           if (size) {
             total += size;
-            g_ig_clipboard_paste = realloc(g_ig_clipboard_paste, total);
+            g_ig_clipboard_paste = g_gpulib_libc.realloc(g_ig_clipboard_paste, total);
             g_ig_clipboard_paste[total - size - 1] = '\0';
-            strcat(g_ig_clipboard_paste, data);
+            g_gpulib_libc.strcat(g_ig_clipboard_paste, data);
           }
 
           XFree(data);
@@ -388,9 +387,9 @@ static inline char * ImguiGetClipboardText() {
           if (size == 0)
             break;
         }
-      } else if (target == utf8_atom || target == XA_STRING) {
-        free(g_ig_clipboard_paste);
-        g_ig_clipboard_paste = strndup(data, size);
+      } else if (target == utf8_atom || target == ((Atom)31)) { // XA_STRING
+        g_gpulib_libc.free(g_ig_clipboard_paste);
+        g_ig_clipboard_paste = g_gpulib_libc.strndup(data, size);
         XFree(data);
       }
     }
@@ -399,10 +398,10 @@ static inline char * ImguiGetClipboardText() {
   return g_ig_clipboard_paste;
 }
 
-static inline void ImguiSetClipboardText(char * text) {
+void ImguiSetClipboardText(char * text) {
   XSetSelectionOwner(g_ig_dpy, XInternAtom(g_ig_dpy, "CLIPBOARD", 0), g_ig_win, 0);
-  ptrdiff_t text_bytes = strlen(text);
-  g_ig_clipboard_copy = realloc(g_ig_clipboard_copy, text_bytes + 1);
+  ptrdiff_t text_bytes = g_gpulib_libc.strlen(text);
+  g_ig_clipboard_copy = g_gpulib_libc.realloc(g_ig_clipboard_copy, text_bytes + 1);
   memcpy(g_ig_clipboard_copy, text, text_bytes);
   g_ig_clipboard_copy[text_bytes] = 0;
 }
@@ -466,11 +465,11 @@ static inline bool ImguiProcessEvent(XEvent * event) {
 
       int test = 0;
       if (e.target == targets_atom)
-        test = XChangeProperty(e.display, e.requestor, e.property, XA_ATOM, 32, PropModeReplace, (unsigned char *)&utf8_atom, 1);
-      else if (e.target == XA_STRING || e.target == text_atom) 
-        test = XChangeProperty(e.display, e.requestor, e.property, XA_STRING, 8, PropModeReplace, (unsigned char *)g_ig_clipboard_copy, strlen(g_ig_clipboard_copy));
+        test = XChangeProperty(e.display, e.requestor, e.property, ((Atom)4), 32, PropModeReplace, (unsigned char *)&utf8_atom, 1); // XA_ATOM
+      else if (e.target == ((Atom)31) || e.target == text_atom) // XA_STRING
+        test = XChangeProperty(e.display, e.requestor, e.property, ((Atom)31), 8, PropModeReplace, (unsigned char *)g_ig_clipboard_copy, g_gpulib_libc.strlen(g_ig_clipboard_copy));
       else if (e.target == utf8_atom)
-        test = XChangeProperty(e.display, e.requestor, e.property, utf8_atom, 8, PropModeReplace, (unsigned char *)g_ig_clipboard_copy, strlen(g_ig_clipboard_copy));
+        test = XChangeProperty(e.display, e.requestor, e.property, utf8_atom, 8, PropModeReplace, (unsigned char *)g_ig_clipboard_copy, g_gpulib_libc.strlen(g_ig_clipboard_copy));
       else
         e.property = None;
       if ((test & 2) == 0)
@@ -647,8 +646,8 @@ static inline void ImguiInvalidateDeviceObjects() {
 }
 
 static inline void ImguiDeinit() {
-  free(g_ig_clipboard_copy);
-  free(g_ig_clipboard_paste);
+  g_gpulib_libc.free(g_ig_clipboard_copy);
+  g_gpulib_libc.free(g_ig_clipboard_paste);
   g_ig_clipboard_copy = NULL;
   g_ig_clipboard_paste = NULL;
   ImguiInvalidateDeviceObjects();
@@ -658,7 +657,7 @@ static inline void ImguiDeinit() {
 static inline int ImguiX11ScancodeToKeycode(char * scancodes, char * scancode) {
   for (int i = 0; i < 256; i += 1) {
     char * code = &scancodes[i * 5];
-    if (strcmp(code, scancode) == 0)
+    if (nstreq(4, code, scancode))
       return i;
   }
   return -1;

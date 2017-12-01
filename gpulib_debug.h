@@ -5,13 +5,13 @@
 
 #ifndef GPULIB_DEBUG_MANUAL
 
-#define GpuWindow(window_title, window_width, window_height, msaa_samples, out_scancodes, out_dpy, out_win) do { \
-  char * __out_scancodes = out_scancodes;                                                                        \
-  char __scancodes_temp[256 * 5] = {0};                                                                          \
-  char * __scancodes = __out_scancodes != NULL ? __out_scancodes : __scancodes_temp;                             \
-  GpuWindow(window_title, window_width, window_height, msaa_samples, __scancodes, out_dpy, out_win);             \
-  ImguiInit(dpy, win, __scancodes);                                                                              \
-  ImguiNewFrame();                                                                                               \
+#define GpuWindow(window_title, window_title_bytes, window_width, window_height, msaa_samples, out_scancodes, out_dpy, out_win) do { \
+  char * __out_scancodes = out_scancodes;                                                                                            \
+  char __scancodes_temp[256 * 5] = {0};                                                                                              \
+  char * __scancodes = __out_scancodes != NULL ? __out_scancodes : __scancodes_temp;                                                 \
+  GpuWindow(window_title, window_title_bytes, window_width, window_height, msaa_samples, __scancodes, out_dpy, out_win);             \
+  ImguiInit(dpy, win, __scancodes);                                                                                                  \
+  ImguiNewFrame();                                                                                                                   \
 } while(0)
 
 #define XNextEvent(dpy, event) do {                                              \
@@ -97,7 +97,7 @@ static inline void GpuDebugImgEx(unsigned tex_id, char * name) {
 
   igText("Inspect pixel:");
 
-  int max_mipmap_count = w != h ? 1 : (int)log2(w) + 1;
+  int max_mipmap_count = w != h ? 1 : ilog2(w) + 1;
 
   static int g_gpulib_mipmap_level = 0;
   {
@@ -122,7 +122,7 @@ static inline void GpuDebugImgEx(unsigned tex_id, char * name) {
 
   static int g_gpulib_x = 0;
   {
-    int W = w / pow(2, g_gpulib_mipmap_level);
+    int W = w / (1 << g_gpulib_mipmap_level);
     igSliderInt("x", &g_gpulib_x, 0, W - 1, NULL);
     if (g_gpulib_x < 0) g_gpulib_x = 0;
     if (g_gpulib_x > W - 1) g_gpulib_x = W - 1;
@@ -130,7 +130,7 @@ static inline void GpuDebugImgEx(unsigned tex_id, char * name) {
 
   static int g_gpulib_y = 0;
   {
-    int H = h / pow(2, g_gpulib_mipmap_level);
+    int H = h / (1 << g_gpulib_mipmap_level);
     igSliderInt("y", &g_gpulib_y, 0, H - 1, NULL);
     if (g_gpulib_y < 0) g_gpulib_y = 0;
     if (g_gpulib_y > H - 1) g_gpulib_y = H - 1;
@@ -185,23 +185,23 @@ static inline void GpuDebugImgEx(unsigned tex_id, char * name) {
   igSeparator();
   igText("Texture transforms:");
 
-  static float scale[2] = {1, 1};
-  static int pos[2] = {0, 0};
-  igDragFloat2("scale", scale, 0.001, 0, 0, NULL, 1);
-  igDragInt2("pos", pos, 1, 0, 0, NULL);
+  static float g_gpulib_debug_scale[2] = {1, 1};
+  static int g_gpulib_debug_pos[2] = {0, 0};
+  igDragFloat2("scale", g_gpulib_debug_scale, 0.001, 0, 0, NULL, 1);
+  igDragInt2("pos", g_gpulib_debug_pos, 1, 0, 0, NULL);
   igText("Texture info: w: %d, h: %d, layer_count: %d, max_mipmap_count: %d", w, h, layer_count, max_mipmap_count);
 
   if (g_gpulib_sync_pos) {
-    pos[0] = g_gpulib_x;
-    pos[1] = g_gpulib_y;
+    g_gpulib_debug_pos[0] = g_gpulib_x;
+    g_gpulib_debug_pos[1] = g_gpulib_y;
   }
 
   igImage((ImTextureID)&g_gpulib_debug_texture,
           (struct ImVec2){w, h},
-          (struct ImVec2){((float)pos[0] / w),
-                          ((float)pos[1] / h)},
-          (struct ImVec2){((float)pos[0] / w) + scale[0],
-                          ((float)pos[1] / h) + scale[1]},
+          (struct ImVec2){((float)g_gpulib_debug_pos[0] / w),
+                          ((float)g_gpulib_debug_pos[1] / h)},
+          (struct ImVec2){((float)g_gpulib_debug_pos[0] / w) + g_gpulib_debug_scale[0],
+                          ((float)g_gpulib_debug_pos[1] / h) + g_gpulib_debug_scale[1]},
           (struct ImVec4){255, 255, 255, 255},
           (struct ImVec4){0, 0, 0, 0});
 

@@ -1,3 +1,4 @@
+#ifndef GPUMESH_NO_HEADER_IMPORT
 #ifdef _WIN32
 #include <Windows.h>
 #else
@@ -6,6 +7,7 @@
 #include <unistd.h>   // close
 #endif
 #include <assert.h>
+#endif // GPUMESH_NO_HEADER_IMPORT
 
 enum {
   e_draw_monkey,

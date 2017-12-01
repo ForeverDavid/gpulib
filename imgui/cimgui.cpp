@@ -1,6 +1,7 @@
 
 #include "../imgui/imgui.h"
 #include "cimgui.h"
+#include <stdio.h>
 
 CIMGUI_API ImGuiIO* igGetIO()
 {

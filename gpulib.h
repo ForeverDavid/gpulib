@@ -1,26 +1,23 @@
 #pragma once
 
+#ifndef GPULIB_MAX_PRINT_BYTES
+#define GPULIB_MAX_PRINT_BYTES (4096)
+#endif
+
 #ifndef profB
 #define profB(x)
 #endif
+
 #ifndef profE
 #define profE(x)
 #endif
 
 #include <X11/extensions/Xrender.h>
 #include <X11/extensions/XInput2.h>
-#include <X11/Xlocale.h>
 #include <X11/XKBlib.h>
-#include <X11/Xatom.h>
 #include <GL/glx.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/mman.h>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
+
+#include "stdlib/stdlib.h"
 
 struct gpu_cmd_t {
   unsigned count;
@@ -260,12 +257,242 @@ void (*glTransformFeedbackBufferRange)(unsigned, int, unsigned, ptrdiff_t, ptrdi
 void (*glTransformFeedbackVaryings)(unsigned, int, char **, unsigned);
 void (*glUseProgramStages)(unsigned, unsigned, unsigned);
 
-static inline void GpuX11Window(
-    int title_bytes, char * title, int x, int y, int w, int h, int msaa_sample_count,
+struct gpu_sys_libc_t {
+  int (*access)(char *, int);
+  void * (*calloc)(size_t, size_t);
+  int (*fgetc)(int *);
+  void (*free)(void *);
+  pid_t (*getpid)();
+  int (*pclose)(int *);
+  int * (*popen)(char *, char *);
+  ssize_t (*readlink)(char *, char *, size_t);
+  void * (*realloc)(void *, size_t);
+  char * (*setlocale)(int, char *);
+  char * (*strcat)(char *, char *);
+  int (*strcmp)(char *, char *);
+  size_t (*strlen)(char *);
+  char * (*strndup)(char *, size_t);
+  char * (*strrchr)(char *, int);
+  int (*usleep)(unsigned);
+} g_gpulib_libc = {
+  (void *)0xBAD,
+  (void *)0xBAD,
+  (void *)0xBAD,
+  (void *)0xBAD,
+  (void *)0xBAD,
+  (void *)0xBAD,
+  (void *)0xBAD,
+  (void *)0xBAD,
+  (void *)0xBAD,
+  (void *)0xBAD,
+  (void *)0xBAD,
+  (void *)0xBAD,
+  (void *)0xBAD,
+  (void *)0xBAD,
+  (void *)0xBAD,
+  (void *)0xBAD,
+};
+
+static inline void GpuSysGetOpenGLProcedureAddresses() {
+  glAttachShader = (void *)glXGetProcAddressARB((unsigned char *)"glAttachShader");
+  glBeginTransformFeedback = (void *)glXGetProcAddressARB((unsigned char *)"glBeginTransformFeedback");
+  glBindBuffer = (void *)glXGetProcAddressARB((unsigned char *)"glBindBuffer");
+  glBindFramebuffer = (void *)glXGetProcAddressARB((unsigned char *)"glBindFramebuffer");
+  glBindProgramPipeline = (void *)glXGetProcAddressARB((unsigned char *)"glBindProgramPipeline");
+  glBindSamplers = (void *)glXGetProcAddressARB((unsigned char *)"glBindSamplers");
+  glBindTextures = (void *)glXGetProcAddressARB((unsigned char *)"glBindTextures");
+  glBindTransformFeedback = (void *)glXGetProcAddressARB((unsigned char *)"glBindTransformFeedback");
+  glBindVertexArray = (void *)glXGetProcAddressARB((unsigned char *)"glBindVertexArray");
+  glBlitNamedFramebuffer = (void *)glXGetProcAddressARB((unsigned char *)"glBlitNamedFramebuffer");
+  glBufferStorage = (void *)glXGetProcAddressARB((unsigned char *)"glBufferStorage");
+  glClearTexSubImage = (void *)glXGetProcAddressARB((unsigned char *)"glClearTexSubImage");
+  glClipControl = (void *)glXGetProcAddressARB((unsigned char *)"glClipControl");
+  glCompileShader = (void *)glXGetProcAddressARB((unsigned char *)"glCompileShader");
+  glCompressedTextureSubImage3D = (void *)glXGetProcAddressARB((unsigned char *)"glCompressedTextureSubImage3D");
+  glCreateBuffers = (void *)glXGetProcAddressARB((unsigned char *)"glCreateBuffers");
+  glCreateFramebuffers = (void *)glXGetProcAddressARB((unsigned char *)"glCreateFramebuffers");
+  glCreateProgram = (void *)glXGetProcAddressARB((unsigned char *)"glCreateProgram");
+  glCreateProgramPipelines = (void *)glXGetProcAddressARB((unsigned char *)"glCreateProgramPipelines");
+  glCreateSamplers = (void *)glXGetProcAddressARB((unsigned char *)"glCreateSamplers");
+  glCreateShader = (void *)glXGetProcAddressARB((unsigned char *)"glCreateShader");
+  glCreateTextures = (void *)glXGetProcAddressARB((unsigned char *)"glCreateTextures");
+  glCreateTransformFeedbacks = (void *)glXGetProcAddressARB((unsigned char *)"glCreateTransformFeedbacks");
+  glCreateVertexArrays = (void *)glXGetProcAddressARB((unsigned char *)"glCreateVertexArrays");
+  glDebugMessageCallback = (void *)glXGetProcAddressARB((unsigned char *)"glDebugMessageCallback");
+  glDeleteBuffers = (void *)glXGetProcAddressARB((unsigned char *)"glDeleteBuffers");
+  glDeleteFramebuffers = (void *)glXGetProcAddressARB((unsigned char *)"glDeleteFramebuffers");
+  glDeleteProgram = (void *)glXGetProcAddressARB((unsigned char *)"glDeleteProgram");
+  glDeleteProgramPipelines = (void *)glXGetProcAddressARB((unsigned char *)"glDeleteProgramPipelines");
+  glDeleteSamplers = (void *)glXGetProcAddressARB((unsigned char *)"glDeleteSamplers");
+  glDeleteShader = (void *)glXGetProcAddressARB((unsigned char *)"glDeleteShader");
+  glDeleteTransformFeedbacks = (void *)glXGetProcAddressARB((unsigned char *)"glDeleteTransformFeedbacks");
+  glDetachShader = (void *)glXGetProcAddressARB((unsigned char *)"glDetachShader");
+  glDrawArraysInstanced = (void *)glXGetProcAddressARB((unsigned char *)"glDrawArraysInstanced");
+  glEndTransformFeedback = (void *)glXGetProcAddressARB((unsigned char *)"glEndTransformFeedback");
+  glGenBuffers = (void *)glXGetProcAddressARB((unsigned char *)"glGenBuffers");
+  glGenerateTextureMipmap = (void *)glXGetProcAddressARB((unsigned char *)"glGenerateTextureMipmap");
+  glGetCompressedTextureSubImage = (void *)glXGetProcAddressARB((unsigned char *)"glGetCompressedTextureSubImage");
+  glGetProgramInfoLog = (void *)glXGetProcAddressARB((unsigned char *)"glGetProgramInfoLog");
+  glGetProgramiv = (void *)glXGetProcAddressARB((unsigned char *)"glGetProgramiv");
+  glGetShaderInfoLog = (void *)glXGetProcAddressARB((unsigned char *)"glGetShaderInfoLog");
+  glGetShaderiv = (void *)glXGetProcAddressARB((unsigned char *)"glGetShaderiv");
+  glGetTextureSubImage = (void *)glXGetProcAddressARB((unsigned char *)"glGetTextureSubImage");
+  glLinkProgram = (void *)glXGetProcAddressARB((unsigned char *)"glLinkProgram");
+  glMapBufferRange = (void *)glXGetProcAddressARB((unsigned char *)"glMapBufferRange");
+  glMapNamedBufferRange = (void *)glXGetProcAddressARB((unsigned char *)"glMapNamedBufferRange");
+  glMultiDrawElementsIndirect = (void *)glXGetProcAddressARB((unsigned char *)"glMultiDrawElementsIndirect");
+  glNamedBufferStorage = (void *)glXGetProcAddressARB((unsigned char *)"glNamedBufferStorage");
+  glNamedFramebufferDrawBuffer = (void *)glXGetProcAddressARB((unsigned char *)"glNamedFramebufferDrawBuffer");
+  glNamedFramebufferDrawBuffers = (void *)glXGetProcAddressARB((unsigned char *)"glNamedFramebufferDrawBuffers");
+  glNamedFramebufferReadBuffer = (void *)glXGetProcAddressARB((unsigned char *)"glNamedFramebufferReadBuffer");
+  glNamedFramebufferTextureLayer = (void *)glXGetProcAddressARB((unsigned char *)"glNamedFramebufferTextureLayer");
+  glProgramParameteri = (void *)glXGetProcAddressARB((unsigned char *)"glProgramParameteri");
+  glProgramUniform1fv = (void *)glXGetProcAddressARB((unsigned char *)"glProgramUniform1fv");
+  glProgramUniform1iv = (void *)glXGetProcAddressARB((unsigned char *)"glProgramUniform1iv");
+  glProgramUniform1uiv = (void *)glXGetProcAddressARB((unsigned char *)"glProgramUniform1uiv");
+  glProgramUniform2fv = (void *)glXGetProcAddressARB((unsigned char *)"glProgramUniform2fv");
+  glProgramUniform3fv = (void *)glXGetProcAddressARB((unsigned char *)"glProgramUniform3fv");
+  glProgramUniform4fv = (void *)glXGetProcAddressARB((unsigned char *)"glProgramUniform4fv");
+  glSamplerParameteri = (void *)glXGetProcAddressARB((unsigned char *)"glSamplerParameteri");
+  glShaderSource = (void *)glXGetProcAddressARB((unsigned char *)"glShaderSource");
+  glTextureBufferRange = (void *)glXGetProcAddressARB((unsigned char *)"glTextureBufferRange");
+  glTextureStorage3D = (void *)glXGetProcAddressARB((unsigned char *)"glTextureStorage3D");
+  glTextureStorage3DMultisample = (void *)glXGetProcAddressARB((unsigned char *)"glTextureStorage3DMultisample");
+  glTextureSubImage3D = (void *)glXGetProcAddressARB((unsigned char *)"glTextureSubImage3D");
+  glTextureView = (void *)glXGetProcAddressARB((unsigned char *)"glTextureView");
+  glTransformFeedbackBufferRange = (void *)glXGetProcAddressARB((unsigned char *)"glTransformFeedbackBufferRange");
+  glTransformFeedbackVaryings = (void *)glXGetProcAddressARB((unsigned char *)"glTransformFeedbackVaryings");
+  glUseProgramStages = (void *)glXGetProcAddressARB((unsigned char *)"glUseProgramStages");
+}
+
+static inline void GpuSysGetLibcProcedureAddresses() {
+  g_gpulib_libc.access = dlsym(NULL, "access");
+  g_gpulib_libc.calloc = dlsym(NULL, "calloc");
+  g_gpulib_libc.fgetc = dlsym(NULL, "fgetc");
+  g_gpulib_libc.free = dlsym(NULL, "free");
+  g_gpulib_libc.getpid = dlsym(NULL, "getpid");
+  g_gpulib_libc.pclose = dlsym(NULL, "pclose");
+  g_gpulib_libc.popen = dlsym(NULL, "popen");
+  g_gpulib_libc.readlink = dlsym(NULL, "readlink");
+  g_gpulib_libc.realloc = dlsym(NULL, "realloc");
+  g_gpulib_libc.setlocale = dlsym(NULL, "setlocale");
+  g_gpulib_libc.strcat = dlsym(NULL, "strcat");
+  g_gpulib_libc.strcmp = dlsym(NULL, "strcmp");
+  g_gpulib_libc.strlen = dlsym(NULL, "strlen");
+  g_gpulib_libc.strndup = dlsym(NULL, "strndup");
+  g_gpulib_libc.strrchr = dlsym(NULL, "strrchr");
+  g_gpulib_libc.usleep = dlsym(NULL, "usleep");
+}
+
+static inline void GpuSysShell(char * cmd, char * out) {
+  int * ret = g_gpulib_libc.popen(cmd, "r");
+  for (int i = 0, c = g_gpulib_libc.fgetc(ret); c != -1; i += 1) {
+    if (out) out[i] = (char)c;
+    c = g_gpulib_libc.fgetc(ret);
+  }
+  g_gpulib_libc.pclose(ret);
+}
+
+static inline char * GpuSysReadSymLink(char * path) {
+  char * retval = NULL;
+  ssize_t len = 64;
+  ssize_t rc = -1;
+  for (;;) {
+    char * ptr = g_gpulib_libc.realloc(retval, (size_t)len);
+    retval = ptr;
+    rc = g_gpulib_libc.readlink(path, retval, len);
+    if (rc == -1) {
+      break;
+    } else if (rc < len) {
+      retval[rc] = '\0';
+      return retval;
+    }
+    len *= 2;
+  }
+  g_gpulib_libc.free(retval);
+  return NULL;
+}
+
+static inline char * GpuSysGetBasePath() {
+  char * retval = NULL;
+  if (retval == NULL && (g_gpulib_libc.access("/proc", 0) == 0)) {
+    retval = GpuSysReadSymLink("/proc/self/exe");
+    if (retval == NULL) {
+      char path[64] = {0};
+      int rc = snprintf(path, sizeof(path), "/proc/%llu/exe", (unsigned long long)g_gpulib_libc.getpid());
+      if ((rc > 0) && (rc < sizeof(path)))
+        retval = GpuSysReadSymLink(path);
+    }
+  }
+  if (retval != NULL) {
+    char * ptr = g_gpulib_libc.strrchr(retval, '/');
+    if (ptr != NULL) {
+      *(ptr + 1) = '\0';
+    } else {
+      g_gpulib_libc.free(retval);
+      retval = NULL;
+    }
+  }
+  if (retval != NULL) {
+    char * ptr = g_gpulib_libc.realloc(retval, g_gpulib_libc.strlen(retval) + 1);
+    if (ptr != NULL)
+      retval = ptr;
+  }
+  return retval;
+}
+
+static inline void GpuSysSetRelativeMouseMode(Display * dpy, Window win, int enabled) {
+  if (enabled) {
+    XColor black = {0};
+    char nil[8]  = {0};
+    Pixmap bitmap = XCreateBitmapFromData(dpy, win, nil, 8, 8);
+    Cursor cursor = XCreatePixmapCursor(dpy, bitmap, bitmap, &black, &black, 0, 0);
+    XDefineCursor(dpy, win, cursor);
+    XFreeCursor(dpy, cursor);
+    XFreePixmap(dpy, bitmap);
+    for (int attempts = 0; attempts < 100; attempts += 1) {
+      int result = XGrabPointer(
+        dpy, win, True, ButtonPressMask | ButtonReleaseMask | PointerMotionMask | FocusChangeMask,
+        GrabModeAsync, GrabModeAsync, win, None, CurrentTime);
+      if (result == GrabSuccess)
+        break;
+      g_gpulib_libc.usleep(50 * 1000);
+    }
+  } else {
+    XUndefineCursor(dpy, win);
+    XUngrabPointer(dpy, CurrentTime);
+  }
+}
+
+static inline int GpuSysIsExtensionSupported(char * extension) {
+  int num_extensions = 0;
+  glGetIntegerv(GL_NUM_EXTENSIONS, &num_extensions);
+  for (int i = 0; i < num_extensions; i += 1) {
+    char * ext = glGetStringi(GL_EXTENSIONS, i);
+    if (g_gpulib_libc.strcmp(ext, extension) == 0)
+      return 1;
+  }
+  return 0;
+}
+
+static inline void GpuSysCheckExtensions(int extension_count, char ** extensions) {
+  profB(__func__);
+  for (int i = 0; i < extension_count; i += 1) {
+    if (GpuSysIsExtensionSupported(extensions[i]) == 0) {
+      char cmd[GPULIB_MAX_PRINT_BYTES];
+      snprintf(cmd, GPULIB_MAX_PRINT_BYTES, "notify-send \"[GpuLib] Error: %s is not supported.\"", extensions[i]);
+      GpuSysShell(cmd, NULL);
+    }
+  }
+  profE(__func__);
+}
+
+static inline void GpuSysX11Window(
+    char * title, int title_bytes, int x, int y, int w, int h, int msaa_sample_count,
     Display ** out_display, Window * out_window)
 {
   profB("Set locale");
-  setlocale(LC_ALL, "");
+  g_gpulib_libc.setlocale(6, ""); // LC_ALL
   if (XSupportsLocale())
     XSetLocaleModifiers("@im=none");
   profE("Set locale");
@@ -465,193 +692,16 @@ static inline void GpuX11Window(
   out_window[0]  = win;
 }
 
-static inline void GpuSysShell(char * cmd, char * out) {
-  FILE * ret = popen(cmd, "r");
-  for (int i = 0, c = fgetc(ret); c != EOF; i += 1) {
-    if (out) out[i] = (char)c;
-    c = fgetc(ret);
-  }
-  pclose(ret);
-}
-
-static inline char * GpuSysReadSymLink(char * path) {
-  char * retval = NULL;
-  ssize_t len = 64;
-  ssize_t rc = -1;
-  for (;;) {
-    char * ptr = realloc(retval, (size_t)len);
-    assert(ptr != NULL);
-    retval = ptr;
-    rc = readlink(path, retval, len);
-    if (rc == -1) {
-      break;
-    } else if (rc < len) {
-      retval[rc] = '\0';
-      return retval;
-    }
-    len *= 2;
-  }
-  free(retval);
-  return NULL;
-}
-
-static inline char * GpuSysGetBasePath() {
-  char * retval = NULL;
-  if (retval == NULL && (access("/proc", F_OK) == 0)) {
-    retval = GpuSysReadSymLink("/proc/self/exe");
-    if (retval == NULL) {
-      char path[64] = {0};
-      int rc = snprintf(path, sizeof(path), "/proc/%llu/exe", (unsigned long long)getpid());
-      if ((rc > 0) && (rc < sizeof(path)))
-        retval = GpuSysReadSymLink(path);
-    }
-  }
-  if (retval != NULL) {
-    char * ptr = strrchr(retval, '/');
-    if (ptr != NULL) {
-      *(ptr + 1) = '\0';
-    } else {
-      free(retval);
-      retval = NULL;
-    }
-  }
-  if (retval != NULL) {
-    char * ptr = realloc(retval, strlen(retval) + 1);
-    if (ptr != NULL)
-      retval = ptr;
-  }
-  return retval;
-}
-
-static inline void GpuSysSetRelativeMouseMode(Display * dpy, Window win, int enabled) {
-  if (enabled) {
-    XColor black = {0};
-    char nil[8]  = {0};
-    Pixmap bitmap = XCreateBitmapFromData(dpy, win, nil, 8, 8);
-    Cursor cursor = XCreatePixmapCursor(dpy, bitmap, bitmap, &black, &black, 0, 0);
-    XDefineCursor(dpy, win, cursor);
-    XFreeCursor(dpy, cursor);
-    XFreePixmap(dpy, bitmap);
-    for (int attempts = 0; attempts < 100; attempts += 1) {
-      int result = XGrabPointer(
-        dpy, win, True, ButtonPressMask | ButtonReleaseMask | PointerMotionMask | FocusChangeMask,
-        GrabModeAsync, GrabModeAsync, win, None, CurrentTime);
-      if (result == GrabSuccess)
-        break;
-      usleep(50 * 1000);
-    }
-  } else {
-    XUndefineCursor(dpy, win);
-    XUngrabPointer(dpy, CurrentTime);
-  }
-}
-
-static inline int GpuIsExtensionSupported(char * extension) {
-  int num_extensions = 0;
-  glGetIntegerv(GL_NUM_EXTENSIONS, &num_extensions);
-  for (int i = 0; i < num_extensions; i += 1) {
-    char * ext = glGetStringi(GL_EXTENSIONS, i);
-    if (strcmp(ext, extension) == 0) {
-      return 1;
-    }
-  }
-  return 0;
-}
-
-static inline void GpuCheckExtensions(int extension_count, char ** extensions) {
-  profB(__func__);
-  for (int i = 0; i < extension_count; i += 1) {
-    if (GpuIsExtensionSupported(extensions[i]) == 0) {
-      char cmd[2048] = {0};
-      snprintf(cmd, 2048, "notify-send \"[GpuLib] Error: %s is not supported.\"", extensions[i]);
-      GpuSysShell(cmd, NULL);
-    }
-  }
-  profE(__func__);
-}
-
-static inline void GpuGetOpenGLProcedureAddresses() {
-  profB(__func__);
-  glAttachShader = (void *)glXGetProcAddressARB((unsigned char *)"glAttachShader");
-  glBeginTransformFeedback = (void *)glXGetProcAddressARB((unsigned char *)"glBeginTransformFeedback");
-  glBindBuffer = (void *)glXGetProcAddressARB((unsigned char *)"glBindBuffer");
-  glBindFramebuffer = (void *)glXGetProcAddressARB((unsigned char *)"glBindFramebuffer");
-  glBindProgramPipeline = (void *)glXGetProcAddressARB((unsigned char *)"glBindProgramPipeline");
-  glBindSamplers = (void *)glXGetProcAddressARB((unsigned char *)"glBindSamplers");
-  glBindTextures = (void *)glXGetProcAddressARB((unsigned char *)"glBindTextures");
-  glBindTransformFeedback = (void *)glXGetProcAddressARB((unsigned char *)"glBindTransformFeedback");
-  glBindVertexArray = (void *)glXGetProcAddressARB((unsigned char *)"glBindVertexArray");
-  glBlitNamedFramebuffer = (void *)glXGetProcAddressARB((unsigned char *)"glBlitNamedFramebuffer");
-  glBufferStorage = (void *)glXGetProcAddressARB((unsigned char *)"glBufferStorage");
-  glClearTexSubImage = (void *)glXGetProcAddressARB((unsigned char *)"glClearTexSubImage");
-  glClipControl = (void *)glXGetProcAddressARB((unsigned char *)"glClipControl");
-  glCompileShader = (void *)glXGetProcAddressARB((unsigned char *)"glCompileShader");
-  glCompressedTextureSubImage3D = (void *)glXGetProcAddressARB((unsigned char *)"glCompressedTextureSubImage3D");
-  glCreateBuffers = (void *)glXGetProcAddressARB((unsigned char *)"glCreateBuffers");
-  glCreateFramebuffers = (void *)glXGetProcAddressARB((unsigned char *)"glCreateFramebuffers");
-  glCreateProgram = (void *)glXGetProcAddressARB((unsigned char *)"glCreateProgram");
-  glCreateProgramPipelines = (void *)glXGetProcAddressARB((unsigned char *)"glCreateProgramPipelines");
-  glCreateSamplers = (void *)glXGetProcAddressARB((unsigned char *)"glCreateSamplers");
-  glCreateShader = (void *)glXGetProcAddressARB((unsigned char *)"glCreateShader");
-  glCreateTextures = (void *)glXGetProcAddressARB((unsigned char *)"glCreateTextures");
-  glCreateTransformFeedbacks = (void *)glXGetProcAddressARB((unsigned char *)"glCreateTransformFeedbacks");
-  glCreateVertexArrays = (void *)glXGetProcAddressARB((unsigned char *)"glCreateVertexArrays");
-  glDebugMessageCallback = (void *)glXGetProcAddressARB((unsigned char *)"glDebugMessageCallback");
-  glDeleteBuffers = (void *)glXGetProcAddressARB((unsigned char *)"glDeleteBuffers");
-  glDeleteFramebuffers = (void *)glXGetProcAddressARB((unsigned char *)"glDeleteFramebuffers");
-  glDeleteProgram = (void *)glXGetProcAddressARB((unsigned char *)"glDeleteProgram");
-  glDeleteProgramPipelines = (void *)glXGetProcAddressARB((unsigned char *)"glDeleteProgramPipelines");
-  glDeleteSamplers = (void *)glXGetProcAddressARB((unsigned char *)"glDeleteSamplers");
-  glDeleteShader = (void *)glXGetProcAddressARB((unsigned char *)"glDeleteShader");
-  glDeleteTransformFeedbacks = (void *)glXGetProcAddressARB((unsigned char *)"glDeleteTransformFeedbacks");
-  glDetachShader = (void *)glXGetProcAddressARB((unsigned char *)"glDetachShader");
-  glDrawArraysInstanced = (void *)glXGetProcAddressARB((unsigned char *)"glDrawArraysInstanced");
-  glEndTransformFeedback = (void *)glXGetProcAddressARB((unsigned char *)"glEndTransformFeedback");
-  glGenBuffers = (void *)glXGetProcAddressARB((unsigned char *)"glGenBuffers");
-  glGenerateTextureMipmap = (void *)glXGetProcAddressARB((unsigned char *)"glGenerateTextureMipmap");
-  glGetCompressedTextureSubImage = (void *)glXGetProcAddressARB((unsigned char *)"glGetCompressedTextureSubImage");
-  glGetProgramInfoLog = (void *)glXGetProcAddressARB((unsigned char *)"glGetProgramInfoLog");
-  glGetProgramiv = (void *)glXGetProcAddressARB((unsigned char *)"glGetProgramiv");
-  glGetShaderInfoLog = (void *)glXGetProcAddressARB((unsigned char *)"glGetShaderInfoLog");
-  glGetShaderiv = (void *)glXGetProcAddressARB((unsigned char *)"glGetShaderiv");
-  glGetTextureSubImage = (void *)glXGetProcAddressARB((unsigned char *)"glGetTextureSubImage");
-  glLinkProgram = (void *)glXGetProcAddressARB((unsigned char *)"glLinkProgram");
-  glMapBufferRange = (void *)glXGetProcAddressARB((unsigned char *)"glMapBufferRange");
-  glMapNamedBufferRange = (void *)glXGetProcAddressARB((unsigned char *)"glMapNamedBufferRange");
-  glMultiDrawElementsIndirect = (void *)glXGetProcAddressARB((unsigned char *)"glMultiDrawElementsIndirect");
-  glNamedBufferStorage = (void *)glXGetProcAddressARB((unsigned char *)"glNamedBufferStorage");
-  glNamedFramebufferDrawBuffer = (void *)glXGetProcAddressARB((unsigned char *)"glNamedFramebufferDrawBuffer");
-  glNamedFramebufferDrawBuffers = (void *)glXGetProcAddressARB((unsigned char *)"glNamedFramebufferDrawBuffers");
-  glNamedFramebufferReadBuffer = (void *)glXGetProcAddressARB((unsigned char *)"glNamedFramebufferReadBuffer");
-  glNamedFramebufferTextureLayer = (void *)glXGetProcAddressARB((unsigned char *)"glNamedFramebufferTextureLayer");
-  glProgramParameteri = (void *)glXGetProcAddressARB((unsigned char *)"glProgramParameteri");
-  glProgramUniform1fv = (void *)glXGetProcAddressARB((unsigned char *)"glProgramUniform1fv");
-  glProgramUniform1iv = (void *)glXGetProcAddressARB((unsigned char *)"glProgramUniform1iv");
-  glProgramUniform1uiv = (void *)glXGetProcAddressARB((unsigned char *)"glProgramUniform1uiv");
-  glProgramUniform2fv = (void *)glXGetProcAddressARB((unsigned char *)"glProgramUniform2fv");
-  glProgramUniform3fv = (void *)glXGetProcAddressARB((unsigned char *)"glProgramUniform3fv");
-  glProgramUniform4fv = (void *)glXGetProcAddressARB((unsigned char *)"glProgramUniform4fv");
-  glSamplerParameteri = (void *)glXGetProcAddressARB((unsigned char *)"glSamplerParameteri");
-  glShaderSource = (void *)glXGetProcAddressARB((unsigned char *)"glShaderSource");
-  glTextureBufferRange = (void *)glXGetProcAddressARB((unsigned char *)"glTextureBufferRange");
-  glTextureStorage3D = (void *)glXGetProcAddressARB((unsigned char *)"glTextureStorage3D");
-  glTextureStorage3DMultisample = (void *)glXGetProcAddressARB((unsigned char *)"glTextureStorage3DMultisample");
-  glTextureSubImage3D = (void *)glXGetProcAddressARB((unsigned char *)"glTextureSubImage3D");
-  glTextureView = (void *)glXGetProcAddressARB((unsigned char *)"glTextureView");
-  glTransformFeedbackBufferRange = (void *)glXGetProcAddressARB((unsigned char *)"glTransformFeedbackBufferRange");
-  glTransformFeedbackVaryings = (void *)glXGetProcAddressARB((unsigned char *)"glTransformFeedbackVaryings");
-  glUseProgramStages = (void *)glXGetProcAddressARB((unsigned char *)"glUseProgramStages");
-  profE(__func__);
-}
-
 static inline void GpuWindow(
-    char * window_title, int window_width, int window_height, int msaa_samples,
+    char * window_title, int window_title_bytes, int window_width, int window_height, int msaa_samples,
     char * out_scancodes, Display ** out_dpy, Window * out_win)
 {
+  GpuSysGetLibcProcedureAddresses();
+
   profB(__func__);
   Display * dpy = NULL;
   Window win = 0;
-  GpuX11Window(strlen(window_title), window_title, 0, 0, window_width, window_height, msaa_samples, &dpy, &win);
+  GpuSysX11Window(window_title, window_title_bytes, 0, 0, window_width, window_height, msaa_samples, &dpy, &win);
 
   glGetStringi = (void *)glXGetProcAddressARB((unsigned char *)"glGetStringi");
 
@@ -684,10 +734,12 @@ static inline void GpuWindow(
       "GL_ARB_texture_buffer_object_rgb32",
       "GL_ARB_texture_storage_multisample"
     };
-    GpuCheckExtensions(sizeof(extensions) / sizeof(extensions[0]), extensions);
+    GpuSysCheckExtensions(sizeof(extensions) / sizeof(extensions[0]), extensions);
   }
 
-  GpuGetOpenGLProcedureAddresses();
+  profB("GpuSysGetOpenGLProcedureAddresses");
+  GpuSysGetOpenGLProcedureAddresses();
+  profE("GpuSysGetOpenGLProcedureAddresses");
 
   profB("OpenGL state setup");
   {
@@ -756,7 +808,7 @@ static inline void * GpuMalloc(ptrdiff_t bytes, unsigned * out_buf_id) {
 static inline void * GpuCalloc(ptrdiff_t bytes, unsigned * out_buf_id) {
   profB(__func__);
   void * buf_ptr = GpuMalloc(bytes, out_buf_id);
-  memset((unsigned char *)buf_ptr, 0, bytes);
+  memset(buf_ptr, 0, bytes);
   profE(__func__);
   return buf_ptr;
 }
@@ -786,7 +838,7 @@ static inline unsigned * GpuMallocIndices(ptrdiff_t count, unsigned * out_idb_id
 static inline unsigned * GpuCallocIndices(ptrdiff_t count, unsigned * out_idb_id) {
   profB(__func__);
   unsigned * idb_ptr = GpuMallocIndices(count, out_idb_id);
-  memset((unsigned char *)idb_ptr, 0, count * sizeof(unsigned));
+  memset(idb_ptr, 0, count * sizeof(unsigned));
   profE(__func__);
   return idb_ptr;
 }
@@ -807,7 +859,7 @@ static inline struct gpu_cmd_t * GpuMallocCommands(ptrdiff_t count, unsigned * o
 static inline struct gpu_cmd_t * GpuCallocCommands(ptrdiff_t count, unsigned * out_dib_id) {
   profB(__func__);
   struct gpu_cmd_t * dib_ptr = GpuMallocCommands(count, out_dib_id);
-  memset((unsigned char *)dib_ptr, 0, count * sizeof(struct gpu_cmd_t));
+  memset(dib_ptr, 0, count * sizeof(struct gpu_cmd_t));
   profE(__func__);
   return dib_ptr;
 }
@@ -817,9 +869,9 @@ static inline unsigned GpuMallocImg(enum gpu_tex_format_e format, int width, int
   unsigned tex_id = 0;
   glCreateTextures(0x8C1A, 1, &tex_id); // GL_TEXTURE_2D_ARRAY
   if (width != height && mipmap_count > 1)
-    printf("[GpuLib] Warning: Rectangle image (width: %d, height: %d) is set to have more than one mipmap (mipmap_count: %d).\n\n", width, height, mipmap_count);
-  if (width / pow(2, mipmap_count - 1) < 1)
-    printf("[GpuLib] Warning: Image (width: %d) mipmap count (mipmap_count: %d) is greater than the max count of %d.\n\n", width, mipmap_count, (int)log2(width) + 1);
+    print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Warning: Rectangle image (width: %d, height: %d) is set to have more than one mipmap (mipmap_count: %d).\n\n", width, height, mipmap_count);
+  if (width / (1 << (mipmap_count - 1)) < 1)
+    print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Warning: Image (width: %d) mipmap count (mipmap_count: %d) is greater than the max count of %d.\n\n", width, mipmap_count, ilog2(width) + 1);
   glTextureStorage3D(tex_id, mipmap_count, format, width, height, layer_count);
   profE(__func__);
   return tex_id;
@@ -830,9 +882,9 @@ static inline unsigned GpuMallocCbm(enum gpu_tex_format_e format, int width, int
   unsigned tex_id = 0;
   glCreateTextures(0x9009, 1, &tex_id); // GL_TEXTURE_CUBE_MAP_ARRAY
   if (width != height)
-    printf("[GpuLib] Warning: Rectangle cubemap (width: %d, height: %d).\n\n", width, height);
-  if (width / pow(2, mipmap_count - 1) < 1)
-    printf("[GpuLib] Warning: Cubemap (width: %d) mipmap count (mipmap_count: %d) is greater than the max count of %d.\n\n", width, mipmap_count, (int)log2(width) + 1);
+    print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Warning: Rectangle cubemap (width: %d, height: %d).\n\n", width, height);
+  if (width / (1 << (mipmap_count - 1)) < 1)
+    print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Warning: Cubemap (width: %d) mipmap count (mipmap_count: %d) is greater than the max count of %d.\n\n", width, mipmap_count, ilog2(width) + 1);
   glTextureStorage3D(tex_id, mipmap_count, format, width, height, layer_count * 6);
   profE(__func__);
   return tex_id;
@@ -851,12 +903,12 @@ static inline unsigned GpuCallocImg(enum gpu_tex_format_e format, int width, int
   profB(__func__);
   unsigned tex_id = GpuMallocImg(format, width, height, layer_count, mipmap_count);
   switch (format) {
-    break; case 0x8CAC: { for (int i = 0; i < mipmap_count; i += 1) glClearTexSubImage(tex_id, i, 0, 0, 0, width / (int)pow(2, i), height / (int)pow(2, i), layer_count, 0x1902, 0x1406, (float [1]){0}); }                  // GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT
-    break; case 0x8051: { for (int i = 0; i < mipmap_count; i += 1) glClearTexSubImage(tex_id, i, 0, 0, 0, width / (int)pow(2, i), height / (int)pow(2, i), layer_count, 0x1907, 0x1400, (unsigned char [3]){0, 0, 0}); }    // GL_RGB8, GL_RGB, GL_BYTE
-    break; case 0x8058: { for (int i = 0; i < mipmap_count; i += 1) glClearTexSubImage(tex_id, i, 0, 0, 0, width / (int)pow(2, i), height / (int)pow(2, i), layer_count, 0x1908, 0x1400, (unsigned char [4]){0, 0, 0, 0}); } // GL_RGBA8, GL_RGBA, GL_BYTE
-    break; case 0x8C41: { for (int i = 0; i < mipmap_count; i += 1) glClearTexSubImage(tex_id, i, 0, 0, 0, width / (int)pow(2, i), height / (int)pow(2, i), layer_count, 0x1907, 0x1400, (unsigned char [3]){0, 0, 0}); }    // GL_SRGB8, GL_RGB, GL_BYTE
-    break; case 0x8C43: { for (int i = 0; i < mipmap_count; i += 1) glClearTexSubImage(tex_id, i, 0, 0, 0, width / (int)pow(2, i), height / (int)pow(2, i), layer_count, 0x1908, 0x1400, (unsigned char [4]){0, 0, 0, 0}); } // GL_SRGB8_ALPHA8, GL_RGBA, GL_BYTE
-    break; case 0x8814: { for (int i = 0; i < mipmap_count; i += 1) glClearTexSubImage(tex_id, i, 0, 0, 0, width / (int)pow(2, i), height / (int)pow(2, i), layer_count, 0x1908, 0x1406, (float [4]){0, 0, 0, 0}); }         // GL_RGBA32F, GL_RGBA, GL_FLOAT
+    break; case 0x8CAC: { for (int i = 0; i < mipmap_count; i += 1) glClearTexSubImage(tex_id, i, 0, 0, 0, width / (1 << i), height / (1 << i), layer_count, 0x1902, 0x1406, (float [1]){0}); }                  // GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT
+    break; case 0x8051: { for (int i = 0; i < mipmap_count; i += 1) glClearTexSubImage(tex_id, i, 0, 0, 0, width / (1 << i), height / (1 << i), layer_count, 0x1907, 0x1400, (unsigned char [3]){0, 0, 0}); }    // GL_RGB8, GL_RGB, GL_BYTE
+    break; case 0x8058: { for (int i = 0; i < mipmap_count; i += 1) glClearTexSubImage(tex_id, i, 0, 0, 0, width / (1 << i), height / (1 << i), layer_count, 0x1908, 0x1400, (unsigned char [4]){0, 0, 0, 0}); } // GL_RGBA8, GL_RGBA, GL_BYTE
+    break; case 0x8C41: { for (int i = 0; i < mipmap_count; i += 1) glClearTexSubImage(tex_id, i, 0, 0, 0, width / (1 << i), height / (1 << i), layer_count, 0x1907, 0x1400, (unsigned char [3]){0, 0, 0}); }    // GL_SRGB8, GL_RGB, GL_BYTE
+    break; case 0x8C43: { for (int i = 0; i < mipmap_count; i += 1) glClearTexSubImage(tex_id, i, 0, 0, 0, width / (1 << i), height / (1 << i), layer_count, 0x1908, 0x1400, (unsigned char [4]){0, 0, 0, 0}); } // GL_SRGB8_ALPHA8, GL_RGBA, GL_BYTE
+    break; case 0x8814: { for (int i = 0; i < mipmap_count; i += 1) glClearTexSubImage(tex_id, i, 0, 0, 0, width / (1 << i), height / (1 << i), layer_count, 0x1908, 0x1406, (float [4]){0, 0, 0, 0}); }         // GL_RGBA32F, GL_RGBA, GL_FLOAT
     break; case 0x83F0: // GL_COMPRESSED_RGB_S3TC_DXT1_EXT
            case 0x83F1: // GL_COMPRESSED_RGBA_S3TC_DXT1_EXT
            case 0x83F2: // GL_COMPRESSED_RGBA_S3TC_DXT3_EXT
@@ -864,7 +916,9 @@ static inline unsigned GpuCallocImg(enum gpu_tex_format_e format, int width, int
            case 0x8C4C: // GL_COMPRESSED_SRGB_S3TC_DXT1_EXT
            case 0x8C4D: // GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT
            case 0x8C4E: // GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT
-           case 0x8C4F: { printf("[GpuLib] Warning: ARB_clear_texture forbids clearing of compressed textures.\n\n"); } // GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT
+           case 0x8C4F: { // GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT
+             print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Warning: ARB_clear_texture forbids clearing of compressed textures.\n\n");
+           }
   }
   profE(__func__);
   return tex_id;
@@ -874,12 +928,12 @@ static inline unsigned GpuCallocCbm(enum gpu_tex_format_e format, int width, int
   profB(__func__);
   unsigned tex_id = GpuMallocCbm(format, width, height, layer_count, mipmap_count);
   switch (format) {
-    break; case 0x8CAC: { for (int i = 0; i < mipmap_count; i += 1) glClearTexSubImage(tex_id, i, 0, 0, 0, width / (int)pow(2, i), height / (int)pow(2, i), layer_count * 6, 0x1902, 0x1406, (float [1]){0}); }                  // GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT
-    break; case 0x8051: { for (int i = 0; i < mipmap_count; i += 1) glClearTexSubImage(tex_id, i, 0, 0, 0, width / (int)pow(2, i), height / (int)pow(2, i), layer_count * 6, 0x1907, 0x1400, (unsigned char [3]){0, 0, 0}); }    // GL_RGB8, GL_RGB, GL_BYTE
-    break; case 0x8058: { for (int i = 0; i < mipmap_count; i += 1) glClearTexSubImage(tex_id, i, 0, 0, 0, width / (int)pow(2, i), height / (int)pow(2, i), layer_count * 6, 0x1908, 0x1400, (unsigned char [4]){0, 0, 0, 0}); } // GL_RGBA8, GL_RGBA, GL_BYTE
-    break; case 0x8C41: { for (int i = 0; i < mipmap_count; i += 1) glClearTexSubImage(tex_id, i, 0, 0, 0, width / (int)pow(2, i), height / (int)pow(2, i), layer_count * 6, 0x1907, 0x1400, (unsigned char [3]){0, 0, 0}); }    // GL_SRGB8, GL_RGB, GL_BYTE
-    break; case 0x8C43: { for (int i = 0; i < mipmap_count; i += 1) glClearTexSubImage(tex_id, i, 0, 0, 0, width / (int)pow(2, i), height / (int)pow(2, i), layer_count * 6, 0x1908, 0x1400, (unsigned char [4]){0, 0, 0, 0}); } // GL_SRGB8_ALPHA8, GL_RGBA, GL_BYTE
-    break; case 0x8814: { for (int i = 0; i < mipmap_count; i += 1) glClearTexSubImage(tex_id, i, 0, 0, 0, width / (int)pow(2, i), height / (int)pow(2, i), layer_count * 6, 0x1908, 0x1406, (float [4]){0, 0, 0, 0}); }         // GL_RGBA32F, GL_RGBA, GL_FLOAT
+    break; case 0x8CAC: { for (int i = 0; i < mipmap_count; i += 1) glClearTexSubImage(tex_id, i, 0, 0, 0, width / (1 << i), height / (1 << i), layer_count * 6, 0x1902, 0x1406, (float [1]){0}); }                  // GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT
+    break; case 0x8051: { for (int i = 0; i < mipmap_count; i += 1) glClearTexSubImage(tex_id, i, 0, 0, 0, width / (1 << i), height / (1 << i), layer_count * 6, 0x1907, 0x1400, (unsigned char [3]){0, 0, 0}); }    // GL_RGB8, GL_RGB, GL_BYTE
+    break; case 0x8058: { for (int i = 0; i < mipmap_count; i += 1) glClearTexSubImage(tex_id, i, 0, 0, 0, width / (1 << i), height / (1 << i), layer_count * 6, 0x1908, 0x1400, (unsigned char [4]){0, 0, 0, 0}); } // GL_RGBA8, GL_RGBA, GL_BYTE
+    break; case 0x8C41: { for (int i = 0; i < mipmap_count; i += 1) glClearTexSubImage(tex_id, i, 0, 0, 0, width / (1 << i), height / (1 << i), layer_count * 6, 0x1907, 0x1400, (unsigned char [3]){0, 0, 0}); }    // GL_SRGB8, GL_RGB, GL_BYTE
+    break; case 0x8C43: { for (int i = 0; i < mipmap_count; i += 1) glClearTexSubImage(tex_id, i, 0, 0, 0, width / (1 << i), height / (1 << i), layer_count * 6, 0x1908, 0x1400, (unsigned char [4]){0, 0, 0, 0}); } // GL_SRGB8_ALPHA8, GL_RGBA, GL_BYTE
+    break; case 0x8814: { for (int i = 0; i < mipmap_count; i += 1) glClearTexSubImage(tex_id, i, 0, 0, 0, width / (1 << i), height / (1 << i), layer_count * 6, 0x1908, 0x1406, (float [4]){0, 0, 0, 0}); }         // GL_RGBA32F, GL_RGBA, GL_FLOAT
     break; case 0x83F0: // GL_COMPRESSED_RGB_S3TC_DXT1_EXT
            case 0x83F1: // GL_COMPRESSED_RGBA_S3TC_DXT1_EXT
            case 0x83F2: // GL_COMPRESSED_RGBA_S3TC_DXT3_EXT
@@ -887,7 +941,9 @@ static inline unsigned GpuCallocCbm(enum gpu_tex_format_e format, int width, int
            case 0x8C4C: // GL_COMPRESSED_SRGB_S3TC_DXT1_EXT
            case 0x8C4D: // GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT
            case 0x8C4E: // GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT
-           case 0x8C4F: { printf("[GpuLib] Warning: ARB_clear_texture forbids clearing of compressed textures.\n\n"); } // GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT
+           case 0x8C4F: { // GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT
+             print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Warning: ARB_clear_texture forbids clearing of compressed textures.\n\n");
+           }
   }
   profE(__func__);
   return tex_id;
@@ -910,7 +966,9 @@ static inline unsigned GpuCallocMsi(enum gpu_tex_format_e format, int width, int
            case 0x8C4C: // GL_COMPRESSED_SRGB_S3TC_DXT1_EXT
            case 0x8C4D: // GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT
            case 0x8C4E: // GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT
-           case 0x8C4F: { printf("[GpuLib] Warning: ARB_clear_texture forbids clearing of compressed textures.\n\n"); } // GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT
+           case 0x8C4F: { // GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT
+             print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Warning: ARB_clear_texture forbids clearing of compressed textures.\n\n");
+           }
   }
   profE(__func__);
   return tex_id;
@@ -1079,20 +1137,21 @@ static inline unsigned GpuPro(
       int info_len = 0;
       glGetShaderiv(shader_id, 0x8B84, &info_len); // GL_INFO_LOG_LENGTH
       if (info_len > 1) {
-        char * info_log = alloca(info_len + 1);
+        char info_log[info_len + 1];
+        info_log[info_len] = 0;
         glGetShaderInfoLog(shader_id, info_len, NULL, info_log);
-        printf("[GpuLib] Shader compiler: %s\n", info_log);
+        print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Shader compiler: %s\n", info_log);
         {
           int line = 1;
-          printf("[GpuLib] %05d: ", line);
+          print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] %05d: ", line);
           for (char c = *shader_string; c != '\0'; c = *++shader_string) {
-            printf("%c", c);
+            print(GPULIB_MAX_PRINT_BYTES, "%c", c);
             if (c == '\n') {
               line += 1;
-              printf("[GpuLib] %05d: ", line);
+              print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] %05d: ", line);
             }
           }
-          printf("\n\n");
+          print(GPULIB_MAX_PRINT_BYTES, "\n\n");
         }
       }
       glDeleteShader(shader_id);
@@ -1117,13 +1176,13 @@ static inline unsigned GpuPro(
     if (x2) { xfb_count += 1; xfb_place = 3; }
     if (x3) { xfb_count += 1; xfb_place = 4; }
     if (xfb_count != xfb_place) {
-      printf("[GpuLib] Error: Transform feedback varying names should not have NULL values in-between.\n");
-      printf("[GpuLib] Transform feedback varyings count: %d\n", xfb_count);
-      printf("[GpuLib] Transform feedback varying name 0: %s%s%s\n", xfb_name_0 ? "\"" : "", xfb_name_0 ? xfb_name_0 : "NULL", xfb_name_0 ? "\"" : "");
-      printf("[GpuLib] Transform feedback varying name 1: %s%s%s\n", xfb_name_1 ? "\"" : "", xfb_name_1 ? xfb_name_1 : "NULL", xfb_name_1 ? "\"" : "");
-      printf("[GpuLib] Transform feedback varying name 2: %s%s%s\n", xfb_name_2 ? "\"" : "", xfb_name_2 ? xfb_name_2 : "NULL", xfb_name_2 ? "\"" : "");
-      printf("[GpuLib] Transform feedback varying name 3: %s%s%s\n", xfb_name_3 ? "\"" : "", xfb_name_3 ? xfb_name_3 : "NULL", xfb_name_3 ? "\"" : "");
-      printf("\n");
+      print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Error: Transform feedback varying names should not have NULL values in-between.\n");
+      print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Transform feedback varyings count: %d\n", xfb_count);
+      print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Transform feedback varying name 0: %s%s%s\n", xfb_name_0 ? "\"" : "", xfb_name_0 ? xfb_name_0 : "NULL", xfb_name_0 ? "\"" : "");
+      print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Transform feedback varying name 1: %s%s%s\n", xfb_name_1 ? "\"" : "", xfb_name_1 ? xfb_name_1 : "NULL", xfb_name_1 ? "\"" : "");
+      print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Transform feedback varying name 2: %s%s%s\n", xfb_name_2 ? "\"" : "", xfb_name_2 ? xfb_name_2 : "NULL", xfb_name_2 ? "\"" : "");
+      print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Transform feedback varying name 3: %s%s%s\n", xfb_name_3 ? "\"" : "", xfb_name_3 ? xfb_name_3 : "NULL", xfb_name_3 ? "\"" : "");
+      print(GPULIB_MAX_PRINT_BYTES, "\n");
     }
     if (xfb_count > 0) {
       char * xfb_names[4] = {x0, x1, x2, x3};
@@ -1140,25 +1199,26 @@ static inline unsigned GpuPro(
       int info_len = 0;
       glGetProgramiv(pro_id, 0x8B84, &info_len); // GL_INFO_LOG_LENGTH
       if (info_len > 1) {
-        char * info_log = alloca(info_len + 1);
+        char info_log[info_len + 1];
+        info_log[info_len] = 0;
         glGetProgramInfoLog(pro_id, info_len, NULL, info_log);
-        printf("[GpuLib] Program linker: %s\n", info_log);
-        printf("[GpuLib] Transform feedback varyings count: %d\n", xfb_count);
-        printf("[GpuLib] Transform feedback varying name 0: %s%s%s\n", xfb_name_0 ? "\"" : "", xfb_name_0 ? xfb_name_0 : "NULL", xfb_name_0 ? "\"" : "");
-        printf("[GpuLib] Transform feedback varying name 1: %s%s%s\n", xfb_name_1 ? "\"" : "", xfb_name_1 ? xfb_name_1 : "NULL", xfb_name_1 ? "\"" : "");
-        printf("[GpuLib] Transform feedback varying name 2: %s%s%s\n", xfb_name_2 ? "\"" : "", xfb_name_2 ? xfb_name_2 : "NULL", xfb_name_2 ? "\"" : "");
-        printf("[GpuLib] Transform feedback varying name 3: %s%s%s\n", xfb_name_3 ? "\"" : "", xfb_name_3 ? xfb_name_3 : "NULL", xfb_name_3 ? "\"" : "");
+        print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Program linker: %s\n", info_log);
+        print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Transform feedback varyings count: %d\n", xfb_count);
+        print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Transform feedback varying name 0: %s%s%s\n", xfb_name_0 ? "\"" : "", xfb_name_0 ? xfb_name_0 : "NULL", xfb_name_0 ? "\"" : "");
+        print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Transform feedback varying name 1: %s%s%s\n", xfb_name_1 ? "\"" : "", xfb_name_1 ? xfb_name_1 : "NULL", xfb_name_1 ? "\"" : "");
+        print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Transform feedback varying name 2: %s%s%s\n", xfb_name_2 ? "\"" : "", xfb_name_2 ? xfb_name_2 : "NULL", xfb_name_2 ? "\"" : "");
+        print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Transform feedback varying name 3: %s%s%s\n", xfb_name_3 ? "\"" : "", xfb_name_3 ? xfb_name_3 : "NULL", xfb_name_3 ? "\"" : "");
         {
           int line = 1;
-          printf("[GpuLib] %05d: ", line);
+          print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] %05d: ", line);
           for (char c = *shader_string; c != '\0'; c = *++shader_string) {
-            printf("%c", c);
+            print(GPULIB_MAX_PRINT_BYTES, "%c", c);
             if (c == '\n') {
               line += 1;
-              printf("[GpuLib] %05d: ", line);
+              print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] %05d: ", line);
             }
           }
-          printf("\n\n");
+          print(GPULIB_MAX_PRINT_BYTES, "\n\n");
         }
       }
       glDetachShader(pro_id, shader_id);
@@ -1439,7 +1499,7 @@ static inline void GpuDebugCallback(unsigned source, unsigned type, unsigned id,
     "OTHER"
   };
 
-  printf(
+  print(GPULIB_MAX_PRINT_BYTES,
     "[GpuLib] OpenGL Debug Callback: ID: %u, Source: %s, Severity: %s, Type: %s\n"
     "[GpuLib] Message: %s\n\n",
     id,

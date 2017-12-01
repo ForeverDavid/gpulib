@@ -1,8 +1,8 @@
-#define _BSD_SOURCE // usleep()
-#include <unistd.h>
 #include <sys/stat.h>
-#include <dlfcn.h>
 #include "api.h"
+
+void * dlopen(const char *, int);
+int dlclose(void *);
 
 struct app_t {
   struct api_t api;
@@ -13,21 +13,23 @@ struct app_t {
 
 static void AppLoad(struct app_t * app, Display * dpy, Window win, char * scancodes) {
   struct stat attr = {0};
-  if ((stat("./libapp.so", &attr) == 0) && (app->id != attr.st_ino)) {
+  int err = (int)syscall2(4, (long)"libapp.so", (long)&attr);
+  if (err == 0 && app->id != attr.st_ino) {
     if (app->handle != NULL) {
       app->api.Unload(app->state);
       dlclose(app->handle);
     }
-    void * handle = dlopen("./libapp.so", RTLD_NOW);
+    void * handle = dlopen("libapp.so", 1);
     if (handle != NULL) {
       app->handle = handle;
       app->id = attr.st_ino;
       struct api_t * api = dlsym(app->handle, "APP_API");
       if (api != NULL) {
         app->api = api[0];
+        struct ImGuiContext * igc = igGetCurrentContext();
         if (app->state == NULL)
-          app->state = app->api.Init(dpy, win, scancodes);
-        app->api.Load(app->state, dpy, win, scancodes);
+          app->state = app->api.Init(dpy, win, scancodes, igc);
+        app->api.Load(app->state, dpy, win, scancodes, igc);
       } else {
         dlclose(app->handle);
         app->handle = NULL;
@@ -55,16 +57,24 @@ int main() {
   char scancodes[256 * 5] = {0};
   Display * dpy = NULL;
   Window win = 0;
-  GpuWindow("Hot Reload OpenGL", 1280, 720, 4, scancodes, &dpy, &win);
+  GpuWindow("Hot Reload OpenGL", sizeof("Hot Reload OpenGL"), 1280, 720, 4, scancodes, &dpy, &win);
   GpuSetDebugCallback(GpuDebugCallback);
+
+  ImguiInit(dpy, win, scancodes);
 
   struct app_t app = {0};
   for (;;) {
+    ImguiNewFrame();
     AppLoad(&app, dpy, win, scancodes);
     if (app.handle != NULL)
       if (app.api.Step(app.state, dpy, win, scancodes) != 0)
         break;
   }
   AppUnload(&app);
+
+  ImguiDeinit();
+
+  XDestroyWindow(dpy, win);
+  XCloseDisplay(dpy);
   return 0;
 }

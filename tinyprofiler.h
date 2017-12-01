@@ -1,5 +1,6 @@
 #pragma once
 
+#ifndef TINYPROFILER_NO_HEADER_IMPORT
 #ifdef _WIN32
 #include <windows.h>
 #else
@@ -9,6 +10,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#endif // TINYPROFILER_NO_HEADER_IMPORT
 
 #ifndef USE_TINYPROFILER
 
@@ -39,6 +41,18 @@ static inline void profEmt(int tid, char * name) {}
 #else
 #define TINYPROFILER_OUTPUT_STRING(x) fprintf(stderr, "%s", x)
 #endif
+#endif
+
+#ifndef TINYPROFILER_CALLOC
+#define TINYPROFILER_CALLOC calloc
+#endif
+
+#ifndef TINYPROFILER_SNPRINTF
+#define TINYPROFILER_SNPRINTF snprintf
+#endif
+
+#ifndef TINYPROFILER_FREE
+#define TINYPROFILER_FREE free
 #endif
 
 #ifndef TINYPROFILER_TIME_TO_TS
@@ -112,31 +126,31 @@ static inline void profAlloc(size_t sample_count_per_thread) {
 #endif
   for (int t = 0; t < TINYPROFILER_MAX_NUM_OF_THREADS; t += 1) {
     _g_prof_data[t].sample_count = sample_count_per_thread;
-    _g_prof_data[t].sample = (struct _tinyprofiler_sample_t *)calloc(sample_count_per_thread, sizeof(struct _tinyprofiler_sample_t));
+    _g_prof_data[t].sample = (struct _tinyprofiler_sample_t *)TINYPROFILER_CALLOC(sample_count_per_thread, sizeof(struct _tinyprofiler_sample_t));
   }
 }
 
 static inline void profPrintAndFree() {
   unsigned long self_t_begin = (unsigned long)_prof_time();
   size_t line_bytes = TINYPROFILER_MAX_JSON_LINE_LENGTH * sizeof(char);
-  char * line = (char *)calloc(TINYPROFILER_MAX_JSON_LINE_LENGTH, sizeof(char));
-  snprintf(line, line_bytes, "{\"traceEvents\":[{}\n"); TINYPROFILER_OUTPUT_STRING(line);
+  char * line = (char *)TINYPROFILER_CALLOC(TINYPROFILER_MAX_JSON_LINE_LENGTH, sizeof(char));
+  TINYPROFILER_SNPRINTF(line, line_bytes, "{\"traceEvents\":[{}\n"); TINYPROFILER_OUTPUT_STRING(line);
   for (int t = 0; t < TINYPROFILER_MAX_NUM_OF_THREADS; t += 1) {
     for (size_t i = 0; i < _g_prof_data[t].sample_count; i += 1) {
       char tid = _g_prof_data[t].sample[i].tid;
       if (tid == 0) break;
       char ph  = tid > 0 ? 'B' : 'E';
       tid = tid > 0 ? tid : tid * -1;
-      snprintf(line, line_bytes, ",{\"ph\":\"%c\",\"ts\":%lu,\"pid\":0,\"tid\":%d,\"name\":\"%s\"}\n", ph, TINYPROFILER_TIME_TO_TS(_g_prof_data[t].sample[i].ts), tid - 1, _g_prof_data[t].sample[i].name);
+      TINYPROFILER_SNPRINTF(line, line_bytes, ",{\"ph\":\"%c\",\"ts\":%lu,\"pid\":0,\"tid\":%d,\"name\":\"%s\"}\n", ph, TINYPROFILER_TIME_TO_TS(_g_prof_data[t].sample[i].ts), tid - 1, _g_prof_data[t].sample[i].name);
       TINYPROFILER_OUTPUT_STRING(line);
     }
   }
-  snprintf(line, line_bytes, ",{\"ph\":\"B\",\"ts\":%lu,\"pid\":0,\"tid\":0,\"name\":\"%s\"}\n", TINYPROFILER_TIME_TO_TS((unsigned long)self_t_begin), __func__); TINYPROFILER_OUTPUT_STRING(line);
-  snprintf(line, line_bytes, ",{\"ph\":\"E\",\"ts\":%lu,\"pid\":0,\"tid\":0,\"name\":\"%s\"}\n", TINYPROFILER_TIME_TO_TS((unsigned long)_prof_time()), __func__); TINYPROFILER_OUTPUT_STRING(line);
-  snprintf(line, line_bytes, "]}\n"); TINYPROFILER_OUTPUT_STRING(line);
+  TINYPROFILER_SNPRINTF(line, line_bytes, ",{\"ph\":\"B\",\"ts\":%lu,\"pid\":0,\"tid\":0,\"name\":\"%s\"}\n", TINYPROFILER_TIME_TO_TS((unsigned long)self_t_begin), __func__); TINYPROFILER_OUTPUT_STRING(line);
+  TINYPROFILER_SNPRINTF(line, line_bytes, ",{\"ph\":\"E\",\"ts\":%lu,\"pid\":0,\"tid\":0,\"name\":\"%s\"}\n", TINYPROFILER_TIME_TO_TS((unsigned long)_prof_time()), __func__); TINYPROFILER_OUTPUT_STRING(line);
+  TINYPROFILER_SNPRINTF(line, line_bytes, "]}\n"); TINYPROFILER_OUTPUT_STRING(line);
   for (int t = 0; t < TINYPROFILER_MAX_NUM_OF_THREADS; t += 1)
-    free(_g_prof_data[t].sample);
-  free(line);
+    TINYPROFILER_FREE(_g_prof_data[t].sample);
+  TINYPROFILER_FREE(line);
 }
 
 #ifndef profB

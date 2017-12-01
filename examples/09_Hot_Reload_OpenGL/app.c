@@ -1,4 +1,3 @@
-#include <sys/mman.h>
 #include "api.h"
 
 typedef struct { float x, y, z; } vec3;
@@ -25,11 +24,15 @@ enum {
   cast_tex_vertices_e,
 };
 
-static void * AppInit(Display * dpy, Window win, char * scancodes) {
+static void * AppInit(Display * dpy, Window win, char * scancodes, struct ImGuiContext * igc) {
   void * state = mmap(0, 256L * 1024L * 1024L * 1024L, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE | MAP_NORESERVE, -1, 0);
   s = state;
 
-  GpuGetOpenGLProcedureAddresses();
+  GpuSysGetLibcProcedureAddresses();
+  GpuSysGetOpenGLProcedureAddresses();
+  igSetCurrentContext(igc);
+  g_ig_dpy = dpy;
+  g_ig_win = win;
 
   s->vertices = GpuCalloc(4096 * sizeof(vec3), &s->vertices_id);
   s->indices  = GpuCallocIndices(4096, &s->indices_id);
@@ -63,11 +66,14 @@ static void * AppInit(Display * dpy, Window win, char * scancodes) {
   return state;
 }
 
-static void AppLoad(void * state, Display * dpy, Window win, char * scancodes) {
+static void AppLoad(void * state, Display * dpy, Window win, char * scancodes, struct ImGuiContext * igc) {
   s = state;
 
-  GpuGetOpenGLProcedureAddresses();
-  ImguiInit(dpy, win, scancodes);
+  GpuSysGetLibcProcedureAddresses();
+  GpuSysGetOpenGLProcedureAddresses();
+  igSetCurrentContext(igc);
+  g_ig_dpy = dpy;
+  g_ig_win = win;
 
   s->vertices[0] = (vec3){ 0.0,  0.5, 0.0};
   s->vertices[1] = (vec3){ 0.5, -0.5, 0.0};
@@ -99,8 +105,6 @@ static int AppStep(void * state, Display * dpy, Window win, char * scancodes) {
     }
   }
 
-  ImguiNewFrame();
-
   if (GpuDebugFrag(&s->frag, s->frag_string, sizeof(s->frag_string))) {
     glDeleteProgramPipelines(1, &s->ppo);
     s->ppo = GpuPpo(s->vert, s->frag);
@@ -115,6 +119,7 @@ static int AppStep(void * state, Display * dpy, Window win, char * scancodes) {
 
   igRender();
   GpuSwap(dpy, win);
+
   return 0;
 }
 
@@ -122,7 +127,6 @@ static void AppUnload(void * state) {
   s = state;
 
   glDeleteTextures(4096, s->cast_tex);
-  ImguiDeinit();
 }
 
 static void AppDeinit(void * state) {

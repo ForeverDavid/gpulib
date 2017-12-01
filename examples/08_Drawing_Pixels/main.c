@@ -1,5 +1,4 @@
 #include "../../gpulib.h"
-#include <sys/time.h>
 
 static inline unsigned long GetTimeMs() {
   struct timeval tv;
@@ -10,7 +9,7 @@ static inline unsigned long GetTimeMs() {
 int main() {
   Display * dpy = NULL;
   Window win = 0;
-  GpuWindow("Drawing Pixels", 1280, 720, 4, NULL, &dpy, &win);
+  GpuWindow("Drawing Pixels", sizeof("Drawing Pixels"), 1280, 720, 4, NULL, &dpy, &win);
   GpuSetDebugCallback(GpuDebugCallback);
 
   unsigned vert = GpuVert(GPU_VERT_HEAD
@@ -81,5 +80,7 @@ int main() {
   }
 
 exit:;
+  XDestroyWindow(dpy, win);
+  XCloseDisplay(dpy);
   return 0;
 }
