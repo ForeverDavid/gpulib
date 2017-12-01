@@ -8,7 +8,7 @@ geometry, post-process textures and compute arrays on GPU.
 
 The contract:
 
- * Linux and X11 only. Doesn't target Windows, macOS, WebGL or OpenGL ES devices.
+ * x64 Linux and X11 only. Doesn't target Windows, macOS, WebGL or OpenGL ES devices.
  * No multithreaded or asynchronous CPU<->GPU interactions. No barriers or sync points except for glFinish calls.
  * Not all modern OpenGL extensions are used, only those which are supported on low-end hardware and latest Mesa.
 
