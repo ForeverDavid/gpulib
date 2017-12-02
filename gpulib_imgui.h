@@ -605,7 +605,7 @@ static inline void ImguiCreateDeviceObjects() {
 
 static inline unsigned long ImguiSysGetTimeMs() {
   struct timeval tv;
-  gettimeofday(&tv, NULL);
+  stdlib_gettimeofday(&tv, NULL);
   return tv.tv_sec * 1000UL + tv.tv_usec / 1000UL;
 }
 
@@ -657,7 +657,7 @@ static inline void ImguiDeinit() {
 static inline int ImguiX11ScancodeToKeycode(char * scancodes, char * scancode) {
   for (int i = 0; i < 256; i += 1) {
     char * code = &scancodes[i * 5];
-    if (nstreq(4, code, scancode))
+    if (stdlib_nstreq(4, code, scancode))
       return i;
   }
   return -1;

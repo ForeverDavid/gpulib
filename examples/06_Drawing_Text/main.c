@@ -16,6 +16,11 @@ struct {
 };
 
 #define GPUMESH_NO_HEADER_IMPORT
+#define open stdlib_open
+#define close stdlib_close
+#define mmap stdlib_mmap
+#define munmap stdlib_munmap
+#define assert stdlib_assert
 #include "meshes/MeshIBVB.h"
 #include "meshes/MeshUV.h"
 

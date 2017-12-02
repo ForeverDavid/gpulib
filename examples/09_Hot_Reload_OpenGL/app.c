@@ -25,7 +25,7 @@ enum {
 };
 
 static void * AppInit(Display * dpy, Window win, char * scancodes, struct ImGuiContext * igc) {
-  void * state = mmap(0, 256L * 1024L * 1024L * 1024L, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE | MAP_NORESERVE, -1, 0);
+  void * state = stdlib_mmap(0, 256L * 1024L * 1024L * 1024L, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE | MAP_NORESERVE, -1, 0);
   s = state;
 
   GpuSysGetLibcProcedureAddresses();
@@ -132,7 +132,7 @@ static void AppUnload(void * state) {
 static void AppDeinit(void * state) {
   s = state;
 
-  munmap(state, 256L * 1024L * 1024L * 1024L);
+  stdlib_munmap(state, 256L * 1024L * 1024L * 1024L);
 }
 
 struct api_t APP_API = {

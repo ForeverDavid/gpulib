@@ -46,7 +46,7 @@ static inline int GpuDebugProgramCallback(struct ImGuiTextEditCallbackData * dat
   } else if (g_gpulib_debug_program_type == 0x8B30) { // GL_FRAGMENT_SHADER
     g_gpulib_debug_program_id = GpuFrag(g_gpulib_debug_program_string);
   } else {
-    assert(0);
+    stdlib_assert(0);
   }
   g_gpulib_debug_program_compiled = 1;
   return 0;
@@ -97,7 +97,7 @@ static inline void GpuDebugImgEx(unsigned tex_id, char * name) {
 
   igText("Inspect pixel:");
 
-  int max_mipmap_count = w != h ? 1 : ilog2(w) + 1;
+  int max_mipmap_count = w != h ? 1 : stdlib_log2i(w) + 1;
 
   static int g_gpulib_mipmap_level = 0;
   {
@@ -151,7 +151,7 @@ static inline void GpuDebugImgEx(unsigned tex_id, char * name) {
       break; case 0x8C41: { is_srgb = 1; e_count = 0x1907; e_type = 0x1400; } // GL_SRGB8, GL_RGB, GL_BYTE
       break; case 0x8C43: { is_srgb = 1; e_count = 0x1908; e_type = 0x1400; } // GL_SRGB8_ALPHA8, GL_RGBA, GL_BYTE
       break; case 0x8814: { is_srgb = 0; e_count = 0x1908; e_type = 0x1406; } // GL_RGBA32F, GL_RGBA, GL_FLOAT
-      break; default: { assert(0); }
+      break; default: { stdlib_assert(0); }
     }
     if (e_type == 0x1406) { // GL_FLOAT
       if (e_count == 0x1902) { // GL_DEPTH_COMPONENT
@@ -163,7 +163,7 @@ static inline void GpuDebugImgEx(unsigned tex_id, char * name) {
         GpuGet(g_gpulib_debug_texture, 0, g_gpulib_x, g_gpulib_y, 1, 1, 1, 0, e_count, e_type, sizeof(pix), pix);
         igText("Pixel output: r: %.7f, g: %.7f, b: %.7f, a: %.7f", pix[0], pix[1], pix[2], pix[3]);
       } else {
-        assert(0);
+        stdlib_assert(0);
       }
     } else if (e_type == 0x1400) { // GL_BYTE
       if (e_count == 0x1907) { // GL_RGB
@@ -175,10 +175,10 @@ static inline void GpuDebugImgEx(unsigned tex_id, char * name) {
         GpuGet(g_gpulib_debug_texture, 0, g_gpulib_x, g_gpulib_y, 1, 1, 1, 0, e_count, e_type, sizeof(pix), pix);
         igText("Pixel output: r: %u, g: %u, b: %u, a: %u", pix[0], pix[1], pix[2], pix[3]);
       } else {
-        assert(0);
+        stdlib_assert(0);
       }
     } else {
-      assert(0);
+      stdlib_assert(0);
     }
   }
 

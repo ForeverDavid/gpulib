@@ -419,7 +419,7 @@ static inline char * GpuSysGetBasePath() {
     retval = GpuSysReadSymLink("/proc/self/exe");
     if (retval == NULL) {
       char path[64] = {0};
-      int rc = snprintf(path, sizeof(path), "/proc/%llu/exe", (unsigned long long)g_gpulib_libc.getpid());
+      int rc = stdlib_snprintf(path, sizeof(path), "/proc/%llu/exe", (unsigned long long)g_gpulib_libc.getpid());
       if ((rc > 0) && (rc < sizeof(path)))
         retval = GpuSysReadSymLink(path);
     }
@@ -480,7 +480,7 @@ static inline void GpuSysCheckExtensions(int extension_count, char ** extensions
   for (int i = 0; i < extension_count; i += 1) {
     if (GpuSysIsExtensionSupported(extensions[i]) == 0) {
       char cmd[GPULIB_MAX_PRINT_BYTES];
-      snprintf(cmd, GPULIB_MAX_PRINT_BYTES, "notify-send \"[GpuLib] Error: %s is not supported.\"", extensions[i]);
+      stdlib_snprintf(cmd, GPULIB_MAX_PRINT_BYTES, "notify-send \"[GpuLib] Error: %s is not supported.\"", extensions[i]);
       GpuSysShell(cmd, NULL);
     }
   }
@@ -500,7 +500,7 @@ static inline void GpuSysX11Window(
   profB("XOpenDisplay");
   Display * dpy = XOpenDisplay(NULL);
   profE("XOpenDisplay");
-  assert(dpy != NULL);
+  stdlib_assert(dpy != NULL);
 
   GLXFBConfig fbconfig = 0;
   XVisualInfo * visual = NULL;
@@ -539,7 +539,7 @@ static inline void GpuSysX11Window(
     XFree(fbconfigs);
     profE("fbconfig search");
   }
-  assert(fbconfig != 0);
+  stdlib_assert(fbconfig != 0);
 
 #if 0
   {
@@ -594,7 +594,7 @@ static inline void GpuSysX11Window(
     profE("XCreateWindow");
     XFree(visual);
     visual = NULL;
-    assert(win != 0);
+    stdlib_assert(win != 0);
   }
 
   {
@@ -640,7 +640,7 @@ static inline void GpuSysX11Window(
   GLXContext glx_ctx = NULL;
   {
     GLXContext (*glXCreateContextAttribsARB)(Display *, GLXFBConfig, GLXContext, int, int *) = (void *)glXGetProcAddressARB((unsigned char *)"glXCreateContextAttribsARB");
-    assert(glXCreateContextAttribsARB != NULL);
+    stdlib_assert(glXCreateContextAttribsARB != NULL);
     int attribs[] = {
       0x2091, 3, // GLX_CONTEXT_MAJOR_VERSION_ARB
       0x2092, 3, // GLX_CONTEXT_MINOR_VERSION_ARB
@@ -650,21 +650,21 @@ static inline void GpuSysX11Window(
     profB("glXCreateContextAttribsARB");
     glx_ctx = glXCreateContextAttribsARB(dpy, fbconfig, 0, 1, attribs);
     profE("glXCreateContextAttribsARB");
-    assert(glx_ctx != NULL);
+    stdlib_assert(glx_ctx != NULL);
   }
 
   {
     profB("glXMakeContextCurrent");
     int is_glx_context_current = glXMakeContextCurrent(dpy, win, win, glx_ctx);
     profE("glXMakeContextCurrent");
-    assert(is_glx_context_current != 0);
+    stdlib_assert(is_glx_context_current != 0);
   }
 
   {
     profB("XInternAtom WM_DELETE_WINDOW");
     Atom delete_win_atom = XInternAtom(dpy, "WM_DELETE_WINDOW", 0);
     profE("XInternAtom WM_DELETE_WINDOW");
-    assert(delete_win_atom != None);
+    stdlib_assert(delete_win_atom != None);
     profB("XSetWMProtocols");
     XSetWMProtocols(dpy, win, &delete_win_atom, 1);
     profE("XSetWMProtocols");
@@ -869,9 +869,9 @@ static inline unsigned GpuMallocImg(enum gpu_tex_format_e format, int width, int
   unsigned tex_id = 0;
   glCreateTextures(0x8C1A, 1, &tex_id); // GL_TEXTURE_2D_ARRAY
   if (width != height && mipmap_count > 1)
-    print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Warning: Rectangle image (width: %d, height: %d) is set to have more than one mipmap (mipmap_count: %d).\n\n", width, height, mipmap_count);
+    stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Warning: Rectangle image (width: %d, height: %d) is set to have more than one mipmap (mipmap_count: %d).\n\n", width, height, mipmap_count);
   if (width / (1 << (mipmap_count - 1)) < 1)
-    print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Warning: Image (width: %d) mipmap count (mipmap_count: %d) is greater than the max count of %d.\n\n", width, mipmap_count, ilog2(width) + 1);
+    stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Warning: Image (width: %d) mipmap count (mipmap_count: %d) is greater than the max count of %d.\n\n", width, mipmap_count, stdlib_log2i(width) + 1);
   glTextureStorage3D(tex_id, mipmap_count, format, width, height, layer_count);
   profE(__func__);
   return tex_id;
@@ -882,9 +882,9 @@ static inline unsigned GpuMallocCbm(enum gpu_tex_format_e format, int width, int
   unsigned tex_id = 0;
   glCreateTextures(0x9009, 1, &tex_id); // GL_TEXTURE_CUBE_MAP_ARRAY
   if (width != height)
-    print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Warning: Rectangle cubemap (width: %d, height: %d).\n\n", width, height);
+    stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Warning: Rectangle cubemap (width: %d, height: %d).\n\n", width, height);
   if (width / (1 << (mipmap_count - 1)) < 1)
-    print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Warning: Cubemap (width: %d) mipmap count (mipmap_count: %d) is greater than the max count of %d.\n\n", width, mipmap_count, ilog2(width) + 1);
+    stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Warning: Cubemap (width: %d) mipmap count (mipmap_count: %d) is greater than the max count of %d.\n\n", width, mipmap_count, stdlib_log2i(width) + 1);
   glTextureStorage3D(tex_id, mipmap_count, format, width, height, layer_count * 6);
   profE(__func__);
   return tex_id;
@@ -917,7 +917,7 @@ static inline unsigned GpuCallocImg(enum gpu_tex_format_e format, int width, int
            case 0x8C4D: // GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT
            case 0x8C4E: // GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT
            case 0x8C4F: { // GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT
-             print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Warning: ARB_clear_texture forbids clearing of compressed textures.\n\n");
+             stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Warning: ARB_clear_texture forbids clearing of compressed textures.\n\n");
            }
   }
   profE(__func__);
@@ -942,7 +942,7 @@ static inline unsigned GpuCallocCbm(enum gpu_tex_format_e format, int width, int
            case 0x8C4D: // GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT
            case 0x8C4E: // GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT
            case 0x8C4F: { // GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT
-             print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Warning: ARB_clear_texture forbids clearing of compressed textures.\n\n");
+             stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Warning: ARB_clear_texture forbids clearing of compressed textures.\n\n");
            }
   }
   profE(__func__);
@@ -967,7 +967,7 @@ static inline unsigned GpuCallocMsi(enum gpu_tex_format_e format, int width, int
            case 0x8C4D: // GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT
            case 0x8C4E: // GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT
            case 0x8C4F: { // GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT
-             print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Warning: ARB_clear_texture forbids clearing of compressed textures.\n\n");
+             stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Warning: ARB_clear_texture forbids clearing of compressed textures.\n\n");
            }
   }
   profE(__func__);
@@ -1054,12 +1054,12 @@ static inline void GpuSetCpi(
 
 static inline int GpuLoadRgbImgBinary(unsigned tex_id, int width, int height, int layer_count, char * img_binary_filepath) {
   profB(__func__);
-  int fd = open(img_binary_filepath, O_RDONLY);
+  int fd = stdlib_open(img_binary_filepath, O_RDONLY);
   if (fd == 0) {
     profE(__func__);
     return 1;
   }
-  char * p = mmap(0, (width * height * 3) * layer_count, PROT_READ, MAP_PRIVATE, fd, 0);
+  char * p = stdlib_mmap(0, (width * height * 3) * layer_count, PROT_READ, MAP_PRIVATE, fd, 0);
   if (p == NULL) {
     profE(__func__);
     return 1;
@@ -1070,20 +1070,20 @@ static inline int GpuLoadRgbImgBinary(unsigned tex_id, int width, int height, in
   profB("glGenerateTextureMipmap");
   glGenerateTextureMipmap(tex_id);
   profE("glGenerateTextureMipmap");
-  munmap(p, (width * height * 3) * layer_count);
-  close(fd);
+  stdlib_munmap(p, (width * height * 3) * layer_count);
+  stdlib_close(fd);
   profE(__func__);
   return 0;
 }
 
 static inline int GpuLoadRgbCbmBinary(unsigned tex_id, int width, int height, int layer_count, char * cbm_binary_filepath) {
   profB(__func__);
-  int fd = open(cbm_binary_filepath, O_RDONLY);
+  int fd = stdlib_open(cbm_binary_filepath, O_RDONLY);
   if (fd == 0) {
     profE(__func__);
     return 1;
   }
-  char * p = mmap(0, (width * height * 3) * (layer_count * 6), PROT_READ, MAP_PRIVATE, fd, 0);
+  char * p = stdlib_mmap(0, (width * height * 3) * (layer_count * 6), PROT_READ, MAP_PRIVATE, fd, 0);
   if (p == NULL) {
     profE(__func__);
     return 1;
@@ -1094,8 +1094,8 @@ static inline int GpuLoadRgbCbmBinary(unsigned tex_id, int width, int height, in
   profB("glGenerateTextureMipmap");
   glGenerateTextureMipmap(tex_id);
   profE("glGenerateTextureMipmap");
-  munmap(p, (width * height * 3) * (layer_count * 6));
-  close(fd);
+  stdlib_munmap(p, (width * height * 3) * (layer_count * 6));
+  stdlib_close(fd);
   profE(__func__);
   return 0;
 }
@@ -1140,18 +1140,18 @@ static inline unsigned GpuPro(
         char info_log[info_len + 1];
         info_log[info_len] = 0;
         glGetShaderInfoLog(shader_id, info_len, NULL, info_log);
-        print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Shader compiler: %s\n", info_log);
+        stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Shader compiler: %s\n", info_log);
         {
           int line = 1;
-          print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] %05d: ", line);
+          stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] %05d: ", line);
           for (char c = *shader_string; c != '\0'; c = *++shader_string) {
-            print(GPULIB_MAX_PRINT_BYTES, "%c", c);
+            stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "%c", c);
             if (c == '\n') {
               line += 1;
-              print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] %05d: ", line);
+              stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] %05d: ", line);
             }
           }
-          print(GPULIB_MAX_PRINT_BYTES, "\n\n");
+          stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "\n\n");
         }
       }
       glDeleteShader(shader_id);
@@ -1176,13 +1176,13 @@ static inline unsigned GpuPro(
     if (x2) { xfb_count += 1; xfb_place = 3; }
     if (x3) { xfb_count += 1; xfb_place = 4; }
     if (xfb_count != xfb_place) {
-      print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Error: Transform feedback varying names should not have NULL values in-between.\n");
-      print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Transform feedback varyings count: %d\n", xfb_count);
-      print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Transform feedback varying name 0: %s%s%s\n", xfb_name_0 ? "\"" : "", xfb_name_0 ? xfb_name_0 : "NULL", xfb_name_0 ? "\"" : "");
-      print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Transform feedback varying name 1: %s%s%s\n", xfb_name_1 ? "\"" : "", xfb_name_1 ? xfb_name_1 : "NULL", xfb_name_1 ? "\"" : "");
-      print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Transform feedback varying name 2: %s%s%s\n", xfb_name_2 ? "\"" : "", xfb_name_2 ? xfb_name_2 : "NULL", xfb_name_2 ? "\"" : "");
-      print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Transform feedback varying name 3: %s%s%s\n", xfb_name_3 ? "\"" : "", xfb_name_3 ? xfb_name_3 : "NULL", xfb_name_3 ? "\"" : "");
-      print(GPULIB_MAX_PRINT_BYTES, "\n");
+      stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Error: Transform feedback varying names should not have NULL values in-between.\n");
+      stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Transform feedback varyings count: %d\n", xfb_count);
+      stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Transform feedback varying name 0: %s%s%s\n", xfb_name_0 ? "\"" : "", xfb_name_0 ? xfb_name_0 : "NULL", xfb_name_0 ? "\"" : "");
+      stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Transform feedback varying name 1: %s%s%s\n", xfb_name_1 ? "\"" : "", xfb_name_1 ? xfb_name_1 : "NULL", xfb_name_1 ? "\"" : "");
+      stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Transform feedback varying name 2: %s%s%s\n", xfb_name_2 ? "\"" : "", xfb_name_2 ? xfb_name_2 : "NULL", xfb_name_2 ? "\"" : "");
+      stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Transform feedback varying name 3: %s%s%s\n", xfb_name_3 ? "\"" : "", xfb_name_3 ? xfb_name_3 : "NULL", xfb_name_3 ? "\"" : "");
+      stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "\n");
     }
     if (xfb_count > 0) {
       char * xfb_names[4] = {x0, x1, x2, x3};
@@ -1202,23 +1202,23 @@ static inline unsigned GpuPro(
         char info_log[info_len + 1];
         info_log[info_len] = 0;
         glGetProgramInfoLog(pro_id, info_len, NULL, info_log);
-        print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Program linker: %s\n", info_log);
-        print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Transform feedback varyings count: %d\n", xfb_count);
-        print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Transform feedback varying name 0: %s%s%s\n", xfb_name_0 ? "\"" : "", xfb_name_0 ? xfb_name_0 : "NULL", xfb_name_0 ? "\"" : "");
-        print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Transform feedback varying name 1: %s%s%s\n", xfb_name_1 ? "\"" : "", xfb_name_1 ? xfb_name_1 : "NULL", xfb_name_1 ? "\"" : "");
-        print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Transform feedback varying name 2: %s%s%s\n", xfb_name_2 ? "\"" : "", xfb_name_2 ? xfb_name_2 : "NULL", xfb_name_2 ? "\"" : "");
-        print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Transform feedback varying name 3: %s%s%s\n", xfb_name_3 ? "\"" : "", xfb_name_3 ? xfb_name_3 : "NULL", xfb_name_3 ? "\"" : "");
+        stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Program linker: %s\n", info_log);
+        stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Transform feedback varyings count: %d\n", xfb_count);
+        stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Transform feedback varying name 0: %s%s%s\n", xfb_name_0 ? "\"" : "", xfb_name_0 ? xfb_name_0 : "NULL", xfb_name_0 ? "\"" : "");
+        stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Transform feedback varying name 1: %s%s%s\n", xfb_name_1 ? "\"" : "", xfb_name_1 ? xfb_name_1 : "NULL", xfb_name_1 ? "\"" : "");
+        stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Transform feedback varying name 2: %s%s%s\n", xfb_name_2 ? "\"" : "", xfb_name_2 ? xfb_name_2 : "NULL", xfb_name_2 ? "\"" : "");
+        stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Transform feedback varying name 3: %s%s%s\n", xfb_name_3 ? "\"" : "", xfb_name_3 ? xfb_name_3 : "NULL", xfb_name_3 ? "\"" : "");
         {
           int line = 1;
-          print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] %05d: ", line);
+          stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] %05d: ", line);
           for (char c = *shader_string; c != '\0'; c = *++shader_string) {
-            print(GPULIB_MAX_PRINT_BYTES, "%c", c);
+            stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "%c", c);
             if (c == '\n') {
               line += 1;
-              print(GPULIB_MAX_PRINT_BYTES, "[GpuLib] %05d: ", line);
+              stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] %05d: ", line);
             }
           }
-          print(GPULIB_MAX_PRINT_BYTES, "\n\n");
+          stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "\n\n");
         }
       }
       glDetachShader(pro_id, shader_id);
@@ -1241,19 +1241,19 @@ static inline unsigned GpuProFile(
     char * xfb_name_3)
 {
   profB(__func__);
-  int fd = open(shader_filepath, O_RDONLY);
+  int fd = stdlib_open(shader_filepath, O_RDONLY);
   if (fd == 0) {
     profE(__func__);
     return 0;
   }
-  char * shader_string = mmap(0, 256 * 1024 * 1024, PROT_READ, MAP_PRIVATE, fd, 0);
+  char * shader_string = stdlib_mmap(0, 256 * 1024 * 1024, PROT_READ, MAP_PRIVATE, fd, 0);
   if (shader_string == NULL) {
     profE(__func__);
     return 0;
   }
   int pro_id = GpuPro(shader_type, shader_string, xfb_name_0, xfb_name_1, xfb_name_2, xfb_name_3);
-  munmap(shader_string, 256 * 1024 * 1024);
-  close(fd);
+  stdlib_munmap(shader_string, 256 * 1024 * 1024);
+  stdlib_close(fd);
   profE(__func__);
   return pro_id;
 }
@@ -1499,7 +1499,7 @@ static inline void GpuDebugCallback(unsigned source, unsigned type, unsigned id,
     "OTHER"
   };
 
-  print(GPULIB_MAX_PRINT_BYTES,
+  stdlib_nprintf(GPULIB_MAX_PRINT_BYTES,
     "[GpuLib] OpenGL Debug Callback: ID: %u, Source: %s, Severity: %s, Type: %s\n"
     "[GpuLib] Message: %s\n\n",
     id,

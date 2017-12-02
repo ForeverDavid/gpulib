@@ -13,7 +13,7 @@ struct app_t {
 
 static void AppLoad(struct app_t * app, Display * dpy, Window win, char * scancodes) {
   struct stat attr = {0};
-  int err = (int)syscall2(4, (long)"libapp.so", (long)&attr);
+  int err = stdlib_stat("libapp.so", &attr);
   if (err == 0 && app->id != attr.st_ino) {
     if (app->handle != NULL) {
       app->api.Unload(app->state);

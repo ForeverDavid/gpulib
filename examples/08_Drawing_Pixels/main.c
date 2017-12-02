@@ -2,7 +2,7 @@
 
 static inline unsigned long GetTimeMs() {
   struct timeval tv;
-  gettimeofday(&tv, NULL);
+  stdlib_gettimeofday(&tv, NULL);
   return tv.tv_sec * 1000UL + tv.tv_usec / 1000UL;
 }
 

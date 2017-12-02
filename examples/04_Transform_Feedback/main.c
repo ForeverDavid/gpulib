@@ -87,7 +87,7 @@ int main() {
   GpuFinish();
 
   char cmd[10000] = {0};
-  snprintf(
+  stdlib_snprintf(
     cmd, 10000,
     "notify-send \""
     "[GpuLib] Completed "

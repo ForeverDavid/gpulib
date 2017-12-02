@@ -6,9 +6,11 @@ void (*ProfFree)(void *);
 //#define USE_TINYPROFILER
 #define TINYPROFILER_NO_HEADER_IMPORT
 #define TINYPROFILER_MAX_JSON_LINE_LENGTH 10000
-#define TINYPROFILER_OUTPUT_STRING(x) print(TINYPROFILER_MAX_JSON_LINE_LENGTH, "%s", x)
+#define TINYPROFILER_OUTPUT_STRING(x) stdlib_nprintf(TINYPROFILER_MAX_JSON_LINE_LENGTH, "%s", x)
 #define TINYPROFILER_CALLOC ProfCalloc
 #define TINYPROFILER_FREE ProfFree
+#define TINYPROFILER_SNPRINTF stdlib_snprintf
+#define TINYPROFILER_GETTIMEOFDAY stdlib_gettimeofday
 #include "../../tinyprofiler.h"
 
 #include "../../gpulib.h"
@@ -81,17 +83,22 @@ static inline vec4 qrot(vec4 p, vec4 v) {
   return qmul(qmul(v, p), qinv(v));
 }
 
-static inline float sindegdiv2(float d) { return fsin(d * (M_PI / 180.0) / 2.0); }
-static inline float cosdegdiv2(float d) { return fcos(d * (M_PI / 180.0) / 2.0); }
-static inline float tandegdiv2(float d) { return ftan(d * (M_PI / 180.0) / 2.0); }
+static inline float sindegdiv2(float d) { return stdlib_sinf(d * (M_PI / 180.0) / 2.0); }
+static inline float cosdegdiv2(float d) { return stdlib_cosf(d * (M_PI / 180.0) / 2.0); }
+static inline float tandegdiv2(float d) { return stdlib_tanf(d * (M_PI / 180.0) / 2.0); }
 
 static inline unsigned long GetTimeMs() {
   struct timeval tv;
-  gettimeofday(&tv, NULL);
+  stdlib_gettimeofday(&tv, NULL);
   return tv.tv_sec * 1000UL + tv.tv_usec / 1000UL;
 }
 
 #define GPUMESH_NO_HEADER_IMPORT
+#define open stdlib_open
+#define close stdlib_close
+#define mmap stdlib_mmap
+#define munmap stdlib_munmap
+#define assert stdlib_assert
 #include "meshes/MeshIBVB.h"
 #include "meshes/MeshID.h"
 #include "meshes/MeshNormals.h"
@@ -243,41 +250,41 @@ int main() {
         }
         break; case KeyPress: {
           char * scancode = &scancodes[event.xkey.keycode * 5];
-          if (nstreq(4, scancode, "AC03")) key_d = 1;
-          if (nstreq(4, scancode, "AC01")) key_a = 1;
-          if (nstreq(4, scancode, "AD03")) key_e = 1;
-          if (nstreq(4, scancode, "AD01")) key_q = 1;
-          if (nstreq(4, scancode, "AD02")) key_w = 1;
-          if (nstreq(4, scancode, "AC02")) key_s = 1;
-          if (nstreq(4, scancode, "AE01")) key_1 = 1;
-          if (nstreq(4, scancode, "AE02")) key_2 = 1;
-          if (nstreq(4, scancode, "AE03")) key_3 = 1;
-          if (nstreq(4, scancode, "AE04")) key_4 = 1;
-          if (nstreq(4, scancode, "AE05")) key_5 = 1;
-          if (nstreq(4, scancode, "AE06")) key_6 = 1;
-          if (nstreq(4, scancode, "AE07")) key_7 = 1;
-          if (nstreq(4, scancode, "AE08")) key_8 = 1;
-          if (nstreq(4, scancode, "AE09")) key_9 = 1;
-          if (nstreq(4, scancode, "AE10")) key_0 = 1;
+          if (stdlib_nstreq(4, scancode, "AC03")) key_d = 1;
+          if (stdlib_nstreq(4, scancode, "AC01")) key_a = 1;
+          if (stdlib_nstreq(4, scancode, "AD03")) key_e = 1;
+          if (stdlib_nstreq(4, scancode, "AD01")) key_q = 1;
+          if (stdlib_nstreq(4, scancode, "AD02")) key_w = 1;
+          if (stdlib_nstreq(4, scancode, "AC02")) key_s = 1;
+          if (stdlib_nstreq(4, scancode, "AE01")) key_1 = 1;
+          if (stdlib_nstreq(4, scancode, "AE02")) key_2 = 1;
+          if (stdlib_nstreq(4, scancode, "AE03")) key_3 = 1;
+          if (stdlib_nstreq(4, scancode, "AE04")) key_4 = 1;
+          if (stdlib_nstreq(4, scancode, "AE05")) key_5 = 1;
+          if (stdlib_nstreq(4, scancode, "AE06")) key_6 = 1;
+          if (stdlib_nstreq(4, scancode, "AE07")) key_7 = 1;
+          if (stdlib_nstreq(4, scancode, "AE08")) key_8 = 1;
+          if (stdlib_nstreq(4, scancode, "AE09")) key_9 = 1;
+          if (stdlib_nstreq(4, scancode, "AE10")) key_0 = 1;
         }
         break; case KeyRelease: {
           char * scancode = &scancodes[event.xkey.keycode * 5];
-          if (nstreq(4, scancode, "AC03")) key_d = 0;
-          if (nstreq(4, scancode, "AC01")) key_a = 0;
-          if (nstreq(4, scancode, "AD03")) key_e = 0;
-          if (nstreq(4, scancode, "AD01")) key_q = 0;
-          if (nstreq(4, scancode, "AD02")) key_w = 0;
-          if (nstreq(4, scancode, "AC02")) key_s = 0;
-          if (nstreq(4, scancode, "AE01")) key_1 = 0;
-          if (nstreq(4, scancode, "AE02")) key_2 = 0;
-          if (nstreq(4, scancode, "AE03")) key_3 = 0;
-          if (nstreq(4, scancode, "AE04")) key_4 = 0;
-          if (nstreq(4, scancode, "AE05")) key_5 = 0;
-          if (nstreq(4, scancode, "AE06")) key_6 = 0;
-          if (nstreq(4, scancode, "AE07")) key_7 = 0;
-          if (nstreq(4, scancode, "AE08")) key_8 = 0;
-          if (nstreq(4, scancode, "AE09")) key_9 = 0;
-          if (nstreq(4, scancode, "AE10")) key_0 = 0;
+          if (stdlib_nstreq(4, scancode, "AC03")) key_d = 0;
+          if (stdlib_nstreq(4, scancode, "AC01")) key_a = 0;
+          if (stdlib_nstreq(4, scancode, "AD03")) key_e = 0;
+          if (stdlib_nstreq(4, scancode, "AD01")) key_q = 0;
+          if (stdlib_nstreq(4, scancode, "AD02")) key_w = 0;
+          if (stdlib_nstreq(4, scancode, "AC02")) key_s = 0;
+          if (stdlib_nstreq(4, scancode, "AE01")) key_1 = 0;
+          if (stdlib_nstreq(4, scancode, "AE02")) key_2 = 0;
+          if (stdlib_nstreq(4, scancode, "AE03")) key_3 = 0;
+          if (stdlib_nstreq(4, scancode, "AE04")) key_4 = 0;
+          if (stdlib_nstreq(4, scancode, "AE05")) key_5 = 0;
+          if (stdlib_nstreq(4, scancode, "AE06")) key_6 = 0;
+          if (stdlib_nstreq(4, scancode, "AE07")) key_7 = 0;
+          if (stdlib_nstreq(4, scancode, "AE08")) key_8 = 0;
+          if (stdlib_nstreq(4, scancode, "AE09")) key_9 = 0;
+          if (stdlib_nstreq(4, scancode, "AE10")) key_0 = 0;
         }
         break; case GenericEvent: {
           if (XGetEventData(dpy, &event.xcookie) &&
@@ -326,7 +333,7 @@ int main() {
 
     profB("Instance pos update");
     for (int i = 0; i < (30 + 30 + 30); i += 1)
-      instance_pos[i].y = fsin((t_curr - t_init) * 0.0015 + i * 0.5) * 0.3;
+      instance_pos[i].y = stdlib_sinf((t_curr - t_init) * 0.0015 + i * 0.5) * 0.3;
     profE("Instance pos update");
 
     profB("Uniforms");

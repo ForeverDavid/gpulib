@@ -47,12 +47,16 @@ static inline void profEmt(int tid, char * name) {}
 #define TINYPROFILER_CALLOC calloc
 #endif
 
+#ifndef TINYPROFILER_FREE
+#define TINYPROFILER_FREE free
+#endif
+
 #ifndef TINYPROFILER_SNPRINTF
 #define TINYPROFILER_SNPRINTF snprintf
 #endif
 
-#ifndef TINYPROFILER_FREE
-#define TINYPROFILER_FREE free
+#ifndef TINYPROFILER_GETTIMEOFDAY
+#define TINYPROFILER_GETTIMEOFDAY gettimeofday
 #endif
 
 #ifndef TINYPROFILER_TIME_TO_TS
@@ -92,7 +96,7 @@ static inline unsigned long long _prof_time() {
 #else
 static inline unsigned long _prof_time() {
   struct timeval tv;
-  gettimeofday(&tv, NULL);
+  TINYPROFILER_GETTIMEOFDAY(&tv, NULL);
   return tv.tv_sec * 1000000UL + tv.tv_usec;
 }
 #endif
@@ -121,7 +125,7 @@ static inline void profAlloc(size_t sample_count_per_thread) {
   assert(query_perf_freq_fail != 0);
 #else
   struct timeval tv;
-  gettimeofday(&tv, NULL);
+  TINYPROFILER_GETTIMEOFDAY(&tv, NULL);
   _tinyprofiler_prof_time_from = tv.tv_sec;
 #endif
   for (int t = 0; t < TINYPROFILER_MAX_NUM_OF_THREADS; t += 1) {
