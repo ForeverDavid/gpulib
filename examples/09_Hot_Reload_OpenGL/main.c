@@ -28,8 +28,8 @@ static void AppLoad(struct app_t * app, Display * dpy, Window win, char * scanco
         app->api = api[0];
         struct ImGuiContext * igc = igGetCurrentContext();
         if (app->state == NULL)
-          app->state = app->api.Init(dpy, win, scancodes, igc);
-        app->api.Load(app->state, dpy, win, scancodes, igc);
+          app->state = app->api.Init(dpy, win, scancodes, igc, g_ig_state);
+        app->api.Load(app->state, dpy, win, scancodes, igc, g_ig_state);
       } else {
         dlclose(app->handle);
         app->handle = NULL;

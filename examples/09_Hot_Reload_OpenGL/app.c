@@ -24,15 +24,14 @@ enum {
   cast_tex_vertices_e,
 };
 
-static void * AppInit(Display * dpy, Window win, char * scancodes, struct ImGuiContext * igc) {
+static void * AppInit(Display * dpy, Window win, char * scancodes, struct ImGuiContext * igc, struct ig_state_t * igs) {
   void * state = stdlib_mmap(0, 256L * 1024L * 1024L * 1024L, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE | MAP_NORESERVE, -1, 0);
   s = state;
 
   GpuSysGetLibcProcedureAddresses();
   GpuSysGetOpenGLProcedureAddresses();
   igSetCurrentContext(igc);
-  g_ig_dpy = dpy;
-  g_ig_win = win;
+  g_ig_state = igs;
 
   s->vertices = GpuCalloc(4096 * sizeof(vec3), &s->vertices_id);
   s->indices  = GpuCallocIndices(4096, &s->indices_id);
@@ -66,14 +65,13 @@ static void * AppInit(Display * dpy, Window win, char * scancodes, struct ImGuiC
   return state;
 }
 
-static void AppLoad(void * state, Display * dpy, Window win, char * scancodes, struct ImGuiContext * igc) {
+static void AppLoad(void * state, Display * dpy, Window win, char * scancodes, struct ImGuiContext * igc, struct ig_state_t * igs) {
   s = state;
 
   GpuSysGetLibcProcedureAddresses();
   GpuSysGetOpenGLProcedureAddresses();
   igSetCurrentContext(igc);
-  g_ig_dpy = dpy;
-  g_ig_win = win;
+  g_ig_state = igs;
 
   s->vertices[0] = (vec3){ 0.0,  0.5, 0.0};
   s->vertices[1] = (vec3){ 0.5, -0.5, 0.0};
