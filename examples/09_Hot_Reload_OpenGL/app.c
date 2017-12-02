@@ -103,6 +103,8 @@ static int AppStep(void * state, Display * dpy, Window win, char * scancodes) {
     }
   }
 
+  ImguiNewFrame();
+
   if (GpuDebugFrag(&s->frag, s->frag_string, sizeof(s->frag_string))) {
     glDeleteProgramPipelines(1, &s->ppo);
     s->ppo = GpuPpo(s->vert, s->frag);

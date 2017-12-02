@@ -64,7 +64,6 @@ int main() {
 
   struct app_t app = {0};
   for (;;) {
-    ImguiNewFrame();
     AppLoad(&app, dpy, win, scancodes);
     if (app.handle != NULL)
       if (app.api.Step(app.state, dpy, win, scancodes) != 0)
