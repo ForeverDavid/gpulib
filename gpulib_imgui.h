@@ -666,7 +666,7 @@ static inline void ImguiDeinit() {
 static inline int ImguiX11ScancodeToKeycode(char * scancodes, char * scancode) {
   for (int i = 0; i < 256; i += 1) {
     char * code = &scancodes[i * 5];
-    if (stdlib_nstreq(4, code, scancode))
+    if (g_gpulib_libc.strcmp(code, scancode) == 0)
       return i;
   }
   return -1;
@@ -678,19 +678,19 @@ static inline void ImguiInit(Display * dpy, Window win, char * scancodes) {
   g_ig_state->dpy = dpy;
   g_ig_state->win = win;
 
-  io->KeyMap[ImGuiKey_Tab] = ImguiX11ScancodeToKeycode(scancodes, "TAB\0");
+  io->KeyMap[ImGuiKey_Tab] = ImguiX11ScancodeToKeycode(scancodes, "TAB");
   io->KeyMap[ImGuiKey_LeftArrow] = ImguiX11ScancodeToKeycode(scancodes, "LEFT");
   io->KeyMap[ImGuiKey_RightArrow] = ImguiX11ScancodeToKeycode(scancodes, "RGHT");
-  io->KeyMap[ImGuiKey_UpArrow] = ImguiX11ScancodeToKeycode(scancodes, "UP\0\0");
+  io->KeyMap[ImGuiKey_UpArrow] = ImguiX11ScancodeToKeycode(scancodes, "UP");
   io->KeyMap[ImGuiKey_DownArrow] = ImguiX11ScancodeToKeycode(scancodes, "DOWN");
   io->KeyMap[ImGuiKey_PageUp] = ImguiX11ScancodeToKeycode(scancodes, "PGUP");
   io->KeyMap[ImGuiKey_PageDown] = ImguiX11ScancodeToKeycode(scancodes, "PGDN");
   io->KeyMap[ImGuiKey_Home] = ImguiX11ScancodeToKeycode(scancodes, "HOME");
-  io->KeyMap[ImGuiKey_End] = ImguiX11ScancodeToKeycode(scancodes, "END\0");
+  io->KeyMap[ImGuiKey_End] = ImguiX11ScancodeToKeycode(scancodes, "END");
   io->KeyMap[ImGuiKey_Delete] = ImguiX11ScancodeToKeycode(scancodes, "DELE");
   io->KeyMap[ImGuiKey_Backspace] = ImguiX11ScancodeToKeycode(scancodes, "BKSP");
   io->KeyMap[ImGuiKey_Enter] = ImguiX11ScancodeToKeycode(scancodes, "RTRN");
-  io->KeyMap[ImGuiKey_Escape] = ImguiX11ScancodeToKeycode(scancodes, "ESC\0");
+  io->KeyMap[ImGuiKey_Escape] = ImguiX11ScancodeToKeycode(scancodes, "ESC");
   io->KeyMap[ImGuiKey_A] = ImguiX11ScancodeToKeycode(scancodes, "AC01");
   io->KeyMap[ImGuiKey_C] = ImguiX11ScancodeToKeycode(scancodes, "AB03");
   io->KeyMap[ImGuiKey_V] = ImguiX11ScancodeToKeycode(scancodes, "AB04");

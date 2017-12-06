@@ -16,7 +16,6 @@
 #include <X11/extensions/XInput2.h>
 #include <X11/XKBlib.h>
 #include <GL/glx.h>
-
 #include "stdlib/stdlib.h"
 
 struct gpu_cmd_t {
@@ -273,8 +272,10 @@ struct gpu_sys_libc_t {
   size_t (*strlen)(char *);
   char * (*strndup)(char *, size_t);
   char * (*strrchr)(char *, int);
+  long (*strtol)(char *, char **, int);
   int (*usleep)(unsigned);
 } g_gpulib_libc = {
+  (void *)0xBAD,
   (void *)0xBAD,
   (void *)0xBAD,
   (void *)0xBAD,
@@ -381,16 +382,20 @@ static inline void GpuSysGetLibcProcedureAddresses() {
   g_gpulib_libc.strlen = dlsym(NULL, "strlen");
   g_gpulib_libc.strndup = dlsym(NULL, "strndup");
   g_gpulib_libc.strrchr = dlsym(NULL, "strrchr");
+  g_gpulib_libc.strtol = dlsym(NULL, "strtol");
   g_gpulib_libc.usleep = dlsym(NULL, "usleep");
 }
 
-static inline void GpuSysShell(char * cmd, char * out) {
+static inline long GpuSysShell(char * cmd, char * out) {
   int * ret = g_gpulib_libc.popen(cmd, "r");
-  for (int i = 0, c = g_gpulib_libc.fgetc(ret); c != -1; i += 1) {
+  long i = 0;
+  for (int c = g_gpulib_libc.fgetc(ret); c != -1; i += 1) {
     if (out) out[i] = (char)c;
     c = g_gpulib_libc.fgetc(ret);
   }
+  if (out) out[i] = 0;
   g_gpulib_libc.pclose(ret);
+  return i + 1;
 }
 
 static inline char * GpuSysReadSymLink(char * path) {
