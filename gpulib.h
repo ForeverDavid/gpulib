@@ -529,10 +529,10 @@ static inline void GpuSysX11Window(
     profB("glXChooseFBConfig");
     GLXFBConfig * fbconfigs = glXChooseFBConfig(dpy, DefaultScreen(dpy), glx_attribs, &fbconfigs_count);
     profE("glXChooseFBConfig");
+    stdlib_assert(fbconfigs_count != 0);
+    stdlib_assert(fbconfigs != NULL);
     profB("fbconfig search");
     for (int i = 0; i < fbconfigs_count; i += 1) {
-      XFree(visual);
-      visual = glXGetVisualFromFBConfig(dpy, fbconfigs[i]);
 #if 0
       {
         int red_size = 0, green_size = 0, blue_size = 0, alpha_size = 0, depth_size = 0, stencil_size = 0, doublebuffer = 0, sample_buffers = 0, samples = 0;
@@ -546,7 +546,7 @@ static inline void GpuSysX11Window(
         glXGetFBConfigAttrib(dpy, fbconfigs[i], GLX_SAMPLE_BUFFERS, &sample_buffers);
         glXGetFBConfigAttrib(dpy, fbconfigs[i], GLX_SAMPLES,        &samples);
         stdlib_nprintf(GPULIB_MAX_PRINT_BYTES,
-          "fbconfigs[i]: %p, "
+          "fbconfigs[%d]: %p, "
           "GLX_RED_SIZE: %d, "
           "GLX_GREEN_SIZE: %d, "
           "GLX_BLUE_SIZE: %d, "
@@ -556,7 +556,7 @@ static inline void GpuSysX11Window(
           "GLX_DOUBLEBUFFER: %d, "
           "GLX_SAMPLE_BUFFERS: %d, "
           "GLX_SAMPLES: %d\n",
-          fbconfigs[i],
+          i, fbconfigs[i],
           red_size,
           green_size,
           blue_size,
@@ -568,6 +568,8 @@ static inline void GpuSysX11Window(
           samples);
       }
 #endif
+      XFree(visual);
+      visual = glXGetVisualFromFBConfig(dpy, fbconfigs[i]);
       if (visual == NULL)
         continue;
       XRenderPictFormat * format = XRenderFindVisualFormat(dpy, visual->visual);
