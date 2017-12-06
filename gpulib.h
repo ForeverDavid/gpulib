@@ -507,7 +507,7 @@ static inline void GpuSysX11Window(
   profE("XOpenDisplay");
   stdlib_assert(dpy != NULL);
 
-  GLXFBConfig fbconfig = 0;
+  GLXFBConfig fbconfig = -1;
   XVisualInfo * visual = NULL;
   {
     int glx_attribs[] = {
@@ -532,6 +532,41 @@ static inline void GpuSysX11Window(
     for (int i = 0; i < fbconfigs_count; i += 1) {
       XFree(visual);
       visual = glXGetVisualFromFBConfig(dpy, fbconfigs[i]);
+#if 0
+      {
+        int red_size = 0, green_size = 0, blue_size = 0, alpha_size = 0, depth_size = 0, stencil_size = 0, doublebuffer = 0, sample_buffers = 0, samples = 0;
+        glXGetFBConfigAttrib(dpy, fbconfigs[i], GLX_RED_SIZE,       &red_size);
+        glXGetFBConfigAttrib(dpy, fbconfigs[i], GLX_GREEN_SIZE,     &green_size);
+        glXGetFBConfigAttrib(dpy, fbconfigs[i], GLX_BLUE_SIZE,      &blue_size);
+        glXGetFBConfigAttrib(dpy, fbconfigs[i], GLX_ALPHA_SIZE,     &alpha_size);
+        glXGetFBConfigAttrib(dpy, fbconfigs[i], GLX_DEPTH_SIZE,     &depth_size);
+        glXGetFBConfigAttrib(dpy, fbconfigs[i], GLX_STENCIL_SIZE,   &stencil_size);
+        glXGetFBConfigAttrib(dpy, fbconfigs[i], GLX_DOUBLEBUFFER,   &doublebuffer);
+        glXGetFBConfigAttrib(dpy, fbconfigs[i], GLX_SAMPLE_BUFFERS, &sample_buffers);
+        glXGetFBConfigAttrib(dpy, fbconfigs[i], GLX_SAMPLES,        &samples);
+        stdlib_nprintf(GPULIB_MAX_PRINT_BYTES,
+          "fbconfigs[i]: %d, "
+          "GLX_RED_SIZE: %d, "
+          "GLX_GREEN_SIZE: %d, "
+          "GLX_BLUE_SIZE: %d, "
+          "GLX_ALPHA_SIZE: %d, "
+          "GLX_DEPTH_SIZE: %d, "
+          "GLX_STENCIL_SIZE: %d, "
+          "GLX_DOUBLEBUFFER: %d, "
+          "GLX_SAMPLE_BUFFERS: %d, "
+          "GLX_SAMPLES: %d\n",
+          fbconfig,
+          red_size,
+          green_size,
+          blue_size,
+          alpha_size,
+          depth_size,
+          stencil_size,
+          doublebuffer,
+          sample_buffers,
+          samples);
+      }
+#endif
       if (visual == NULL)
         continue;
       XRenderPictFormat * format = XRenderFindVisualFormat(dpy, visual->visual);
@@ -544,22 +579,7 @@ static inline void GpuSysX11Window(
     XFree(fbconfigs);
     profE("fbconfig search");
   }
-  stdlib_assert(fbconfig != 0);
-
-#if 0
-  {
-    int red_size = 0, green_size = 0, blue_size = 0, alpha_size = 0, depth_size = 0, stencil_size = 0, doublebuffer = 0, sample_buffers = 0, samples = 0;
-    glXGetFBConfigAttrib(dpy, fbconfig, GLX_RED_SIZE,       &red_size);
-    glXGetFBConfigAttrib(dpy, fbconfig, GLX_GREEN_SIZE,     &green_size);
-    glXGetFBConfigAttrib(dpy, fbconfig, GLX_BLUE_SIZE,      &blue_size);
-    glXGetFBConfigAttrib(dpy, fbconfig, GLX_ALPHA_SIZE,     &alpha_size);
-    glXGetFBConfigAttrib(dpy, fbconfig, GLX_DEPTH_SIZE,     &depth_size);
-    glXGetFBConfigAttrib(dpy, fbconfig, GLX_STENCIL_SIZE,   &stencil_size);
-    glXGetFBConfigAttrib(dpy, fbconfig, GLX_DOUBLEBUFFER,   &doublebuffer);
-    glXGetFBConfigAttrib(dpy, fbconfig, GLX_SAMPLE_BUFFERS, &sample_buffers);
-    glXGetFBConfigAttrib(dpy, fbconfig, GLX_SAMPLES,        &samples);
-  }
-#endif
+  stdlib_assert(fbconfig != -1);
 
   Window win = 0;
   {
