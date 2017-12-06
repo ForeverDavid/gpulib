@@ -507,7 +507,7 @@ static inline void GpuSysX11Window(
   profE("XOpenDisplay");
   stdlib_assert(dpy != NULL);
 
-  GLXFBConfig fbconfig = -1;
+  GLXFBConfig fbconfig = NULL;
   XVisualInfo * visual = NULL;
   {
     int glx_attribs[] = {
@@ -545,7 +545,7 @@ static inline void GpuSysX11Window(
         glXGetFBConfigAttrib(dpy, fbconfigs[i], GLX_SAMPLE_BUFFERS, &sample_buffers);
         glXGetFBConfigAttrib(dpy, fbconfigs[i], GLX_SAMPLES,        &samples);
         stdlib_nprintf(GPULIB_MAX_PRINT_BYTES,
-          "fbconfigs[i]: %d, "
+          "fbconfigs[i]: %p, "
           "GLX_RED_SIZE: %d, "
           "GLX_GREEN_SIZE: %d, "
           "GLX_BLUE_SIZE: %d, "
@@ -555,7 +555,7 @@ static inline void GpuSysX11Window(
           "GLX_DOUBLEBUFFER: %d, "
           "GLX_SAMPLE_BUFFERS: %d, "
           "GLX_SAMPLES: %d\n",
-          fbconfig,
+          fbconfigs[i],
           red_size,
           green_size,
           blue_size,
@@ -579,7 +579,7 @@ static inline void GpuSysX11Window(
     XFree(fbconfigs);
     profE("fbconfig search");
   }
-  stdlib_assert(fbconfig != -1);
+  stdlib_assert(fbconfig != NULL);
 
   Window win = 0;
   {
