@@ -511,6 +511,7 @@ static inline void GpuSysX11Window(
   XVisualInfo * visual = NULL;
   {
     int glx_attribs[] = {
+      GLX_X_RENDERABLE,   1,
       GLX_DRAWABLE_TYPE,  GLX_WINDOW_BIT,
       GLX_RENDER_TYPE,    GLX_RGBA_BIT,
       GLX_RED_SIZE,       8,
