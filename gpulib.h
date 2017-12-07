@@ -510,7 +510,8 @@ static inline void GpuSysX11Window(
   GLXFBConfig fbconfig = NULL;
   XVisualInfo * visual = NULL;
   {
-    int glx_attribs[] = {
+    int glx_attribs[25] = {0};
+    int glx_attribs_with_msaa[25] = {
       GLX_X_RENDERABLE,   1,
       GLX_DRAWABLE_TYPE,  GLX_WINDOW_BIT,
       GLX_RENDER_TYPE,    GLX_RGBA_BIT,
@@ -525,6 +526,20 @@ static inline void GpuSysX11Window(
       GLX_SAMPLES,        msaa_sample_count,
       None
     };
+    int glx_attribs_without_msaa[25] = {
+      GLX_X_RENDERABLE,   1,
+      GLX_DRAWABLE_TYPE,  GLX_WINDOW_BIT,
+      GLX_RENDER_TYPE,    GLX_RGBA_BIT,
+      GLX_RED_SIZE,       8,
+      GLX_GREEN_SIZE,     8,
+      GLX_BLUE_SIZE,      8,
+      GLX_ALPHA_SIZE,     8,
+      GLX_DEPTH_SIZE,     24,
+      GLX_STENCIL_SIZE,   8,
+      GLX_DOUBLEBUFFER,   1,
+      None
+    };
+    memcpy(glx_attribs, msaa_sample_count > 0 ? glx_attribs_with_msaa : glx_attribs_without_msaa, 25 * sizeof(int));
     int fbconfigs_count = 0;
     profB("glXChooseFBConfig");
     GLXFBConfig * fbconfigs = glXChooseFBConfig(dpy, DefaultScreen(dpy), glx_attribs, &fbconfigs_count);
@@ -576,8 +591,10 @@ static inline void GpuSysX11Window(
       if (format == NULL)
         continue;
       fbconfig = fbconfigs[i];
+#if 0
       if (format->direct.alphaMask > 0)
         break;
+#endif
     }
     XFree(fbconfigs);
     profE("fbconfig search");

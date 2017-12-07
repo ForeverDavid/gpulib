@@ -5,7 +5,7 @@ typedef struct { float x, y, z; } vec3;
 int main() {
   Display * dpy = NULL;
   Window win = 0;
-  GpuWindow("Hello Triangle", sizeof("Hello Triangle"), 1280, 720, 4, NULL, &dpy, &win);
+  GpuWindow("Hello Triangle", sizeof("Hello Triangle"), 1280, 720, 0, NULL, &dpy, &win);
   GpuSetDebugCallback(GpuDebugCallback);
 
   unsigned vertices_id = 0;

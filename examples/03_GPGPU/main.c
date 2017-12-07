@@ -3,7 +3,7 @@
 int main() {
   Display * dpy = NULL;
   Window win = 0;
-  GpuWindow("GPGPU", sizeof("GPGPU"), 1280, 720, 4, NULL, &dpy, &win);
+  GpuWindow("GPGPU", sizeof("GPGPU"), 1280, 720, 0, NULL, &dpy, &win);
   GpuSetDebugCallback(GpuDebugCallback);
 
   int dim_x = 800;

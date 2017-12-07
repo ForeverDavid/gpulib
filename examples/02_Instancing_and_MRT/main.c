@@ -115,7 +115,7 @@ int main() {
   char scancodes[256 * 5] = {0};
   Display * dpy = NULL;
   Window win = 0;
-  GpuWindow("Instancing and MRT", sizeof("Instancing and MRT"), 1280, 720, 4, scancodes, &dpy, &win);
+  GpuWindow("Instancing and MRT", sizeof("Instancing and MRT"), 1280, 720, 0, scancodes, &dpy, &win);
   GpuSetDebugCallback(GpuDebugCallback);
 
   profB("Mesh upload");

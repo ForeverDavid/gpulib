@@ -5,7 +5,7 @@ int main() {
   char scancodes[256 * 5] = {0};
   Display * dpy = NULL;
   Window win = 0;
-  GpuWindow("Dear ImGui", sizeof("Dear ImGui"), 1280, 720, 4, scancodes, &dpy, &win);
+  GpuWindow("Dear ImGui", sizeof("Dear ImGui"), 1280, 720, 0, scancodes, &dpy, &win);
   GpuSetDebugCallback(GpuDebugCallback);
 
   ImguiInit(dpy, win, scancodes);

@@ -39,7 +39,7 @@ struct gpu_cmd_t g_draw_commands[e_draw_count] = {0};
 int main() {
   Display * dpy = NULL;
   Window win = 0;
-  GpuWindow("Mesh Loading", sizeof("Mesh Loading"), 1280, 720, 4, NULL, &dpy, &win);
+  GpuWindow("Mesh Loading", sizeof("Mesh Loading"), 1280, 720, 0, NULL, &dpy, &win);
   GpuSetDebugCallback(GpuDebugCallback);
 
   unsigned di_buf = 0;

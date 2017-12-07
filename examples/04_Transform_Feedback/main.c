@@ -5,7 +5,7 @@ typedef struct { float x, y, z; } vec3;
 int main() {
   Display * dpy = NULL;
   Window win = 0;
-  GpuWindow("Transform Feedback", sizeof("Transform Feedback"), 1280, 720, 4, NULL, &dpy, &win);
+  GpuWindow("Transform Feedback", sizeof("Transform Feedback"), 1280, 720, 0, NULL, &dpy, &win);
   GpuSetDebugCallback(GpuDebugCallback);
 
   unsigned v1_id = 0;

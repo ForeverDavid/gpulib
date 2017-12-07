@@ -29,7 +29,7 @@ struct gpu_cmd_t g_draw_commands[e_draw_count];
 int main() {
   Display * dpy = NULL;
   Window win = 0;
-  GpuWindow("Drawing Text", sizeof("Drawing Text"), 1280, 720, 4, NULL, &dpy, &win);
+  GpuWindow("Drawing Text", sizeof("Drawing Text"), 1280, 720, 0, NULL, &dpy, &win);
   GpuSetDebugCallback(GpuDebugCallback);
 
   unsigned di_buf = 0;

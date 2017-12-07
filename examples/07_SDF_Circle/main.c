@@ -3,7 +3,7 @@
 int main() {
   Display * dpy = NULL;
   Window win = 0;
-  GpuWindow("SDF Circle", sizeof("SDF Circle"), 1280, 720, 4, NULL, &dpy, &win);
+  GpuWindow("SDF Circle", sizeof("SDF Circle"), 1280, 720, 0, NULL, &dpy, &win);
   GpuSetDebugCallback(GpuDebugCallback);
 
   char vert_string[] = GPU_VERT_HEAD
