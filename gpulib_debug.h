@@ -45,15 +45,12 @@ struct g_gpulib_debug_state_t {
   int      texture_layer;
   int      texture_x;
   int      texture_y;
-  bool     program_is_window_open;
   bool     program_compiled;
   bool     program_compile_on_tab;
-  bool     texture_is_window_open;
   bool     texture_sync_pos;
 } g_gpulib_debug_state_data = {
   .texture_scale = {1, 1},
-  .program_is_window_open = 1,
-  .texture_is_window_open = 1,
+  .texture_sync_pos = 1,
 };
 
 struct g_gpulib_debug_state_t * g_gpulib_debug_state = &g_gpulib_debug_state_data;
@@ -81,7 +78,7 @@ static inline int GpuDebugProgramEx(unsigned program_type, unsigned * program_id
       state->program_compiled  = 0;
 
   igSetNextWindowSize((struct ImVec2){640, 360}, (1 << 2)); // ImGuiSetCond_FirstUseEver
-  igBegin(name, &state->program_is_window_open, (1 << 11)); // ImGuiWindowFlags_HorizontalScrollbar
+  igBegin(name, NULL, (1 << 11)); // ImGuiWindowFlags_HorizontalScrollbar
   igCheckbox("Compile on Tab", &state->program_compile_on_tab);
 
   state->program_string = string;
@@ -113,7 +110,7 @@ static inline void GpuDebugImgEx(unsigned tex_id, char * name) {
   gl->GetTextureLevelParameteriv(state->texture_id, 0, 0x1003, &format); // GL_TEXTURE_INTERNAL_FORMAT
 
   igSetNextWindowSize((struct ImVec2){640, 360}, (1 << 2)); // ImGuiSetCond_FirstUseEver
-  igBegin(name, &state->texture_is_window_open, (1 << 11)); // ImGuiWindowFlags_HorizontalScrollbar
+  igBegin(name, NULL, (1 << 11)); // ImGuiWindowFlags_HorizontalScrollbar
   igPushStyleVarVec(7, (struct ImVec2){6, 6}); // ImGuiStyleVar_ItemSpacing
 
   igText("Inspect pixel:");
