@@ -1,9 +1,6 @@
 #include <sys/stat.h>
 #include "api.h"
 
-void * dlopen(const char *, int);
-int dlclose(void *);
-
 struct app_t {
   struct api_t api;
   void * handle;
@@ -26,10 +23,10 @@ static void AppLoad(struct app_t * app, Display * dpy, Window win, char * scanco
       struct api_t * api = dlsym(app->handle, "APP_API");
       if (api != NULL) {
         app->api = api[0];
-        struct ImGuiContext * igc = igGetCurrentContext();
+        struct ImGuiContext * ig_context = igGetCurrentContext();
         if (app->state == NULL)
-          app->state = app->api.Init(dpy, win, scancodes, igc, g_ig_state);
-        app->api.Load(app->state, dpy, win, scancodes, igc, g_ig_state);
+          app->state = app->api.Init(dpy, win, scancodes, g_gpulib_libc, g_gpulib_libgl, g_gpulib_libglx, g_gpulib_debug_state, g_ig_state, ig_context);
+        app->api.Load(app->state, dpy, win, scancodes, g_gpulib_libc, g_gpulib_libgl, g_gpulib_libglx, g_gpulib_debug_state, g_ig_state, ig_context);
       } else {
         dlclose(app->handle);
         app->handle = NULL;

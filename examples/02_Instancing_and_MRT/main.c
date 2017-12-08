@@ -99,17 +99,19 @@ static inline unsigned long GetTimeMs() {
 #define mmap stdlib_mmap
 #define munmap stdlib_munmap
 #define assert stdlib_assert
+#include "../../gpulib_defines.h"
 #include "meshes/MeshIBVB.h"
 #include "meshes/MeshID.h"
 #include "meshes/MeshNormals.h"
 #include "meshes/MeshUV.h"
+#include "../../gpulib_undefines.h"
 
 struct gpu_cmd_t g_draw_commands[e_draw_count];
 
 int main() {
   GpuSysGetLibcProcedureAddresses();
-  ProfCalloc = g_gpulib_libc.calloc;
-  ProfFree = g_gpulib_libc.free;
+  ProfCalloc = g_gpulib_libc->calloc;
+  ProfFree = g_gpulib_libc->free;
   profAlloc(1000000);
 
   char scancodes[256 * 5] = {0};
@@ -128,12 +130,12 @@ int main() {
   profE("Mesh upload");
 
   {
-    glBindBuffer(0x8F3F, di_buf);
-    struct gpu_cmd_t * cmds = glMapBufferRange(0x8F3F, 0, e_draw_count * sizeof(struct gpu_cmd_t), 0xC2);
+    g_gpulib_libgl->BindBuffer(0x8F3F, di_buf);
+    struct gpu_cmd_t * cmds = g_gpulib_libgl->MapBufferRange(0x8F3F, 0, e_draw_count * sizeof(struct gpu_cmd_t), 0xC2);
     cmds[0].instance_count = 30;
     cmds[1].instance_count = 30;
     cmds[2].instance_count = 30;
-    glBindBuffer(0x8F3F, 0);
+    g_gpulib_libgl->BindBuffer(0x8F3F, 0);
   }
 
   unsigned instance_pos_id = 0;

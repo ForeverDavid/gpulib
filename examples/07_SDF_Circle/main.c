@@ -6,7 +6,7 @@ int main() {
   GpuWindow("SDF Circle", sizeof("SDF Circle"), 1280, 720, 0, NULL, &dpy, &win);
   GpuSetDebugCallback(GpuDebugCallback);
 
-  char vert_string[] = GPU_VERT_HEAD
+  char vert_string[] = GPULIB_VERT_HEADER
     "layout(location = 0) out vec2 g_uv;"             "\n"
     ""                                                "\n"
     "const vec2 g_tri[] = vec2[]("                    "\n"
@@ -20,7 +20,7 @@ int main() {
     "  gl_Position = vec4(g_tri[gl_VertexID], 0, 1);" "\n"
     "}"                                               "\n";
 
-  char frag_string[] = GPU_FRAG_HEAD
+  char frag_string[] = GPULIB_FRAG_HEADER
     "float ShapeCircle(vec2 p, float radius) {"                                "\n"
     "  return length(p) - radius;"                                             "\n"
     "}"                                                                        "\n"

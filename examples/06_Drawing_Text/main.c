@@ -21,8 +21,10 @@ struct {
 #define mmap stdlib_mmap
 #define munmap stdlib_munmap
 #define assert stdlib_assert
+#include "../../gpulib_defines.h"
 #include "meshes/MeshIBVB.h"
 #include "meshes/MeshUV.h"
+#include "../../gpulib_undefines.h"
 
 struct gpu_cmd_t g_draw_commands[e_draw_count];
 
@@ -52,7 +54,7 @@ int main() {
     chars[i].count = g_draw_commands[text[i] - 33].count;
   }
 
-  unsigned vert = GpuVert(GPU_VERT_HEAD
+  unsigned vert = GpuVert(GPULIB_VERT_HEADER
       "layout(binding = 0) uniform samplerBuffer s_vb;" "\n"
       "layout(binding = 1) uniform samplerBuffer s_uv;" "\n"
       ""                                                "\n"
@@ -74,7 +76,7 @@ int main() {
       "  gl_Position = vec4(pos, pos.z + 0.1);"         "\n"
       "}"                                               "\n");
 
-  unsigned frag = GpuFrag(GPU_FRAG_HEAD
+  unsigned frag = GpuFrag(GPULIB_FRAG_HEADER
       "layout(location = 0) in vec2 g_uv;"      "\n"
       ""                                        "\n"
       "layout(location = 0) out vec4 g_color;"  "\n"

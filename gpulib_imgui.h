@@ -212,6 +212,7 @@ struct ig_state_t {
 struct ig_state_t * g_ig_state = &g_ig_state_data;
 
 void ImguiRenderDrawList(struct ImDrawData * draw_data) {
+  __auto_type gl = g_gpulib_libgl;
   struct ImGuiIO * io = igGetIO();
 
   struct ImVec2 fb_scale = io->DisplayFramebufferScale;
@@ -219,42 +220,42 @@ void ImguiRenderDrawList(struct ImDrawData * draw_data) {
   int h = (int)(io->DisplaySize.y * fb_scale.y);
 
   ImDrawData_ScaleClipRects(draw_data, fb_scale);
-  glViewport(0, 0, w, h);
+  gl->Viewport(0, 0, w, h);
 
-  glDisable(0x0B44); // GL_CULL_FACE
-  glDisable(0x0B71); // GL_DEPTH_TEST
-  glEnable(0x0C11);  // GL_SCISSOR_TEST
-  glDisable(0x8DB9); // GL_FRAMEBUFFER_SRGB
+  gl->Disable(0x0B44); // GL_CULL_FACE
+  gl->Disable(0x0B71); // GL_DEPTH_TEST
+  gl->Enable(0x0C11);  // GL_SCISSOR_TEST
+  gl->Disable(0x8DB9); // GL_FRAMEBUFFER_SRGB
 
   float scale[2] = {0}, translate[2] = {0};
   scale[0] = 2.f /  w;
   scale[1] = 2.f / -h;
   translate[0] = -1.0;
   translate[1] =  1.0;
-  glProgramUniform2fv(g_ig_state->vert, 0, 1, scale);
-  glProgramUniform2fv(g_ig_state->vert, 1, 1, translate);
-  glBindProgramPipeline(g_ig_state->ppo);
+  gl->ProgramUniform2fv(g_ig_state->vert, 0, 1, scale);
+  gl->ProgramUniform2fv(g_ig_state->vert, 1, 1, translate);
+  gl->BindProgramPipeline(g_ig_state->ppo);
 
   ptrdiff_t id_bytes = draw_data->TotalIdxCount * (ptrdiff_t)sizeof(ImDrawIdx);
   ptrdiff_t vt_bytes = draw_data->TotalVtxCount * (ptrdiff_t)sizeof(ImDrawVtx);
 
   unsigned id_mem_id = 0;
   unsigned vt_mem_id = 0;
-  glCreateBuffers(1, &id_mem_id);
-  glCreateBuffers(1, &vt_mem_id);
-  glNamedBufferStorage(id_mem_id, id_bytes, 0, 194);
-  glNamedBufferStorage(vt_mem_id, vt_bytes, 0, 194);
-  void * id = glMapNamedBufferRange(id_mem_id, 0, id_bytes, 194);
-  void * vt = glMapNamedBufferRange(vt_mem_id, 0, vt_bytes, 194);
+  gl->CreateBuffers(1, &id_mem_id);
+  gl->CreateBuffers(1, &vt_mem_id);
+  gl->NamedBufferStorage(id_mem_id, id_bytes, 0, 194);
+  gl->NamedBufferStorage(vt_mem_id, vt_bytes, 0, 194);
+  void * id = gl->MapNamedBufferRange(id_mem_id, 0, id_bytes, 194);
+  void * vt = gl->MapNamedBufferRange(vt_mem_id, 0, vt_bytes, 194);
   unsigned id_tex_id = 0;
   unsigned vt_f32_tex_id = 0;
   unsigned vt_u32_tex_id = 0;
-  glCreateTextures(0x8C2A, 1, &id_tex_id); // GL_TEXTURE_BUFFER
-  glCreateTextures(0x8C2A, 1, &vt_f32_tex_id);
-  glCreateTextures(0x8C2A, 1, &vt_u32_tex_id);
-  glTextureBufferRange(id_tex_id, 0x8234, id_mem_id, 0, id_bytes); // GL_R16UI
-  glTextureBufferRange(vt_f32_tex_id, 0x822E, vt_mem_id, 0, vt_bytes); // GL_R32F
-  glTextureBufferRange(vt_u32_tex_id, 0x8236, vt_mem_id, 0, vt_bytes); // GL_R32UI
+  gl->CreateTextures(0x8C2A, 1, &id_tex_id); // GL_TEXTURE_BUFFER
+  gl->CreateTextures(0x8C2A, 1, &vt_f32_tex_id);
+  gl->CreateTextures(0x8C2A, 1, &vt_u32_tex_id);
+  gl->TextureBufferRange(id_tex_id, 0x8234, id_mem_id, 0, id_bytes); // GL_R16UI
+  gl->TextureBufferRange(vt_f32_tex_id, 0x822E, vt_mem_id, 0, vt_bytes); // GL_R32F
+  gl->TextureBufferRange(vt_u32_tex_id, 0x8236, vt_mem_id, 0, vt_bytes); // GL_R32UI
 
   ImDrawIdx * id_dest = id;
   ImDrawVtx * vt_dest = vt;
@@ -269,9 +270,9 @@ void ImguiRenderDrawList(struct ImDrawData * draw_data) {
   }
 
   unsigned smp_id = 0;
-  glCreateSamplers(1, &smp_id);
-  glSamplerParameteri(smp_id, 0x2801, 0x2600); // GL_TEXTURE_MIN_FILTER, GL_NEAREST
-  glSamplerParameteri(smp_id, 0x2800, 0x2600); // GL_TEXTURE_MAG_FILTER, GL_NEAREST
+  gl->CreateSamplers(1, &smp_id);
+  gl->SamplerParameteri(smp_id, 0x2801, 0x2600); // GL_TEXTURE_MIN_FILTER, GL_NEAREST
+  gl->SamplerParameteri(smp_id, 0x2800, 0x2600); // GL_TEXTURE_MAG_FILTER, GL_NEAREST
 
   unsigned tex_input[16] = {0};
   tex_input[0] = 0;
@@ -282,8 +283,8 @@ void ImguiRenderDrawList(struct ImDrawData * draw_data) {
   unsigned smp_input[16] = {0};
   smp_input[0] = smp_id;
 
-  glBindTextures(0, 16, tex_input);
-  glBindSamplers(0, 16, smp_input);
+  gl->BindTextures(0, 16, tex_input);
+  gl->BindSamplers(0, 16, smp_input);
 
   int id_offset = 0;
   int vt_offset = 0;
@@ -294,33 +295,34 @@ void ImguiRenderDrawList(struct ImDrawData * draw_data) {
       if (pcmd->UserCallback) {
         pcmd->UserCallback(cmd_list, pcmd);
       } else {
-        glScissor((int)(pcmd->ClipRect.x),
-                  (int)(h - pcmd->ClipRect.w),
-                  (int)(pcmd->ClipRect.z - pcmd->ClipRect.x),
-                  (int)(pcmd->ClipRect.w - pcmd->ClipRect.y));
-        glProgramUniform1iv(g_ig_state->vert, 2, 1, &vt_offset);
+        gl->Scissor((int)(pcmd->ClipRect.x),
+                    (int)(h - pcmd->ClipRect.w),
+                    (int)(pcmd->ClipRect.z - pcmd->ClipRect.x),
+                    (int)(pcmd->ClipRect.w - pcmd->ClipRect.y));
+        gl->ProgramUniform1iv(g_ig_state->vert, 2, 1, &vt_offset);
         tex_input[0] = *(unsigned *)pcmd->TextureId;
-        glBindTextures(0, 1, tex_input);
-        glDrawArraysInstanced(0x0004, id_offset, pcmd->ElemCount, 1); // GL_TRIANGLES
+        gl->BindTextures(0, 1, tex_input);
+        gl->DrawArraysInstanced(0x0004, id_offset, pcmd->ElemCount, 1); // GL_TRIANGLES
       }
       id_offset += pcmd->ElemCount;
     }
     vt_offset += ImDrawList_GetVertexBufferSize(cmd_list);
   }
 
-  glDeleteBuffers(1, &id_mem_id);
-  glDeleteBuffers(1, &vt_mem_id);
-  glDeleteTextures(1, &id_tex_id);
-  glDeleteTextures(1, &vt_f32_tex_id);
-  glDeleteTextures(1, &vt_u32_tex_id);
+  gl->DeleteBuffers(1, &id_mem_id);
+  gl->DeleteBuffers(1, &vt_mem_id);
+  gl->DeleteTextures(1, &id_tex_id);
+  gl->DeleteTextures(1, &vt_f32_tex_id);
+  gl->DeleteTextures(1, &vt_u32_tex_id);
 
-  glEnable(0x8DB9);  // GL_FRAMEBUFFER_SRGB
-  glDisable(0x0C11); // GL_SCISSOR_TEST
-  glEnable(0x0B71);  // GL_DEPTH_TEST
-  glEnable(0x0B44);  // GL_CULL_FACE
+  gl->Enable(0x8DB9);  // GL_FRAMEBUFFER_SRGB
+  gl->Disable(0x0C11); // GL_SCISSOR_TEST
+  gl->Enable(0x0B71);  // GL_DEPTH_TEST
+  gl->Enable(0x0B44);  // GL_CULL_FACE
 }
 
 char * ImguiGetClipboardText() {
+  __auto_type libc = g_gpulib_libc;
   Atom incr_atom = XInternAtom(g_ig_state->dpy, "INCR", 0);
   Atom xsel_atom = XInternAtom(g_ig_state->dpy, "XSEL_DATA", 0);
   Atom utf8_atom = XInternAtom(g_ig_state->dpy, "UTF8_STRING", 1);
@@ -360,12 +362,12 @@ char * ImguiGetClipboardText() {
                          &remain,
                          (unsigned char**)&data);
 
-      g_gpulib_libc.usleep(g_ig_state->clipboard_paste_sleep_microseconds);
+      libc->usleep(g_ig_state->clipboard_paste_sleep_microseconds);
 
       if (target == incr_atom) {
         XFree(data);
         data = NULL;
-        g_gpulib_libc.free(g_ig_state->clipboard_paste);
+        libc->free(g_ig_state->clipboard_paste);
         g_ig_state->clipboard_paste = NULL;
 
         for (size_t total = 1;;) {
@@ -382,13 +384,13 @@ char * ImguiGetClipboardText() {
                              &remain,
                              (unsigned char**)&data);
 
-          g_gpulib_libc.usleep(g_ig_state->clipboard_paste_sleep_microseconds);
+          libc->usleep(g_ig_state->clipboard_paste_sleep_microseconds);
 
           if (size) {
             total += size;
-            g_ig_state->clipboard_paste = g_gpulib_libc.realloc(g_ig_state->clipboard_paste, total);
+            g_ig_state->clipboard_paste = libc->realloc(g_ig_state->clipboard_paste, total);
             g_ig_state->clipboard_paste[total - size - 1] = '\0';
-            g_gpulib_libc.strcat(g_ig_state->clipboard_paste, data);
+            libc->strcat(g_ig_state->clipboard_paste, data);
           }
 
           XFree(data);
@@ -397,8 +399,8 @@ char * ImguiGetClipboardText() {
             break;
         }
       } else if (target == utf8_atom || target == ((Atom)31)) { // XA_STRING
-        g_gpulib_libc.free(g_ig_state->clipboard_paste);
-        g_ig_state->clipboard_paste = g_gpulib_libc.strndup(data, size);
+        libc->free(g_ig_state->clipboard_paste);
+        g_ig_state->clipboard_paste = libc->strndup(data, size);
         XFree(data);
       }
     }
@@ -408,14 +410,16 @@ char * ImguiGetClipboardText() {
 }
 
 void ImguiSetClipboardText(char * text) {
+  __auto_type libc = g_gpulib_libc;
   XSetSelectionOwner(g_ig_state->dpy, XInternAtom(g_ig_state->dpy, "CLIPBOARD", 0), g_ig_state->win, 0);
-  ptrdiff_t text_bytes = g_gpulib_libc.strlen(text);
-  g_ig_state->clipboard_copy = g_gpulib_libc.realloc(g_ig_state->clipboard_copy, text_bytes + 1);
+  ptrdiff_t text_bytes = libc->strlen(text);
+  g_ig_state->clipboard_copy = libc->realloc(g_ig_state->clipboard_copy, text_bytes + 1);
   memcpy(g_ig_state->clipboard_copy, text, text_bytes);
   g_ig_state->clipboard_copy[text_bytes] = 0;
 }
 
 static inline bool ImguiProcessEvent(XEvent * event) {
+  __auto_type libc = g_gpulib_libc;
   struct ImGuiIO * io = igGetIO();
   switch (event->type) {
     break; case (KeyPress): {
@@ -476,9 +480,9 @@ static inline bool ImguiProcessEvent(XEvent * event) {
       if (e.target == targets_atom)
         test = XChangeProperty(e.display, e.requestor, e.property, ((Atom)4), 32, PropModeReplace, (unsigned char *)&utf8_atom, 1); // XA_ATOM
       else if (e.target == ((Atom)31) || e.target == text_atom) // XA_STRING
-        test = XChangeProperty(e.display, e.requestor, e.property, ((Atom)31), 8, PropModeReplace, (unsigned char *)g_ig_state->clipboard_copy, g_gpulib_libc.strlen(g_ig_state->clipboard_copy));
+        test = XChangeProperty(e.display, e.requestor, e.property, ((Atom)31), 8, PropModeReplace, (unsigned char *)g_ig_state->clipboard_copy, libc->strlen(g_ig_state->clipboard_copy));
       else if (e.target == utf8_atom)
-        test = XChangeProperty(e.display, e.requestor, e.property, utf8_atom, 8, PropModeReplace, (unsigned char *)g_ig_state->clipboard_copy, g_gpulib_libc.strlen(g_ig_state->clipboard_copy));
+        test = XChangeProperty(e.display, e.requestor, e.property, utf8_atom, 8, PropModeReplace, (unsigned char *)g_ig_state->clipboard_copy, libc->strlen(g_ig_state->clipboard_copy));
       else
         e.property = None;
       if ((test & 2) == 0)
@@ -508,17 +512,20 @@ static inline bool ImguiProcessEvent(XEvent * event) {
 }
 
 static inline void ImguiCreateFontTexture() {
+  __auto_type gl = g_gpulib_libgl;
   struct ImGuiIO * io = igGetIO();
   unsigned char * pixels = NULL;
   int width = 0, height = 0, bpp = 0;
   ImFontAtlas_GetTexDataAsRGBA32(io->Fonts, &pixels, &width, &height, &bpp);
-  glCreateTextures(0x8C1A, 1, &g_ig_state->font_texture); // GL_TEXTURE_2D_ARRAY
-  glTextureStorage3D(g_ig_state->font_texture, 1, 0x8814, width, height, 1); // GL_RGBA32F
-  glTextureSubImage3D(g_ig_state->font_texture, 0, 0, 0, 0, width, height, 1, 0x1908, 0x1401, pixels); // GL_RGBA, GL_UNSIGNED_BYTE
+  gl->CreateTextures(0x8C1A, 1, &g_ig_state->font_texture); // GL_TEXTURE_2D_ARRAY
+  gl->TextureStorage3D(g_ig_state->font_texture, 1, 0x8814, width, height, 1); // GL_RGBA32F
+  gl->TextureSubImage3D(g_ig_state->font_texture, 0, 0, 0, 0, width, height, 1, 0x1908, 0x1401, pixels); // GL_RGBA, GL_UNSIGNED_BYTE
   ImFontAtlas_SetTexID(io->Fonts, &g_ig_state->font_texture);
 }
 
 static inline void ImguiCreateDeviceObjects() {
+  __auto_type gl = g_gpulib_libgl;
+  
   char * vert_string =
       "#version 330"                                                               "\n"
       "#extension GL_ARB_gpu_shader5                : enable"                      "\n"
@@ -577,37 +584,37 @@ static inline void ImguiCreateDeviceObjects() {
       "  g_color = g_colour * texture(s_texture, vec3(g_uv, 0));" "\n"
       "}"                                                         "\n";
 
-  unsigned vert_shader_id = glCreateShader(0x8B31); // GL_VERTEX_SHADER
-  unsigned frag_shader_id = glCreateShader(0x8B30); // GL_FRAGMENT_SHADER
+  unsigned vert_shader_id = gl->CreateShader(0x8B31); // GL_VERTEX_SHADER
+  unsigned frag_shader_id = gl->CreateShader(0x8B30); // GL_FRAGMENT_SHADER
 
-  glShaderSource(vert_shader_id, 1, (char **)&vert_string, NULL);
-  glShaderSource(frag_shader_id, 1, (char **)&frag_string, NULL);
+  gl->ShaderSource(vert_shader_id, 1, (char **)&vert_string, NULL);
+  gl->ShaderSource(frag_shader_id, 1, (char **)&frag_string, NULL);
 
-  glCompileShader(vert_shader_id);
-  glCompileShader(frag_shader_id);
+  gl->CompileShader(vert_shader_id);
+  gl->CompileShader(frag_shader_id);
 
-  g_ig_state->vert = glCreateProgram();
-  g_ig_state->frag = glCreateProgram();
+  g_ig_state->vert = gl->CreateProgram();
+  g_ig_state->frag = gl->CreateProgram();
 
-  glProgramParameteri(g_ig_state->vert, 0x8258, 1); // GL_PROGRAM_SEPARABLE
-  glProgramParameteri(g_ig_state->frag, 0x8258, 1); // GL_PROGRAM_SEPARABLE
+  gl->ProgramParameteri(g_ig_state->vert, 0x8258, 1); // GL_PROGRAM_SEPARABLE
+  gl->ProgramParameteri(g_ig_state->frag, 0x8258, 1); // GL_PROGRAM_SEPARABLE
 
-  glAttachShader(g_ig_state->vert, vert_shader_id);
-  glAttachShader(g_ig_state->frag, frag_shader_id);
+  gl->AttachShader(g_ig_state->vert, vert_shader_id);
+  gl->AttachShader(g_ig_state->frag, frag_shader_id);
 
-  glLinkProgram(g_ig_state->vert);
-  glLinkProgram(g_ig_state->frag);
+  gl->LinkProgram(g_ig_state->vert);
+  gl->LinkProgram(g_ig_state->frag);
 
-  glDetachShader(g_ig_state->vert, vert_shader_id);
-  glDetachShader(g_ig_state->frag, frag_shader_id);
+  gl->DetachShader(g_ig_state->vert, vert_shader_id);
+  gl->DetachShader(g_ig_state->frag, frag_shader_id);
 
-  glDeleteShader(vert_shader_id);
-  glDeleteShader(frag_shader_id);
+  gl->DeleteShader(vert_shader_id);
+  gl->DeleteShader(frag_shader_id);
 
-  glCreateProgramPipelines(1, &g_ig_state->ppo);
+  gl->CreateProgramPipelines(1, &g_ig_state->ppo);
 
-  glUseProgramStages(g_ig_state->ppo, 0x00000001, g_ig_state->vert); // GL_VERTEX_SHADER_BIT
-  glUseProgramStages(g_ig_state->ppo, 0x00000002, g_ig_state->frag); // GL_FRAGMENT_SHADER_BIT
+  gl->UseProgramStages(g_ig_state->ppo, 0x00000001, g_ig_state->vert); // GL_VERTEX_SHADER_BIT
+  gl->UseProgramStages(g_ig_state->ppo, 0x00000002, g_ig_state->frag); // GL_FRAGMENT_SHADER_BIT
 
   ImguiCreateFontTexture();
 }
@@ -641,22 +648,24 @@ static void inline ImguiNewFrame() {
 }
 
 static inline void ImguiInvalidateDeviceObjects() {
+  __auto_type gl = g_gpulib_libgl;
   struct ImGuiIO * io = igGetIO();
 
-  glDeleteProgram(g_ig_state->vert);
-  glDeleteProgram(g_ig_state->frag);
-  glDeleteProgramPipelines(1, &g_ig_state->ppo);
+  gl->DeleteProgram(g_ig_state->vert);
+  gl->DeleteProgram(g_ig_state->frag);
+  gl->DeleteProgramPipelines(1, &g_ig_state->ppo);
   g_ig_state->vert = 0, g_ig_state->frag = 0, g_ig_state->ppo = 0;
   if (g_ig_state->font_texture) {
-    glDeleteTextures(1, &g_ig_state->font_texture);
+    gl->DeleteTextures(1, &g_ig_state->font_texture);
     ImFontAtlas_SetTexID(io->Fonts, 0);
     g_ig_state->font_texture = 0;
   }
 }
 
 static inline void ImguiDeinit() {
-  g_gpulib_libc.free(g_ig_state->clipboard_copy);
-  g_gpulib_libc.free(g_ig_state->clipboard_paste);
+  __auto_type libc = g_gpulib_libc;
+  libc->free(g_ig_state->clipboard_copy);
+  libc->free(g_ig_state->clipboard_paste);
   g_ig_state->clipboard_copy = NULL;
   g_ig_state->clipboard_paste = NULL;
   ImguiInvalidateDeviceObjects();
@@ -664,9 +673,10 @@ static inline void ImguiDeinit() {
 }
 
 static inline int ImguiX11ScancodeToKeycode(char * scancodes, char * scancode) {
+  __auto_type libc = g_gpulib_libc;
   for (int i = 0; i < 256; i += 1) {
     char * code = &scancodes[i * 5];
-    if (g_gpulib_libc.strcmp(code, scancode) == 0)
+    if (libc->strcmp(code, scancode) == 0)
       return i;
   }
   return -1;

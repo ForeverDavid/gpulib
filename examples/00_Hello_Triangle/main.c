@@ -28,7 +28,7 @@ int main() {
   unsigned textures[16] = {0};
   textures[0] = GpuCast(vertices_id, gpu_xyz_f32_e, 0, 3 * sizeof(vec3));
 
-  unsigned vert = GpuVert(GPU_VERT_HEAD
+  unsigned vert = GpuVert(GPULIB_VERT_HEADER
       "layout(binding = 0) uniform samplerBuffer s_pos;" "\n"
       ""                                                 "\n"
       "void main() {"                                    "\n"
@@ -36,7 +36,7 @@ int main() {
       "  gl_Position = vec4(pos, 1);"                    "\n"
       "}"                                                "\n");
 
-  unsigned frag = GpuFrag(GPU_FRAG_HEAD
+  unsigned frag = GpuFrag(GPULIB_FRAG_HEADER
       "layout(location = 0) out vec4 g_color;" "\n"
       ""                                       "\n"
       "void main() {"                          "\n"

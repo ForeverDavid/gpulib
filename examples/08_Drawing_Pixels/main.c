@@ -12,7 +12,7 @@ int main() {
   GpuWindow("Drawing Pixels", sizeof("Drawing Pixels"), 1280, 720, 0, NULL, &dpy, &win);
   GpuSetDebugCallback(GpuDebugCallback);
 
-  unsigned vert = GpuVert(GPU_VERT_HEAD
+  unsigned vert = GpuVert(GPULIB_VERT_HEADER
       "layout(location = 0) out vec2 g_uv;"             "\n"
       ""                                                "\n"
       "const vec2 g_tri[] = vec2[]("                    "\n"
@@ -26,7 +26,7 @@ int main() {
       "  gl_Position = vec4(g_tri[gl_VertexID], 0, 1);" "\n"
       "}"                                               "\n");
 
-  unsigned frag = GpuFrag(GPU_FRAG_HEAD
+  unsigned frag = GpuFrag(GPULIB_FRAG_HEADER
       "layout(location = 0) uniform float g_time;"                                        "\n"
       ""                                                                                  "\n"
       "layout(binding = 0) uniform sampler2DArray s_color;"                               "\n"

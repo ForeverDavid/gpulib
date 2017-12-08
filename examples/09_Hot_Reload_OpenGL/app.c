@@ -24,20 +24,29 @@ enum {
   cast_tex_vertices_e,
 };
 
-static void * AppInit(Display * dpy, Window win, char * scancodes, struct ImGuiContext * igc, struct ig_state_t * igs) {
+static void * AppInit(Display * dpy, Window win, char * scancodes,
+    struct g_gpulib_libc_t * gpulib_libc,
+    struct g_gpulib_libgl_t * gpulib_libgl,
+    struct g_gpulib_libglx_t * gpulib_libglx,
+    struct g_gpulib_debug_state_t * gpulib_debug_state,
+    struct ig_state_t * ig_state,
+    struct ImGuiContext * ig_context)
+{
   void * state = stdlib_mmap(0, 256L * 1024L * 1024L * 1024L, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE | MAP_NORESERVE, -1, 0);
   s = state;
 
-  GpuSysGetLibcProcedureAddresses();
-  GpuSysGetOpenGLProcedureAddresses();
-  igSetCurrentContext(igc);
-  g_ig_state = igs;
+  g_gpulib_libc = gpulib_libc;
+  g_gpulib_libgl = gpulib_libgl;
+  g_gpulib_libglx = gpulib_libglx;
+  g_gpulib_debug_state = gpulib_debug_state;
+  g_ig_state = ig_state;
+  igSetCurrentContext(ig_context);
 
   s->vertices = GpuCalloc(4096 * sizeof(vec3), &s->vertices_id);
   s->indices  = GpuCallocIndices(4096, &s->indices_id);
   s->commands = GpuCallocCommands(4096, &s->commands_id);
 
-  char vert_string[4096] = GPU_VERT_HEAD
+  char vert_string[4096] = GPULIB_VERT_HEADER
       "layout(binding = 0) uniform samplerBuffer s_pos;" "\n"
       ""                                                 "\n"
       "void main() {"                                    "\n"
@@ -45,7 +54,7 @@ static void * AppInit(Display * dpy, Window win, char * scancodes, struct ImGuiC
       "  gl_Position = vec4(pos, 1);"                    "\n"
       "}"                                                "\n";
 
-  char frag_string[4096] = GPU_FRAG_HEAD
+  char frag_string[4096] = GPULIB_FRAG_HEADER
       "layout(location = 0) out vec4 g_color;" "\n"
       ""                                       "\n"
       "void main() {"                          "\n"
@@ -65,13 +74,22 @@ static void * AppInit(Display * dpy, Window win, char * scancodes, struct ImGuiC
   return state;
 }
 
-static void AppLoad(void * state, Display * dpy, Window win, char * scancodes, struct ImGuiContext * igc, struct ig_state_t * igs) {
+static void AppLoad(void * state, Display * dpy, Window win, char * scancodes,
+    struct g_gpulib_libc_t * gpulib_libc,
+    struct g_gpulib_libgl_t * gpulib_libgl,
+    struct g_gpulib_libglx_t * gpulib_libglx,
+    struct g_gpulib_debug_state_t * gpulib_debug_state,
+    struct ig_state_t * ig_state,
+    struct ImGuiContext * ig_context)
+{
   s = state;
 
-  GpuSysGetLibcProcedureAddresses();
-  GpuSysGetOpenGLProcedureAddresses();
-  igSetCurrentContext(igc);
-  g_ig_state = igs;
+  g_gpulib_libc = gpulib_libc;
+  g_gpulib_libgl = gpulib_libgl;
+  g_gpulib_libglx = gpulib_libglx;
+  g_gpulib_debug_state = gpulib_debug_state;
+  g_ig_state = ig_state;
+  igSetCurrentContext(ig_context);
 
   s->vertices[0] = (vec3){ 0.0,  0.5, 0.0};
   s->vertices[1] = (vec3){ 0.5, -0.5, 0.0};
@@ -106,7 +124,7 @@ static int AppStep(void * state, Display * dpy, Window win, char * scancodes) {
   ImguiNewFrame();
 
   if (GpuDebugFrag(&s->frag, s->frag_string, sizeof(s->frag_string))) {
-    glDeleteProgramPipelines(1, &s->ppo);
+    g_gpulib_libgl->DeleteProgramPipelines(1, &s->ppo);
     s->ppo = GpuPpo(s->vert, s->frag);
   }
 
@@ -126,7 +144,7 @@ static int AppStep(void * state, Display * dpy, Window win, char * scancodes) {
 static void AppUnload(void * state) {
   s = state;
 
-  glDeleteTextures(4096, s->cast_tex);
+  g_gpulib_libgl->DeleteTextures(4096, s->cast_tex);
 }
 
 static void AppDeinit(void * state) {

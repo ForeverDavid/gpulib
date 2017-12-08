@@ -34,76 +34,96 @@
 
 #endif // #ifndef GPULIB_DEBUG_MANUAL
 
-static char *   g_gpulib_debug_program_string   = NULL;
-static unsigned g_gpulib_debug_program_type     = 0;
-static unsigned g_gpulib_debug_program_id       = 0;
-static bool     g_gpulib_debug_program_compiled = 0;
+struct g_gpulib_debug_state_t {
+  float    texture_scale[2];
+  int      texture_pos[2];
+  char *   program_string;
+  unsigned program_type;
+  unsigned program_id;
+  unsigned texture_id;
+  int      texture_mipmap_level;
+  int      texture_layer;
+  int      texture_x;
+  int      texture_y;
+  bool     program_is_window_open;
+  bool     program_compiled;
+  bool     program_compile_on_tab;
+  bool     texture_is_window_open;
+  bool     texture_sync_pos;
+} g_gpulib_debug_state_data = {
+  .texture_scale = {1, 1},
+  .program_is_window_open = 1,
+  .texture_is_window_open = 1,
+};
+
+struct g_gpulib_debug_state_t * g_gpulib_debug_state = &g_gpulib_debug_state_data;
 
 static inline int GpuDebugProgramCallback(struct ImGuiTextEditCallbackData * data) {
-  glDeleteProgram(g_gpulib_debug_program_id);
-  if (g_gpulib_debug_program_type == 0x8B31) { // GL_VERTEX_SHADER
-    g_gpulib_debug_program_id = GpuVert(g_gpulib_debug_program_string);
-  } else if (g_gpulib_debug_program_type == 0x8B30) { // GL_FRAGMENT_SHADER
-    g_gpulib_debug_program_id = GpuFrag(g_gpulib_debug_program_string);
+  __auto_type gl = g_gpulib_libgl;
+  __auto_type state = g_gpulib_debug_state;
+  
+  gl->DeleteProgram(state->program_id);
+  if (state->program_type == 0x8B31) { // GL_VERTEX_SHADER
+    state->program_id = GpuVert(state->program_string);
+  } else if (state->program_type == 0x8B30) { // GL_FRAGMENT_SHADER
+    state->program_id = GpuFrag(state->program_string);
   } else {
     stdlib_assert(0);
   }
-  g_gpulib_debug_program_compiled = 1;
+  state->program_compiled = 1;
   return 0;
 }
 
 static inline int GpuDebugProgramEx(unsigned program_type, unsigned * program_id, char * string, size_t string_bytes, char * name) {
-  if (g_gpulib_debug_program_compiled == 1)
-      g_gpulib_debug_program_compiled  = 0;
+  __auto_type state = g_gpulib_debug_state;
+
+  if (state->program_compiled == 1)
+      state->program_compiled  = 0;
 
   igSetNextWindowSize((struct ImVec2){640, 360}, (1 << 2)); // ImGuiSetCond_FirstUseEver
-  static bool g_gpulib_is_debug_program_window_open = 1;
-  igBegin(name, &g_gpulib_is_debug_program_window_open, (1 << 11)); // ImGuiWindowFlags_HorizontalScrollbar
-  static bool g_gpulib_compile_on_tab = 0;
-  igCheckbox("Compile on Tab", &g_gpulib_compile_on_tab);
+  igBegin(name, &state->program_is_window_open, (1 << 11)); // ImGuiWindowFlags_HorizontalScrollbar
+  igCheckbox("Compile on Tab", &state->program_compile_on_tab);
 
-  g_gpulib_debug_program_string = string;
-  g_gpulib_debug_program_type   = program_type;
-  g_gpulib_debug_program_id     = program_id[0];
+  state->program_string = string;
+  state->program_type   = program_type;
+  state->program_id     = program_id[0];
   igInputTextMultiline("", string, string_bytes, (struct ImVec2){-1, -1},
-                       g_gpulib_compile_on_tab ? (1 << 6) : (1 << 8), // ImGuiInputTextFlags_CallbackCompletion, ImGuiInputTextFlags_CallbackAlways
+                       state->program_compile_on_tab ? (1 << 6) : (1 << 8), // ImGuiInputTextFlags_CallbackCompletion, ImGuiInputTextFlags_CallbackAlways
                        GpuDebugProgramCallback, NULL);
-  program_id[0] = g_gpulib_debug_program_id;
+  program_id[0] = state->program_id;
 
   igEnd();
-  return g_gpulib_debug_program_compiled;
+  return state->program_compiled;
 }
 
 static inline void GpuDebugImgEx(unsigned tex_id, char * name) {
-  void (*glGetTextureLevelParameteriv)(unsigned, int, unsigned, int *) = (void *)glXGetProcAddressARB((unsigned char *)"glGetTextureLevelParameteriv");
-
-  static unsigned g_gpulib_debug_texture = 0;
-  if (g_gpulib_debug_texture != 0) {
-    glDeleteTextures(1, &g_gpulib_debug_texture);
-    g_gpulib_debug_texture = 0;
+  __auto_type gl = g_gpulib_libgl;
+  __auto_type state = g_gpulib_debug_state;
+  
+  if (state->texture_id != 0) {
+    gl->DeleteTextures(1, &state->texture_id);
+    state->texture_id = 0;
   }
-  g_gpulib_debug_texture = tex_id;
+  state->texture_id = tex_id;
 
   int w = 0, h = 0, layer_count = 0, format = 0;
-  glGetTextureLevelParameteriv(g_gpulib_debug_texture, 0, 0x1000, &w); // GL_TEXTURE_WIDTH
-  glGetTextureLevelParameteriv(g_gpulib_debug_texture, 0, 0x1001, &h); // GL_TEXTURE_HEIGHT
-  glGetTextureLevelParameteriv(g_gpulib_debug_texture, 0, 0x8071, &layer_count); // GL_TEXTURE_DEPTH
-  glGetTextureLevelParameteriv(g_gpulib_debug_texture, 0, 0x1003, &format); // GL_TEXTURE_INTERNAL_FORMAT
+  gl->GetTextureLevelParameteriv(state->texture_id, 0, 0x1000, &w); // GL_TEXTURE_WIDTH
+  gl->GetTextureLevelParameteriv(state->texture_id, 0, 0x1001, &h); // GL_TEXTURE_HEIGHT
+  gl->GetTextureLevelParameteriv(state->texture_id, 0, 0x8071, &layer_count); // GL_TEXTURE_DEPTH
+  gl->GetTextureLevelParameteriv(state->texture_id, 0, 0x1003, &format); // GL_TEXTURE_INTERNAL_FORMAT
 
   igSetNextWindowSize((struct ImVec2){640, 360}, (1 << 2)); // ImGuiSetCond_FirstUseEver
-  static bool g_gpulib_is_debug_texture_window_open = 1;
-  igBegin(name, &g_gpulib_is_debug_texture_window_open, (1 << 11)); // ImGuiWindowFlags_HorizontalScrollbar
+  igBegin(name, &state->texture_is_window_open, (1 << 11)); // ImGuiWindowFlags_HorizontalScrollbar
   igPushStyleVarVec(7, (struct ImVec2){6, 6}); // ImGuiStyleVar_ItemSpacing
 
   igText("Inspect pixel:");
 
   int max_mipmap_count = w != h ? 1 : stdlib_log2i(w) + 1;
 
-  static int g_gpulib_mipmap_level = 0;
   {
-    igSliderInt("mipmap_level", &g_gpulib_mipmap_level, 0, max_mipmap_count - 1, NULL);
-    if (g_gpulib_mipmap_level < 0) g_gpulib_mipmap_level = 0;
-    if (g_gpulib_mipmap_level > max_mipmap_count - 1) g_gpulib_mipmap_level = max_mipmap_count - 1;
+    igSliderInt("mipmap_level", &state->texture_mipmap_level, 0, max_mipmap_count - 1, NULL);
+    if (state->texture_mipmap_level < 0) state->texture_mipmap_level = 0;
+    if (state->texture_mipmap_level > max_mipmap_count - 1) state->texture_mipmap_level = max_mipmap_count - 1;
     igSameLine(0, 0);
     igTextDisabled(" (?)");
     if (igIsItemHovered()) {
@@ -113,33 +133,29 @@ static inline void GpuDebugImgEx(unsigned tex_id, char * name) {
     }
   }
 
-  static int g_gpulib_layer = 0;
   {
-    igSliderInt("layer", &g_gpulib_layer, 0, layer_count - 1, NULL);
-    if (g_gpulib_layer < 0) g_gpulib_layer = 0;
-    if (g_gpulib_layer > layer_count - 1) g_gpulib_layer = layer_count - 1;
+    igSliderInt("layer", &state->texture_layer, 0, layer_count - 1, NULL);
+    if (state->texture_layer < 0) state->texture_layer = 0;
+    if (state->texture_layer > layer_count - 1) state->texture_layer = layer_count - 1;
   }
 
-  static int g_gpulib_x = 0;
   {
-    int W = w / (1 << g_gpulib_mipmap_level);
-    igSliderInt("x", &g_gpulib_x, 0, W - 1, NULL);
-    if (g_gpulib_x < 0) g_gpulib_x = 0;
-    if (g_gpulib_x > W - 1) g_gpulib_x = W - 1;
+    int W = w / (1 << state->texture_mipmap_level);
+    igSliderInt("x", &state->texture_x, 0, W - 1, NULL);
+    if (state->texture_x < 0) state->texture_x = 0;
+    if (state->texture_x > W - 1) state->texture_x = W - 1;
   }
 
-  static int g_gpulib_y = 0;
   {
-    int H = h / (1 << g_gpulib_mipmap_level);
-    igSliderInt("y", &g_gpulib_y, 0, H - 1, NULL);
-    if (g_gpulib_y < 0) g_gpulib_y = 0;
-    if (g_gpulib_y > H - 1) g_gpulib_y = H - 1;
+    int H = h / (1 << state->texture_mipmap_level);
+    igSliderInt("y", &state->texture_y, 0, H - 1, NULL);
+    if (state->texture_y < 0) state->texture_y = 0;
+    if (state->texture_y > H - 1) state->texture_y = H - 1;
   }
 
-  static bool g_gpulib_sync_pos = 1;
-  igCheckbox("Sync pos transform", &g_gpulib_sync_pos);
+  igCheckbox("Sync pos transform", &state->texture_sync_pos);
 
-  g_gpulib_debug_texture = GpuCastImg(tex_id, (enum gpu_tex_format_e)format, g_gpulib_layer, 1, g_gpulib_mipmap_level, 1);
+  state->texture_id = GpuCastImg(tex_id, (enum gpu_tex_format_e)format, state->texture_layer, 1, state->texture_mipmap_level, 1);
 
   {
     int is_srgb = 0;
@@ -156,11 +172,11 @@ static inline void GpuDebugImgEx(unsigned tex_id, char * name) {
     if (e_type == 0x1406) { // GL_FLOAT
       if (e_count == 0x1902) { // GL_DEPTH_COMPONENT
         float pix[1] = {0};
-        GpuGet(g_gpulib_debug_texture, 0, g_gpulib_x, g_gpulib_y, 1, 1, 1, 0, e_count, e_type, sizeof(pix), pix);
+        GpuGet(state->texture_id, 0, state->texture_x, state->texture_y, 1, 1, 1, 0, e_count, e_type, sizeof(pix), pix);
         igText("Pixel output: r: %.7f", pix[0]);
       } else if (e_count == 0x1908) { // GL_RGBA
         float pix[4] = {0};
-        GpuGet(g_gpulib_debug_texture, 0, g_gpulib_x, g_gpulib_y, 1, 1, 1, 0, e_count, e_type, sizeof(pix), pix);
+        GpuGet(state->texture_id, 0, state->texture_x, state->texture_y, 1, 1, 1, 0, e_count, e_type, sizeof(pix), pix);
         igText("Pixel output: r: %.7f, g: %.7f, b: %.7f, a: %.7f", pix[0], pix[1], pix[2], pix[3]);
       } else {
         stdlib_assert(0);
@@ -168,11 +184,11 @@ static inline void GpuDebugImgEx(unsigned tex_id, char * name) {
     } else if (e_type == 0x1400) { // GL_BYTE
       if (e_count == 0x1907) { // GL_RGB
         unsigned char pix[3] = {0};
-        GpuGet(g_gpulib_debug_texture, 0, g_gpulib_x, g_gpulib_y, 1, 1, 1, 0, e_count, e_type, sizeof(pix), pix);
+        GpuGet(state->texture_id, 0, state->texture_x, state->texture_y, 1, 1, 1, 0, e_count, e_type, sizeof(pix), pix);
         igText("Pixel output: r: %u, g: %u, b: %u", pix[0], pix[1], pix[2]);
       } else if (e_count == 0x1908) { // GL_RGBA
         unsigned char pix[4] = {0};
-        GpuGet(g_gpulib_debug_texture, 0, g_gpulib_x, g_gpulib_y, 1, 1, 1, 0, e_count, e_type, sizeof(pix), pix);
+        GpuGet(state->texture_id, 0, state->texture_x, state->texture_y, 1, 1, 1, 0, e_count, e_type, sizeof(pix), pix);
         igText("Pixel output: r: %u, g: %u, b: %u, a: %u", pix[0], pix[1], pix[2], pix[3]);
       } else {
         stdlib_assert(0);
@@ -185,23 +201,21 @@ static inline void GpuDebugImgEx(unsigned tex_id, char * name) {
   igSeparator();
   igText("Texture transforms:");
 
-  static float g_gpulib_debug_scale[2] = {1, 1};
-  static int g_gpulib_debug_pos[2] = {0, 0};
-  igDragFloat2("scale", g_gpulib_debug_scale, 0.001, 0, 0, NULL, 1);
-  igDragInt2("pos", g_gpulib_debug_pos, 1, 0, 0, NULL);
+  igDragFloat2("scale", state->texture_scale, 0.001, 0, 0, NULL, 1);
+  igDragInt2("pos", state->texture_pos, 1, 0, 0, NULL);
   igText("Texture info: w: %d, h: %d, layer_count: %d, max_mipmap_count: %d", w, h, layer_count, max_mipmap_count);
 
-  if (g_gpulib_sync_pos) {
-    g_gpulib_debug_pos[0] = g_gpulib_x;
-    g_gpulib_debug_pos[1] = g_gpulib_y;
+  if (state->texture_sync_pos) {
+    state->texture_pos[0] = state->texture_x;
+    state->texture_pos[1] = state->texture_y;
   }
 
-  igImage((ImTextureID)&g_gpulib_debug_texture,
+  igImage((ImTextureID)&state->texture_id,
           (struct ImVec2){w, h},
-          (struct ImVec2){((float)g_gpulib_debug_pos[0] / w),
-                          ((float)g_gpulib_debug_pos[1] / h)},
-          (struct ImVec2){((float)g_gpulib_debug_pos[0] / w) + g_gpulib_debug_scale[0],
-                          ((float)g_gpulib_debug_pos[1] / h) + g_gpulib_debug_scale[1]},
+          (struct ImVec2){((float)state->texture_pos[0] / w),
+                          ((float)state->texture_pos[1] / h)},
+          (struct ImVec2){((float)state->texture_pos[0] / w) + state->texture_scale[0],
+                          ((float)state->texture_pos[1] / h) + state->texture_scale[1]},
           (struct ImVec4){255, 255, 255, 255},
           (struct ImVec4){0, 0, 0, 0});
 

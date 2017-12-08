@@ -4,8 +4,20 @@
 #include "../../gpulib_debug.h"
 
 struct api_t {
-  void * (*Init)(Display *, Window, char *, struct ImGuiContext *, struct ig_state_t *);
-  void   (*Load)(void *, Display *, Window, char *, struct ImGuiContext *, struct ig_state_t *);
+  void * (*Init)(Display *, Window, char *,
+      struct g_gpulib_libc_t *,
+      struct g_gpulib_libgl_t *,
+      struct g_gpulib_libglx_t *,
+      struct g_gpulib_debug_state_t *,
+      struct ig_state_t *,
+      struct ImGuiContext *);
+  void   (*Load)(void *, Display *, Window, char *,
+      struct g_gpulib_libc_t *,
+      struct g_gpulib_libgl_t *,
+      struct g_gpulib_libglx_t *,
+      struct g_gpulib_debug_state_t *,
+      struct ig_state_t *,
+      struct ImGuiContext *);
   int    (*Step)(void *, Display *, Window, char *);
   void   (*Unload)(void *);
   void   (*Deinit)(void *);

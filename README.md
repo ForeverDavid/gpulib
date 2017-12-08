@@ -15,8 +15,8 @@ The contract:
 Features:
 
  * ~70 ms of startup time (compared to ~500 ms of SDL 2.0.4), 56 ms of which are spent on a `glXChooseFBConfig` call.
- * 35 kb for 70 lines of Hello Triangle code: `./build.sh -Os && strip --strip-all a.out`, Ubuntu 16.04, Clang 3.9.1.
- * Minimum number of shared library dependencies: `libX11`, `libXrender`, `libXi`, `libGL`, `libdl`.
+ * 38 kb for 70 lines of Hello Triangle code: `./build.sh -Os && strip --strip-all a.out`, Ubuntu 16.04, Clang 3.9.1.
+ * Minimum number of shared library dependencies: `libX11`, `libXrender`, `libXi`, `libdl`.
 
 Naming convention:
 

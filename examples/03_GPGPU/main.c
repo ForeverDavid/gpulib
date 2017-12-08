@@ -9,7 +9,7 @@ int main() {
   int dim_x = 800;
   int dim_y = 450;
 
-  char vert_string[4096] = GPU_VERT_HEAD
+  char vert_string[4096] = GPULIB_VERT_HEADER
       "const vec2 g_tri[] = vec2[]("                    "\n"
       "  vec2(-1,-1),"                                  "\n"
       "  vec2(-1, 3),"                                  "\n"
@@ -20,7 +20,7 @@ int main() {
       "  gl_Position = vec4(g_tri[gl_VertexID], 0, 1);" "\n"
       "}"                                               "\n";
 
-  char frag_string[4096] = GPU_FRAG_HEAD
+  char frag_string[4096] = GPULIB_FRAG_HEADER
       "layout(location = 0) out vec4 g_color;"       "\n"
       ""                                             "\n"
       "void main() {"                                "\n"
@@ -70,7 +70,7 @@ int main() {
 
     if (GpuDebugVert(&vert, vert_string, sizeof(vert_string)) ||
         GpuDebugFrag(&frag, frag_string, sizeof(frag_string))) {
-      glDeleteProgramPipelines(1, &ppo);
+      g_gpulib_libgl->DeleteProgramPipelines(1, &ppo);
       ppo = GpuPpo(vert, frag);
     }
 

@@ -47,7 +47,7 @@ int main() {
   v2[3].y = 23.0;
   v2[3].z = 24.0;
 
-  char vert_string[] = GPU_VERT_HEAD
+  char vert_string[] = GPULIB_VERT_HEADER
       "layout(binding = 0) uniform samplerBuffer s_v1;" "\n"
       "layout(binding = 1) uniform samplerBuffer s_v2;" "\n"
       ""                                                "\n"

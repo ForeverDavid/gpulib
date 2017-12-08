@@ -15,7 +15,6 @@
 #include <X11/extensions/Xrender.h>
 #include <X11/extensions/XInput2.h>
 #include <X11/XKBlib.h>
-#include <GL/glx.h>
 #include "stdlib/stdlib.h"
 
 struct gpu_cmd_t {
@@ -123,6 +122,19 @@ enum gpu_pix_type_e {
   gpu_f32_e = 0x1406, // GL_FLOAT
 };
 
+struct XVisualInfo {
+  void * visual;
+  VisualID visualid;
+  int screen;
+  int depth;
+  int class;
+  unsigned long red_mask;
+  unsigned long green_mask;
+  unsigned long blue_mask;
+  int colormap_size;
+  int bits_per_rgb;
+};
+
 struct MWMHints {
  long flags;
  long functions;
@@ -159,7 +171,7 @@ struct MWMHints {
 
 #define MWM_TEAROFF_WINDOW      (1L<<0)
 
-#define GPU_VERT_HEAD                                          \
+#define GPULIB_VERT_HEADER                                     \
   "#version 330"                                          "\n" \
   "#extension GL_ARB_gpu_shader5                : enable" "\n" \
   "#extension GL_ARB_shader_precision           : enable" "\n" \
@@ -172,7 +184,7 @@ struct MWMHints {
   "out gl_PerVertex { vec4 gl_Position; };"               "\n" \
   ""                                                      "\n"
 
-#define GPU_FRAG_HEAD                                          \
+#define GPULIB_FRAG_HEADER                                     \
   "#version 330"                                          "\n" \
   "#extension GL_ARB_gpu_shader5                : enable" "\n" \
   "#extension GL_ARB_shader_precision           : enable" "\n" \
@@ -185,78 +197,7 @@ struct MWMHints {
   "layout(origin_upper_left) in vec4 gl_FragCoord;"       "\n" \
   ""                                                      "\n"
 
-void (*glAttachShader)(unsigned, unsigned);
-void (*glBeginTransformFeedback)(unsigned);
-void (*glBindBuffer)(unsigned, unsigned);
-void (*glBindFramebuffer)(unsigned, unsigned);
-void (*glBindProgramPipeline)(unsigned);
-void (*glBindSamplers)(int, int, unsigned *);
-void (*glBindTextures)(int, int, unsigned *);
-void (*glBindTransformFeedback)(unsigned, unsigned);
-void (*glBindVertexArray)(unsigned);
-void (*glBlitNamedFramebuffer)(unsigned, unsigned, int, int, int, int, int, int, int, int, unsigned, unsigned);
-void (*glBufferStorage)(unsigned, ptrdiff_t, void *, unsigned);
-void (*glClearTexSubImage)(unsigned, int, int, int, int, int, int, int, unsigned, unsigned, void *);
-void (*glClipControl)(unsigned, unsigned);
-void (*glCompileShader)(unsigned);
-void (*glCompressedTextureSubImage3D)(unsigned, int, int, int, int, int, int, int, unsigned, unsigned, void *);
-void (*glCreateBuffers)(int, unsigned *);
-void (*glCreateFramebuffers)(int, unsigned *);
-unsigned (*glCreateProgram)();
-void (*glCreateProgramPipelines)(int, unsigned *);
-void (*glCreateSamplers)(int, unsigned *);
-unsigned (*glCreateShader)(unsigned);
-void (*glCreateTextures)(unsigned, int, unsigned *);
-void (*glCreateTransformFeedbacks)(int, unsigned *);
-void (*glCreateVertexArrays)(int, unsigned *);
-void (*glDebugMessageCallback)(void *, void *);
-void (*glDeleteBuffers)(int, unsigned *);
-void (*glDeleteFramebuffers)(int, unsigned *);
-void (*glDeleteProgram)(unsigned);
-void (*glDeleteProgramPipelines)(int, unsigned *);
-void (*glDeleteSamplers)(int, unsigned *);
-void (*glDeleteShader)(unsigned);
-void (*glDeleteTransformFeedbacks)(int, unsigned *);
-void (*glDetachShader)(unsigned, unsigned);
-void (*glDrawArraysInstanced)(unsigned, unsigned, unsigned, unsigned);
-void (*glEndTransformFeedback)();
-void (*glGenBuffers)(int, unsigned *);
-void (*glGenerateTextureMipmap)(unsigned);
-void (*glGetCompressedTextureSubImage)(unsigned, int, int, int, int, int, int, int, int, void *);
-void (*glGetProgramInfoLog)(unsigned, int, int *, char *);
-void (*glGetProgramiv)(unsigned, unsigned, int *);
-void (*glGetShaderInfoLog)(unsigned, int, int *, char *);
-void (*glGetShaderiv)(unsigned, unsigned, int *);
-char * (*glGetStringi)(unsigned, unsigned);
-void (*glGetTextureSubImage)(unsigned, int, int, int, int, int, int, int, unsigned, unsigned, unsigned, void *);
-void (*glLinkProgram)(unsigned);
-void * (*glMapBufferRange)(unsigned, ptrdiff_t, ptrdiff_t, unsigned);
-void * (*glMapNamedBufferRange)(unsigned, ptrdiff_t, ptrdiff_t, unsigned);
-void (*glMultiDrawElementsIndirect)(unsigned, unsigned, void *, int, int);
-void (*glNamedBufferStorage)(unsigned, ptrdiff_t, void *, unsigned);
-void (*glNamedFramebufferDrawBuffer)(unsigned, int);
-void (*glNamedFramebufferDrawBuffers)(unsigned, int, int *);
-void (*glNamedFramebufferReadBuffer)(unsigned, int);
-void (*glNamedFramebufferTextureLayer)(unsigned, int, unsigned, int, int);
-void (*glProgramParameteri)(unsigned, unsigned, int);
-void (*glProgramUniform1fv)(unsigned, int, int, float *);
-void (*glProgramUniform1iv)(unsigned, int, int, int *);
-void (*glProgramUniform1uiv)(unsigned, int, int, unsigned *);
-void (*glProgramUniform2fv)(unsigned, int, int, float *);
-void (*glProgramUniform3fv)(unsigned, int, int, float *);
-void (*glProgramUniform4fv)(unsigned, int, int, float *);
-void (*glSamplerParameteri)(unsigned, unsigned, int);
-void (*glShaderSource)(unsigned, int, char **, int *);
-void (*glTextureBufferRange)(unsigned, unsigned, unsigned, ptrdiff_t, ptrdiff_t);
-void (*glTextureStorage3D)(unsigned, int, unsigned, int, int, int);
-void (*glTextureStorage3DMultisample)(unsigned, int, unsigned, int, int, int, int);
-void (*glTextureSubImage3D)(unsigned, int, int, int, int, int, int, int, unsigned, unsigned, void *);
-void (*glTextureView)(unsigned, unsigned, unsigned, unsigned, int, int, int, int);
-void (*glTransformFeedbackBufferRange)(unsigned, int, unsigned, ptrdiff_t, ptrdiff_t);
-void (*glTransformFeedbackVaryings)(unsigned, int, char **, unsigned);
-void (*glUseProgramStages)(unsigned, unsigned, unsigned);
-
-struct gpu_sys_libc_t {
+struct g_gpulib_libc_t {
   int (*access)(char *, int);
   void * (*calloc)(size_t, size_t);
   int (*fgetc)(int *);
@@ -274,138 +215,255 @@ struct gpu_sys_libc_t {
   char * (*strrchr)(char *, int);
   long (*strtol)(char *, char **, int);
   int (*usleep)(unsigned);
-} g_gpulib_libc = {
-  (void *)0xBAD,
-  (void *)0xBAD,
-  (void *)0xBAD,
-  (void *)0xBAD,
-  (void *)0xBAD,
-  (void *)0xBAD,
-  (void *)0xBAD,
-  (void *)0xBAD,
-  (void *)0xBAD,
-  (void *)0xBAD,
-  (void *)0xBAD,
-  (void *)0xBAD,
-  (void *)0xBAD,
-  (void *)0xBAD,
-  (void *)0xBAD,
-  (void *)0xBAD,
-  (void *)0xBAD,
-};
+} g_gpulib_libc_data = {0};
 
-static inline void GpuSysGetOpenGLProcedureAddresses() {
-  glAttachShader = (void *)glXGetProcAddressARB((unsigned char *)"glAttachShader");
-  glBeginTransformFeedback = (void *)glXGetProcAddressARB((unsigned char *)"glBeginTransformFeedback");
-  glBindBuffer = (void *)glXGetProcAddressARB((unsigned char *)"glBindBuffer");
-  glBindFramebuffer = (void *)glXGetProcAddressARB((unsigned char *)"glBindFramebuffer");
-  glBindProgramPipeline = (void *)glXGetProcAddressARB((unsigned char *)"glBindProgramPipeline");
-  glBindSamplers = (void *)glXGetProcAddressARB((unsigned char *)"glBindSamplers");
-  glBindTextures = (void *)glXGetProcAddressARB((unsigned char *)"glBindTextures");
-  glBindTransformFeedback = (void *)glXGetProcAddressARB((unsigned char *)"glBindTransformFeedback");
-  glBindVertexArray = (void *)glXGetProcAddressARB((unsigned char *)"glBindVertexArray");
-  glBlitNamedFramebuffer = (void *)glXGetProcAddressARB((unsigned char *)"glBlitNamedFramebuffer");
-  glBufferStorage = (void *)glXGetProcAddressARB((unsigned char *)"glBufferStorage");
-  glClearTexSubImage = (void *)glXGetProcAddressARB((unsigned char *)"glClearTexSubImage");
-  glClipControl = (void *)glXGetProcAddressARB((unsigned char *)"glClipControl");
-  glCompileShader = (void *)glXGetProcAddressARB((unsigned char *)"glCompileShader");
-  glCompressedTextureSubImage3D = (void *)glXGetProcAddressARB((unsigned char *)"glCompressedTextureSubImage3D");
-  glCreateBuffers = (void *)glXGetProcAddressARB((unsigned char *)"glCreateBuffers");
-  glCreateFramebuffers = (void *)glXGetProcAddressARB((unsigned char *)"glCreateFramebuffers");
-  glCreateProgram = (void *)glXGetProcAddressARB((unsigned char *)"glCreateProgram");
-  glCreateProgramPipelines = (void *)glXGetProcAddressARB((unsigned char *)"glCreateProgramPipelines");
-  glCreateSamplers = (void *)glXGetProcAddressARB((unsigned char *)"glCreateSamplers");
-  glCreateShader = (void *)glXGetProcAddressARB((unsigned char *)"glCreateShader");
-  glCreateTextures = (void *)glXGetProcAddressARB((unsigned char *)"glCreateTextures");
-  glCreateTransformFeedbacks = (void *)glXGetProcAddressARB((unsigned char *)"glCreateTransformFeedbacks");
-  glCreateVertexArrays = (void *)glXGetProcAddressARB((unsigned char *)"glCreateVertexArrays");
-  glDebugMessageCallback = (void *)glXGetProcAddressARB((unsigned char *)"glDebugMessageCallback");
-  glDeleteBuffers = (void *)glXGetProcAddressARB((unsigned char *)"glDeleteBuffers");
-  glDeleteFramebuffers = (void *)glXGetProcAddressARB((unsigned char *)"glDeleteFramebuffers");
-  glDeleteProgram = (void *)glXGetProcAddressARB((unsigned char *)"glDeleteProgram");
-  glDeleteProgramPipelines = (void *)glXGetProcAddressARB((unsigned char *)"glDeleteProgramPipelines");
-  glDeleteSamplers = (void *)glXGetProcAddressARB((unsigned char *)"glDeleteSamplers");
-  glDeleteShader = (void *)glXGetProcAddressARB((unsigned char *)"glDeleteShader");
-  glDeleteTransformFeedbacks = (void *)glXGetProcAddressARB((unsigned char *)"glDeleteTransformFeedbacks");
-  glDetachShader = (void *)glXGetProcAddressARB((unsigned char *)"glDetachShader");
-  glDrawArraysInstanced = (void *)glXGetProcAddressARB((unsigned char *)"glDrawArraysInstanced");
-  glEndTransformFeedback = (void *)glXGetProcAddressARB((unsigned char *)"glEndTransformFeedback");
-  glGenBuffers = (void *)glXGetProcAddressARB((unsigned char *)"glGenBuffers");
-  glGenerateTextureMipmap = (void *)glXGetProcAddressARB((unsigned char *)"glGenerateTextureMipmap");
-  glGetCompressedTextureSubImage = (void *)glXGetProcAddressARB((unsigned char *)"glGetCompressedTextureSubImage");
-  glGetProgramInfoLog = (void *)glXGetProcAddressARB((unsigned char *)"glGetProgramInfoLog");
-  glGetProgramiv = (void *)glXGetProcAddressARB((unsigned char *)"glGetProgramiv");
-  glGetShaderInfoLog = (void *)glXGetProcAddressARB((unsigned char *)"glGetShaderInfoLog");
-  glGetShaderiv = (void *)glXGetProcAddressARB((unsigned char *)"glGetShaderiv");
-  glGetTextureSubImage = (void *)glXGetProcAddressARB((unsigned char *)"glGetTextureSubImage");
-  glLinkProgram = (void *)glXGetProcAddressARB((unsigned char *)"glLinkProgram");
-  glMapBufferRange = (void *)glXGetProcAddressARB((unsigned char *)"glMapBufferRange");
-  glMapNamedBufferRange = (void *)glXGetProcAddressARB((unsigned char *)"glMapNamedBufferRange");
-  glMultiDrawElementsIndirect = (void *)glXGetProcAddressARB((unsigned char *)"glMultiDrawElementsIndirect");
-  glNamedBufferStorage = (void *)glXGetProcAddressARB((unsigned char *)"glNamedBufferStorage");
-  glNamedFramebufferDrawBuffer = (void *)glXGetProcAddressARB((unsigned char *)"glNamedFramebufferDrawBuffer");
-  glNamedFramebufferDrawBuffers = (void *)glXGetProcAddressARB((unsigned char *)"glNamedFramebufferDrawBuffers");
-  glNamedFramebufferReadBuffer = (void *)glXGetProcAddressARB((unsigned char *)"glNamedFramebufferReadBuffer");
-  glNamedFramebufferTextureLayer = (void *)glXGetProcAddressARB((unsigned char *)"glNamedFramebufferTextureLayer");
-  glProgramParameteri = (void *)glXGetProcAddressARB((unsigned char *)"glProgramParameteri");
-  glProgramUniform1fv = (void *)glXGetProcAddressARB((unsigned char *)"glProgramUniform1fv");
-  glProgramUniform1iv = (void *)glXGetProcAddressARB((unsigned char *)"glProgramUniform1iv");
-  glProgramUniform1uiv = (void *)glXGetProcAddressARB((unsigned char *)"glProgramUniform1uiv");
-  glProgramUniform2fv = (void *)glXGetProcAddressARB((unsigned char *)"glProgramUniform2fv");
-  glProgramUniform3fv = (void *)glXGetProcAddressARB((unsigned char *)"glProgramUniform3fv");
-  glProgramUniform4fv = (void *)glXGetProcAddressARB((unsigned char *)"glProgramUniform4fv");
-  glSamplerParameteri = (void *)glXGetProcAddressARB((unsigned char *)"glSamplerParameteri");
-  glShaderSource = (void *)glXGetProcAddressARB((unsigned char *)"glShaderSource");
-  glTextureBufferRange = (void *)glXGetProcAddressARB((unsigned char *)"glTextureBufferRange");
-  glTextureStorage3D = (void *)glXGetProcAddressARB((unsigned char *)"glTextureStorage3D");
-  glTextureStorage3DMultisample = (void *)glXGetProcAddressARB((unsigned char *)"glTextureStorage3DMultisample");
-  glTextureSubImage3D = (void *)glXGetProcAddressARB((unsigned char *)"glTextureSubImage3D");
-  glTextureView = (void *)glXGetProcAddressARB((unsigned char *)"glTextureView");
-  glTransformFeedbackBufferRange = (void *)glXGetProcAddressARB((unsigned char *)"glTransformFeedbackBufferRange");
-  glTransformFeedbackVaryings = (void *)glXGetProcAddressARB((unsigned char *)"glTransformFeedbackVaryings");
-  glUseProgramStages = (void *)glXGetProcAddressARB((unsigned char *)"glUseProgramStages");
-}
+struct g_gpulib_libc_t * g_gpulib_libc = &g_gpulib_libc_data;
+
+struct g_gpulib_libglx_t {
+  void ** (*ChooseFBConfig)(Display *, int, int *, int *);
+  int (*GetFBConfigAttrib)(Display *, void *, int, int *);
+  void * (*GetProcAddressARB)(char *);
+  struct XVisualInfo * (*GetVisualFromFBConfig)(Display *, void *);
+  int (*MakeContextCurrent)(Display *, XID, XID, void *);
+  void (*SwapBuffers)(Display *, XID);
+} g_gpulib_libglx_data = {0};
+
+struct g_gpulib_libglx_t * g_gpulib_libglx = &g_gpulib_libglx_data;
+
+struct g_gpulib_libgl_t {
+  void (*AttachShader)(unsigned, unsigned);
+  void (*BeginTransformFeedback)(unsigned);
+  void (*BindBuffer)(unsigned, unsigned);
+  void (*BindFramebuffer)(unsigned, unsigned);
+  void (*BindProgramPipeline)(unsigned);
+  void (*BindSamplers)(int, int, unsigned *);
+  void (*BindTextures)(int, int, unsigned *);
+  void (*BindTransformFeedback)(unsigned, unsigned);
+  void (*BindVertexArray)(unsigned);
+  void (*BlendFunc)(unsigned, unsigned);
+  void (*BlitNamedFramebuffer)(unsigned, unsigned, int, int, int, int, int, int, int, int, unsigned, unsigned);
+  void (*BufferStorage)(unsigned, ptrdiff_t, void *, unsigned);
+  void (*Clear)(unsigned);
+  void (*ClearDepth)(double);
+  void (*ClearTexSubImage)(unsigned, int, int, int, int, int, int, int, unsigned, unsigned, void *);
+  void (*ClipControl)(unsigned, unsigned);
+  void (*CompileShader)(unsigned);
+  void (*CompressedTextureSubImage3D)(unsigned, int, int, int, int, int, int, int, unsigned, unsigned, void *);
+  void (*CreateBuffers)(int, unsigned *);
+  void (*CreateFramebuffers)(int, unsigned *);
+  unsigned (*CreateProgram)();
+  void (*CreateProgramPipelines)(int, unsigned *);
+  void (*CreateSamplers)(int, unsigned *);
+  unsigned (*CreateShader)(unsigned);
+  void (*CreateTextures)(unsigned, int, unsigned *);
+  void (*CreateTransformFeedbacks)(int, unsigned *);
+  void (*CreateVertexArrays)(int, unsigned *);
+  void (*DebugMessageCallback)(void *, void *);
+  void (*DeleteBuffers)(int, unsigned *);
+  void (*DeleteFramebuffers)(int, unsigned *);
+  void (*DeleteProgram)(unsigned);
+  void (*DeleteProgramPipelines)(int, unsigned *);
+  void (*DeleteSamplers)(int, unsigned *);
+  void (*DeleteShader)(unsigned);
+  void (*DeleteTextures)(int, unsigned *);
+  void (*DeleteTransformFeedbacks)(int, unsigned *);
+  void (*DepthFunc)(unsigned);
+  void (*DepthRange)(double, double);
+  void (*DetachShader)(unsigned, unsigned);
+  void (*Disable)(unsigned);
+  void (*DrawArraysInstanced)(unsigned, unsigned, unsigned, unsigned);
+  void (*Enable)(unsigned);
+  void (*EndTransformFeedback)();
+  void (*Finish)();
+  void (*FrontFace)(unsigned);
+  void (*GenBuffers)(int, unsigned *);
+  void (*GenerateTextureMipmap)(unsigned);
+  void (*GenTextures)(int, unsigned *);
+  void (*GetCompressedTextureSubImage)(unsigned, int, int, int, int, int, int, int, int, void *);
+  void (*GetIntegerv)(unsigned, int *);
+  void (*GetProgramInfoLog)(unsigned, int, int *, char *);
+  void (*GetProgramiv)(unsigned, unsigned, int *);
+  void (*GetShaderInfoLog)(unsigned, int, int *, char *);
+  void (*GetShaderiv)(unsigned, unsigned, int *);
+  char * (*GetStringi)(unsigned, unsigned);
+  void (*GetTextureLevelParameteriv)(unsigned, int, unsigned, int *);
+  void (*GetTextureSubImage)(unsigned, int, int, int, int, int, int, int, unsigned, unsigned, unsigned, void *);
+  void (*LinkProgram)(unsigned);
+  void * (*MapBufferRange)(unsigned, ptrdiff_t, ptrdiff_t, unsigned);
+  void * (*MapNamedBufferRange)(unsigned, ptrdiff_t, ptrdiff_t, unsigned);
+  void (*MultiDrawElementsIndirect)(unsigned, unsigned, void *, int, int);
+  void (*NamedBufferStorage)(unsigned, ptrdiff_t, void *, unsigned);
+  void (*NamedFramebufferDrawBuffer)(unsigned, int);
+  void (*NamedFramebufferDrawBuffers)(unsigned, int, int *);
+  void (*NamedFramebufferReadBuffer)(unsigned, int);
+  void (*NamedFramebufferTextureLayer)(unsigned, int, unsigned, int, int);
+  void (*ProgramParameteri)(unsigned, unsigned, int);
+  void (*ProgramUniform1fv)(unsigned, int, int, float *);
+  void (*ProgramUniform1iv)(unsigned, int, int, int *);
+  void (*ProgramUniform1uiv)(unsigned, int, int, unsigned *);
+  void (*ProgramUniform2fv)(unsigned, int, int, float *);
+  void (*ProgramUniform3fv)(unsigned, int, int, float *);
+  void (*ProgramUniform4fv)(unsigned, int, int, float *);
+  void (*SamplerParameteri)(unsigned, unsigned, int);
+  void (*Scissor)(int, int, int, int);
+  void (*ShaderSource)(unsigned, int, char **, int *);
+  void (*TextureBufferRange)(unsigned, unsigned, unsigned, ptrdiff_t, ptrdiff_t);
+  void (*TextureStorage3D)(unsigned, int, unsigned, int, int, int);
+  void (*TextureStorage3DMultisample)(unsigned, int, unsigned, int, int, int, int);
+  void (*TextureSubImage3D)(unsigned, int, int, int, int, int, int, int, unsigned, unsigned, void *);
+  void (*TextureView)(unsigned, unsigned, unsigned, unsigned, int, int, int, int);
+  void (*TransformFeedbackBufferRange)(unsigned, int, unsigned, ptrdiff_t, ptrdiff_t);
+  void (*TransformFeedbackVaryings)(unsigned, int, char **, unsigned);
+  void (*UseProgramStages)(unsigned, unsigned, unsigned);
+  void (*Viewport)(int, int, int, int);
+} g_gpulib_libgl_data = {0};
+
+struct g_gpulib_libgl_t * g_gpulib_libgl = &g_gpulib_libgl_data;
 
 static inline void GpuSysGetLibcProcedureAddresses() {
-  g_gpulib_libc.access = dlsym(NULL, "access");
-  g_gpulib_libc.calloc = dlsym(NULL, "calloc");
-  g_gpulib_libc.fgetc = dlsym(NULL, "fgetc");
-  g_gpulib_libc.free = dlsym(NULL, "free");
-  g_gpulib_libc.getpid = dlsym(NULL, "getpid");
-  g_gpulib_libc.pclose = dlsym(NULL, "pclose");
-  g_gpulib_libc.popen = dlsym(NULL, "popen");
-  g_gpulib_libc.readlink = dlsym(NULL, "readlink");
-  g_gpulib_libc.realloc = dlsym(NULL, "realloc");
-  g_gpulib_libc.setlocale = dlsym(NULL, "setlocale");
-  g_gpulib_libc.strcat = dlsym(NULL, "strcat");
-  g_gpulib_libc.strcmp = dlsym(NULL, "strcmp");
-  g_gpulib_libc.strlen = dlsym(NULL, "strlen");
-  g_gpulib_libc.strndup = dlsym(NULL, "strndup");
-  g_gpulib_libc.strrchr = dlsym(NULL, "strrchr");
-  g_gpulib_libc.strtol = dlsym(NULL, "strtol");
-  g_gpulib_libc.usleep = dlsym(NULL, "usleep");
+  __auto_type libc = g_gpulib_libc;
+  if (libc->access == NULL) libc->access = dlsym(NULL, "access"); stdlib_assert(libc->access != NULL);
+  if (libc->calloc == NULL) libc->calloc = dlsym(NULL, "calloc"); stdlib_assert(libc->calloc != NULL);
+  if (libc->fgetc == NULL) libc->fgetc = dlsym(NULL, "fgetc"); stdlib_assert(libc->fgetc != NULL);
+  if (libc->free == NULL) libc->free = dlsym(NULL, "free"); stdlib_assert(libc->free != NULL);
+  if (libc->getpid == NULL) libc->getpid = dlsym(NULL, "getpid"); stdlib_assert(libc->getpid != NULL);
+  if (libc->pclose == NULL) libc->pclose = dlsym(NULL, "pclose"); stdlib_assert(libc->pclose != NULL);
+  if (libc->popen == NULL) libc->popen = dlsym(NULL, "popen"); stdlib_assert(libc->popen != NULL);
+  if (libc->readlink == NULL) libc->readlink = dlsym(NULL, "readlink"); stdlib_assert(libc->readlink != NULL);
+  if (libc->realloc == NULL) libc->realloc = dlsym(NULL, "realloc"); stdlib_assert(libc->realloc != NULL);
+  if (libc->setlocale == NULL) libc->setlocale = dlsym(NULL, "setlocale"); stdlib_assert(libc->setlocale != NULL);
+  if (libc->strcat == NULL) libc->strcat = dlsym(NULL, "strcat"); stdlib_assert(libc->strcat != NULL);
+  if (libc->strcmp == NULL) libc->strcmp = dlsym(NULL, "strcmp"); stdlib_assert(libc->strcmp != NULL);
+  if (libc->strlen == NULL) libc->strlen = dlsym(NULL, "strlen"); stdlib_assert(libc->strlen != NULL);
+  if (libc->strndup == NULL) libc->strndup = dlsym(NULL, "strndup"); stdlib_assert(libc->strndup != NULL);
+  if (libc->strrchr == NULL) libc->strrchr = dlsym(NULL, "strrchr"); stdlib_assert(libc->strrchr != NULL);
+  if (libc->strtol == NULL) libc->strtol = dlsym(NULL, "strtol"); stdlib_assert(libc->strtol != NULL);
+  if (libc->usleep == NULL) libc->usleep = dlsym(NULL, "usleep"); stdlib_assert(libc->usleep != NULL);
+}
+
+static inline void GpuSysGetGLXProcedureAddresses() {
+  __auto_type glx = g_gpulib_libglx;
+  void * libgl = dlopen("libGL.so", 1); stdlib_assert(libgl != NULL);
+  if (glx->ChooseFBConfig == NULL) glx->ChooseFBConfig = dlsym(libgl, "glXChooseFBConfig"); stdlib_assert(glx->ChooseFBConfig != NULL);
+  if (glx->GetFBConfigAttrib == NULL) glx->GetFBConfigAttrib = dlsym(libgl, "glXGetFBConfigAttrib"); stdlib_assert(glx->GetFBConfigAttrib != NULL);
+  if (glx->GetProcAddressARB == NULL) glx->GetProcAddressARB = dlsym(libgl, "glXGetProcAddressARB"); stdlib_assert(glx->GetProcAddressARB != NULL);
+  if (glx->GetVisualFromFBConfig == NULL) glx->GetVisualFromFBConfig = dlsym(libgl, "glXGetVisualFromFBConfig"); stdlib_assert(glx->GetVisualFromFBConfig != NULL);
+  if (glx->MakeContextCurrent == NULL) glx->MakeContextCurrent = dlsym(libgl, "glXMakeContextCurrent"); stdlib_assert(glx->MakeContextCurrent != NULL);
+  if (glx->SwapBuffers == NULL) glx->SwapBuffers = dlsym(libgl, "glXSwapBuffers"); stdlib_assert(glx->SwapBuffers != NULL);
+}
+
+static inline void GpuSysGetGLProcedureAddresses() {
+  __auto_type gl = g_gpulib_libgl;
+  __auto_type glx = g_gpulib_libglx;
+  if (gl->AttachShader == NULL) gl->AttachShader = glx->GetProcAddressARB("glAttachShader"); stdlib_assert(gl->AttachShader != NULL);
+  if (gl->BeginTransformFeedback == NULL) gl->BeginTransformFeedback = glx->GetProcAddressARB("glBeginTransformFeedback"); stdlib_assert(gl->BeginTransformFeedback != NULL);
+  if (gl->BindBuffer == NULL) gl->BindBuffer = glx->GetProcAddressARB("glBindBuffer"); stdlib_assert(gl->BindBuffer != NULL);
+  if (gl->BindFramebuffer == NULL) gl->BindFramebuffer = glx->GetProcAddressARB("glBindFramebuffer"); stdlib_assert(gl->BindFramebuffer != NULL);
+  if (gl->BindProgramPipeline == NULL) gl->BindProgramPipeline = glx->GetProcAddressARB("glBindProgramPipeline"); stdlib_assert(gl->BindProgramPipeline != NULL);
+  if (gl->BindSamplers == NULL) gl->BindSamplers = glx->GetProcAddressARB("glBindSamplers"); stdlib_assert(gl->BindSamplers != NULL);
+  if (gl->BindTextures == NULL) gl->BindTextures = glx->GetProcAddressARB("glBindTextures"); stdlib_assert(gl->BindTextures != NULL);
+  if (gl->BindTransformFeedback == NULL) gl->BindTransformFeedback = glx->GetProcAddressARB("glBindTransformFeedback"); stdlib_assert(gl->BindTransformFeedback != NULL);
+  if (gl->BindVertexArray == NULL) gl->BindVertexArray = glx->GetProcAddressARB("glBindVertexArray"); stdlib_assert(gl->BindVertexArray != NULL);
+  if (gl->BlendFunc == NULL) gl->BlendFunc = glx->GetProcAddressARB("glBlendFunc"); stdlib_assert(gl->BlendFunc != NULL);
+  if (gl->BlitNamedFramebuffer == NULL) gl->BlitNamedFramebuffer = glx->GetProcAddressARB("glBlitNamedFramebuffer"); stdlib_assert(gl->BlitNamedFramebuffer != NULL);
+  if (gl->BufferStorage == NULL) gl->BufferStorage = glx->GetProcAddressARB("glBufferStorage"); stdlib_assert(gl->BufferStorage != NULL);
+  if (gl->Clear == NULL) gl->Clear = glx->GetProcAddressARB("glClear"); stdlib_assert(gl->Clear != NULL);
+  if (gl->ClearDepth == NULL) gl->ClearDepth = glx->GetProcAddressARB("glClearDepth"); stdlib_assert(gl->ClearDepth != NULL);
+  if (gl->ClearTexSubImage == NULL) gl->ClearTexSubImage = glx->GetProcAddressARB("glClearTexSubImage"); stdlib_assert(gl->ClearTexSubImage != NULL);
+  if (gl->ClipControl == NULL) gl->ClipControl = glx->GetProcAddressARB("glClipControl"); stdlib_assert(gl->ClipControl != NULL);
+  if (gl->CompileShader == NULL) gl->CompileShader = glx->GetProcAddressARB("glCompileShader"); stdlib_assert(gl->CompileShader != NULL);
+  if (gl->CompressedTextureSubImage3D == NULL) gl->CompressedTextureSubImage3D = glx->GetProcAddressARB("glCompressedTextureSubImage3D"); stdlib_assert(gl->CompressedTextureSubImage3D != NULL);
+  if (gl->CreateBuffers == NULL) gl->CreateBuffers = glx->GetProcAddressARB("glCreateBuffers"); stdlib_assert(gl->CreateBuffers != NULL);
+  if (gl->CreateFramebuffers == NULL) gl->CreateFramebuffers = glx->GetProcAddressARB("glCreateFramebuffers"); stdlib_assert(gl->CreateFramebuffers != NULL);
+  if (gl->CreateProgram == NULL) gl->CreateProgram = glx->GetProcAddressARB("glCreateProgram"); stdlib_assert(gl->CreateProgram != NULL);
+  if (gl->CreateProgramPipelines == NULL) gl->CreateProgramPipelines = glx->GetProcAddressARB("glCreateProgramPipelines"); stdlib_assert(gl->CreateProgramPipelines != NULL);
+  if (gl->CreateSamplers == NULL) gl->CreateSamplers = glx->GetProcAddressARB("glCreateSamplers"); stdlib_assert(gl->CreateSamplers != NULL);
+  if (gl->CreateShader == NULL) gl->CreateShader = glx->GetProcAddressARB("glCreateShader"); stdlib_assert(gl->CreateShader != NULL);
+  if (gl->CreateTextures == NULL) gl->CreateTextures = glx->GetProcAddressARB("glCreateTextures"); stdlib_assert(gl->CreateTextures != NULL);
+  if (gl->CreateTransformFeedbacks == NULL) gl->CreateTransformFeedbacks = glx->GetProcAddressARB("glCreateTransformFeedbacks"); stdlib_assert(gl->CreateTransformFeedbacks != NULL);
+  if (gl->CreateVertexArrays == NULL) gl->CreateVertexArrays = glx->GetProcAddressARB("glCreateVertexArrays"); stdlib_assert(gl->CreateVertexArrays != NULL);
+  if (gl->DebugMessageCallback == NULL) gl->DebugMessageCallback = glx->GetProcAddressARB("glDebugMessageCallback"); stdlib_assert(gl->DebugMessageCallback != NULL);
+  if (gl->DeleteBuffers == NULL) gl->DeleteBuffers = glx->GetProcAddressARB("glDeleteBuffers"); stdlib_assert(gl->DeleteBuffers != NULL);
+  if (gl->DeleteFramebuffers == NULL) gl->DeleteFramebuffers = glx->GetProcAddressARB("glDeleteFramebuffers"); stdlib_assert(gl->DeleteFramebuffers != NULL);
+  if (gl->DeleteProgram == NULL) gl->DeleteProgram = glx->GetProcAddressARB("glDeleteProgram"); stdlib_assert(gl->DeleteProgram != NULL);
+  if (gl->DeleteProgramPipelines == NULL) gl->DeleteProgramPipelines = glx->GetProcAddressARB("glDeleteProgramPipelines"); stdlib_assert(gl->DeleteProgramPipelines != NULL);
+  if (gl->DeleteSamplers == NULL) gl->DeleteSamplers = glx->GetProcAddressARB("glDeleteSamplers"); stdlib_assert(gl->DeleteSamplers != NULL);
+  if (gl->DeleteShader == NULL) gl->DeleteShader = glx->GetProcAddressARB("glDeleteShader"); stdlib_assert(gl->DeleteShader != NULL);
+  if (gl->DeleteTextures == NULL) gl->DeleteTextures = glx->GetProcAddressARB("glDeleteTextures"); stdlib_assert(gl->DeleteTextures != NULL);
+  if (gl->DeleteTransformFeedbacks == NULL) gl->DeleteTransformFeedbacks = glx->GetProcAddressARB("glDeleteTransformFeedbacks"); stdlib_assert(gl->DeleteTransformFeedbacks != NULL);
+  if (gl->DepthFunc == NULL) gl->DepthFunc = glx->GetProcAddressARB("glDepthFunc"); stdlib_assert(gl->DepthFunc != NULL);
+  if (gl->DepthRange == NULL) gl->DepthRange = glx->GetProcAddressARB("glDepthRange"); stdlib_assert(gl->DepthRange != NULL);
+  if (gl->DetachShader == NULL) gl->DetachShader = glx->GetProcAddressARB("glDetachShader"); stdlib_assert(gl->DetachShader != NULL);
+  if (gl->Disable == NULL) gl->Disable = glx->GetProcAddressARB("glDisable"); stdlib_assert(gl->Disable != NULL);
+  if (gl->DrawArraysInstanced == NULL) gl->DrawArraysInstanced = glx->GetProcAddressARB("glDrawArraysInstanced"); stdlib_assert(gl->DrawArraysInstanced != NULL);
+  if (gl->Enable == NULL) gl->Enable = glx->GetProcAddressARB("glEnable"); stdlib_assert(gl->Enable != NULL);
+  if (gl->EndTransformFeedback == NULL) gl->EndTransformFeedback = glx->GetProcAddressARB("glEndTransformFeedback"); stdlib_assert(gl->EndTransformFeedback != NULL);
+  if (gl->Finish == NULL) gl->Finish = glx->GetProcAddressARB("glFinish"); stdlib_assert(gl->Finish != NULL);
+  if (gl->FrontFace == NULL) gl->FrontFace = glx->GetProcAddressARB("glFrontFace"); stdlib_assert(gl->FrontFace != NULL);
+  if (gl->GenBuffers == NULL) gl->GenBuffers = glx->GetProcAddressARB("glGenBuffers"); stdlib_assert(gl->GenBuffers != NULL);
+  if (gl->GenerateTextureMipmap == NULL) gl->GenerateTextureMipmap = glx->GetProcAddressARB("glGenerateTextureMipmap"); stdlib_assert(gl->GenerateTextureMipmap != NULL);
+  if (gl->GenTextures == NULL) gl->GenTextures = glx->GetProcAddressARB("glGenTextures"); stdlib_assert(gl->GenTextures != NULL);
+  if (gl->GetCompressedTextureSubImage == NULL) gl->GetCompressedTextureSubImage = glx->GetProcAddressARB("glGetCompressedTextureSubImage"); stdlib_assert(gl->GetCompressedTextureSubImage != NULL);
+  if (gl->GetIntegerv == NULL) gl->GetIntegerv = glx->GetProcAddressARB("glGetIntegerv"); stdlib_assert(gl->GetIntegerv != NULL);
+  if (gl->GetProgramInfoLog == NULL) gl->GetProgramInfoLog = glx->GetProcAddressARB("glGetProgramInfoLog"); stdlib_assert(gl->GetProgramInfoLog != NULL);
+  if (gl->GetProgramiv == NULL) gl->GetProgramiv = glx->GetProcAddressARB("glGetProgramiv"); stdlib_assert(gl->GetProgramiv != NULL);
+  if (gl->GetShaderInfoLog == NULL) gl->GetShaderInfoLog = glx->GetProcAddressARB("glGetShaderInfoLog"); stdlib_assert(gl->GetShaderInfoLog != NULL);
+  if (gl->GetShaderiv == NULL) gl->GetShaderiv = glx->GetProcAddressARB("glGetShaderiv"); stdlib_assert(gl->GetShaderiv != NULL);
+  if (gl->GetStringi == NULL) gl->GetStringi = glx->GetProcAddressARB("glGetStringi"); stdlib_assert(gl->GetStringi != NULL);
+  if (gl->GetTextureLevelParameteriv == NULL) gl->GetTextureLevelParameteriv = glx->GetProcAddressARB("glGetTextureLevelParameteriv"); stdlib_assert(gl->GetTextureLevelParameteriv != NULL);
+  if (gl->GetTextureSubImage == NULL) gl->GetTextureSubImage = glx->GetProcAddressARB("glGetTextureSubImage"); stdlib_assert(gl->GetTextureSubImage != NULL);
+  if (gl->LinkProgram == NULL) gl->LinkProgram = glx->GetProcAddressARB("glLinkProgram"); stdlib_assert(gl->LinkProgram != NULL);
+  if (gl->MapBufferRange == NULL) gl->MapBufferRange = glx->GetProcAddressARB("glMapBufferRange"); stdlib_assert(gl->MapBufferRange != NULL);
+  if (gl->MapNamedBufferRange == NULL) gl->MapNamedBufferRange = glx->GetProcAddressARB("glMapNamedBufferRange"); stdlib_assert(gl->MapNamedBufferRange != NULL);
+  if (gl->MultiDrawElementsIndirect == NULL) gl->MultiDrawElementsIndirect = glx->GetProcAddressARB("glMultiDrawElementsIndirect"); stdlib_assert(gl->MultiDrawElementsIndirect != NULL);
+  if (gl->NamedBufferStorage == NULL) gl->NamedBufferStorage = glx->GetProcAddressARB("glNamedBufferStorage"); stdlib_assert(gl->NamedBufferStorage != NULL);
+  if (gl->NamedFramebufferDrawBuffer == NULL) gl->NamedFramebufferDrawBuffer = glx->GetProcAddressARB("glNamedFramebufferDrawBuffer"); stdlib_assert(gl->NamedFramebufferDrawBuffer != NULL);
+  if (gl->NamedFramebufferDrawBuffers == NULL) gl->NamedFramebufferDrawBuffers = glx->GetProcAddressARB("glNamedFramebufferDrawBuffers"); stdlib_assert(gl->NamedFramebufferDrawBuffers != NULL);
+  if (gl->NamedFramebufferReadBuffer == NULL) gl->NamedFramebufferReadBuffer = glx->GetProcAddressARB("glNamedFramebufferReadBuffer"); stdlib_assert(gl->NamedFramebufferReadBuffer != NULL);
+  if (gl->NamedFramebufferTextureLayer == NULL) gl->NamedFramebufferTextureLayer = glx->GetProcAddressARB("glNamedFramebufferTextureLayer"); stdlib_assert(gl->NamedFramebufferTextureLayer != NULL);
+  if (gl->ProgramParameteri == NULL) gl->ProgramParameteri = glx->GetProcAddressARB("glProgramParameteri"); stdlib_assert(gl->ProgramParameteri != NULL);
+  if (gl->ProgramUniform1fv == NULL) gl->ProgramUniform1fv = glx->GetProcAddressARB("glProgramUniform1fv"); stdlib_assert(gl->ProgramUniform1fv != NULL);
+  if (gl->ProgramUniform1iv == NULL) gl->ProgramUniform1iv = glx->GetProcAddressARB("glProgramUniform1iv"); stdlib_assert(gl->ProgramUniform1iv != NULL);
+  if (gl->ProgramUniform1uiv == NULL) gl->ProgramUniform1uiv = glx->GetProcAddressARB("glProgramUniform1uiv"); stdlib_assert(gl->ProgramUniform1uiv != NULL);
+  if (gl->ProgramUniform2fv == NULL) gl->ProgramUniform2fv = glx->GetProcAddressARB("glProgramUniform2fv"); stdlib_assert(gl->ProgramUniform2fv != NULL);
+  if (gl->ProgramUniform3fv == NULL) gl->ProgramUniform3fv = glx->GetProcAddressARB("glProgramUniform3fv"); stdlib_assert(gl->ProgramUniform3fv != NULL);
+  if (gl->ProgramUniform4fv == NULL) gl->ProgramUniform4fv = glx->GetProcAddressARB("glProgramUniform4fv"); stdlib_assert(gl->ProgramUniform4fv != NULL);
+  if (gl->SamplerParameteri == NULL) gl->SamplerParameteri = glx->GetProcAddressARB("glSamplerParameteri"); stdlib_assert(gl->SamplerParameteri != NULL);
+  if (gl->Scissor == NULL) gl->Scissor = glx->GetProcAddressARB("glScissor"); stdlib_assert(gl->Scissor != NULL);
+  if (gl->ShaderSource == NULL) gl->ShaderSource = glx->GetProcAddressARB("glShaderSource"); stdlib_assert(gl->ShaderSource != NULL);
+  if (gl->TextureBufferRange == NULL) gl->TextureBufferRange = glx->GetProcAddressARB("glTextureBufferRange"); stdlib_assert(gl->TextureBufferRange != NULL);
+  if (gl->TextureStorage3D == NULL) gl->TextureStorage3D = glx->GetProcAddressARB("glTextureStorage3D"); stdlib_assert(gl->TextureStorage3D != NULL);
+  if (gl->TextureStorage3DMultisample == NULL) gl->TextureStorage3DMultisample = glx->GetProcAddressARB("glTextureStorage3DMultisample"); stdlib_assert(gl->TextureStorage3DMultisample != NULL);
+  if (gl->TextureSubImage3D == NULL) gl->TextureSubImage3D = glx->GetProcAddressARB("glTextureSubImage3D"); stdlib_assert(gl->TextureSubImage3D != NULL);
+  if (gl->TextureView == NULL) gl->TextureView = glx->GetProcAddressARB("glTextureView"); stdlib_assert(gl->TextureView != NULL);
+  if (gl->TransformFeedbackBufferRange == NULL) gl->TransformFeedbackBufferRange = glx->GetProcAddressARB("glTransformFeedbackBufferRange"); stdlib_assert(gl->TransformFeedbackBufferRange != NULL);
+  if (gl->TransformFeedbackVaryings == NULL) gl->TransformFeedbackVaryings = glx->GetProcAddressARB("glTransformFeedbackVaryings"); stdlib_assert(gl->TransformFeedbackVaryings != NULL);
+  if (gl->UseProgramStages == NULL) gl->UseProgramStages = glx->GetProcAddressARB("glUseProgramStages"); stdlib_assert(gl->UseProgramStages != NULL);
+  if (gl->Viewport == NULL) gl->Viewport = glx->GetProcAddressARB("glViewport"); stdlib_assert(gl->Viewport != NULL);
 }
 
 static inline long GpuSysShell(char * cmd, char * out) {
-  int * ret = g_gpulib_libc.popen(cmd, "r");
+  __auto_type libc = g_gpulib_libc;
+  int * ret = libc->popen(cmd, "r");
   long i = 0;
-  for (int c = g_gpulib_libc.fgetc(ret); c != -1; i += 1) {
+  for (int c = libc->fgetc(ret); c != -1; i += 1) {
     if (out) out[i] = (char)c;
-    c = g_gpulib_libc.fgetc(ret);
+    c = libc->fgetc(ret);
   }
   if (out) out[i] = 0;
-  g_gpulib_libc.pclose(ret);
+  libc->pclose(ret);
   return i + 1;
 }
 
 static inline char * GpuSysReadSymLink(char * path) {
+  __auto_type libc = g_gpulib_libc;
   char * retval = NULL;
   ssize_t len = 64;
   ssize_t rc = -1;
   for (;;) {
-    char * ptr = g_gpulib_libc.realloc(retval, (size_t)len);
+    char * ptr = libc->realloc(retval, (size_t)len);
     retval = ptr;
-    rc = g_gpulib_libc.readlink(path, retval, len);
+    rc = libc->readlink(path, retval, len);
     if (rc == -1) {
       break;
     } else if (rc < len) {
@@ -414,32 +472,33 @@ static inline char * GpuSysReadSymLink(char * path) {
     }
     len *= 2;
   }
-  g_gpulib_libc.free(retval);
+  libc->free(retval);
   return NULL;
 }
 
 static inline char * GpuSysGetBasePath() {
+  __auto_type libc = g_gpulib_libc;
   char * retval = NULL;
-  if (retval == NULL && (g_gpulib_libc.access("/proc", 0) == 0)) {
+  if (retval == NULL && (libc->access("/proc", 0) == 0)) {
     retval = GpuSysReadSymLink("/proc/self/exe");
     if (retval == NULL) {
       char path[64] = {0};
-      int rc = stdlib_snprintf(path, sizeof(path), "/proc/%llu/exe", (unsigned long long)g_gpulib_libc.getpid());
+      int rc = stdlib_snprintf(path, sizeof(path), "/proc/%llu/exe", (unsigned long long)libc->getpid());
       if ((rc > 0) && (rc < sizeof(path)))
         retval = GpuSysReadSymLink(path);
     }
   }
   if (retval != NULL) {
-    char * ptr = g_gpulib_libc.strrchr(retval, '/');
+    char * ptr = libc->strrchr(retval, '/');
     if (ptr != NULL) {
       *(ptr + 1) = '\0';
     } else {
-      g_gpulib_libc.free(retval);
+      libc->free(retval);
       retval = NULL;
     }
   }
   if (retval != NULL) {
-    char * ptr = g_gpulib_libc.realloc(retval, g_gpulib_libc.strlen(retval) + 1);
+    char * ptr = libc->realloc(retval, libc->strlen(retval) + 1);
     if (ptr != NULL)
       retval = ptr;
   }
@@ -447,6 +506,7 @@ static inline char * GpuSysGetBasePath() {
 }
 
 static inline void GpuSysSetRelativeMouseMode(Display * dpy, Window win, int enabled) {
+  __auto_type libc = g_gpulib_libc;
   if (enabled) {
     XColor black = {0};
     char nil[8]  = {0};
@@ -461,7 +521,7 @@ static inline void GpuSysSetRelativeMouseMode(Display * dpy, Window win, int ena
         GrabModeAsync, GrabModeAsync, win, None, CurrentTime);
       if (result == GrabSuccess)
         break;
-      g_gpulib_libc.usleep(50 * 1000);
+      libc->usleep(50 * 1000);
     }
   } else {
     XUndefineCursor(dpy, win);
@@ -470,11 +530,13 @@ static inline void GpuSysSetRelativeMouseMode(Display * dpy, Window win, int ena
 }
 
 static inline int GpuSysIsExtensionSupported(char * extension) {
+  __auto_type gl = g_gpulib_libgl;
+  __auto_type libc = g_gpulib_libc;
   int num_extensions = 0;
-  glGetIntegerv(GL_NUM_EXTENSIONS, &num_extensions);
+  gl->GetIntegerv(0x821D, &num_extensions); // GL_NUM_EXTENSIONS
   for (int i = 0; i < num_extensions; i += 1) {
-    char * ext = glGetStringi(GL_EXTENSIONS, i);
-    if (g_gpulib_libc.strcmp(ext, extension) == 0)
+    char * ext = gl->GetStringi(0x1F03, i); // GL_EXTENSIONS
+    if (libc->strcmp(ext, extension) == 0)
       return 1;
   }
   return 0;
@@ -492,12 +554,16 @@ static inline void GpuSysCheckExtensions(int extension_count, char ** extensions
   profE(__func__);
 }
 
-static inline void GpuSysX11Window(
-    char * title, int title_bytes, int x, int y, int w, int h, int msaa_sample_count,
-    Display ** out_display, Window * out_window)
-{
+static inline void GpuSysX11Window(char * title, int title_bytes, int x, int y, int w, int h, int msaa_sample_count, Display ** out_display, Window * out_window) {
+  __auto_type glx = g_gpulib_libglx;
+  __auto_type libc = g_gpulib_libc;
+  
+  profB("Load libGL.so");
+  GpuSysGetGLXProcedureAddresses();
+  profE("Load libGL.so");
+
   profB("Set locale");
-  g_gpulib_libc.setlocale(6, ""); // LC_ALL
+  libc->setlocale(6, ""); // LC_ALL
   if (XSupportsLocale())
     XSetLocaleModifiers("@im=none");
   profE("Set locale");
@@ -507,43 +573,43 @@ static inline void GpuSysX11Window(
   profE("XOpenDisplay");
   stdlib_assert(dpy != NULL);
 
-  GLXFBConfig fbconfig = NULL;
-  XVisualInfo * visual = NULL;
+  void * fbconfig = NULL;
+  struct XVisualInfo * visual = NULL;
   {
     int glx_attribs[25] = {0};
     int glx_attribs_with_msaa[25] = {
-      GLX_X_RENDERABLE,   1,
-      GLX_DRAWABLE_TYPE,  GLX_WINDOW_BIT,
-      GLX_RENDER_TYPE,    GLX_RGBA_BIT,
-      GLX_RED_SIZE,       8,
-      GLX_GREEN_SIZE,     8,
-      GLX_BLUE_SIZE,      8,
-      GLX_ALPHA_SIZE,     8,
-      GLX_DEPTH_SIZE,     24,
-      GLX_STENCIL_SIZE,   8,
-      GLX_DOUBLEBUFFER,   1,
-      GLX_SAMPLE_BUFFERS, 1,
-      GLX_SAMPLES,        msaa_sample_count,
+      0x8010, 0x00000001, // GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT
+      0x8011, 0x00000001, // GLX_RENDER_TYPE, GLX_RGBA_BIT
+      0x8012, 1, // GLX_X_RENDERABLE
+      5,      1, // GLX_DOUBLEBUFFER
+      8,      8, // GLX_RED_SIZE
+      9,      8, // GLX_GREEN_SIZE
+      10,     8, // GLX_BLUE_SIZE
+      11,     8, // GLX_ALPHA_SIZE
+      12,     24, // GLX_DEPTH_SIZE
+      13,     8, // GLX_STENCIL_SIZE
+      100000, 1, // GLX_SAMPLE_BUFFERS
+      100001, msaa_sample_count, // GLX_SAMPLES
       None
     };
     int glx_attribs_without_msaa[25] = {
-      GLX_X_RENDERABLE,   1,
-      GLX_DRAWABLE_TYPE,  GLX_WINDOW_BIT,
-      GLX_RENDER_TYPE,    GLX_RGBA_BIT,
-      GLX_RED_SIZE,       8,
-      GLX_GREEN_SIZE,     8,
-      GLX_BLUE_SIZE,      8,
-      GLX_ALPHA_SIZE,     8,
-      GLX_DEPTH_SIZE,     24,
-      GLX_STENCIL_SIZE,   8,
-      GLX_DOUBLEBUFFER,   1,
+      0x8010, 0x00000001, // GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT
+      0x8011, 0x00000001, // GLX_RENDER_TYPE, GLX_RGBA_BIT
+      0x8012, 1, // GLX_X_RENDERABLE
+      5,      1, // GLX_DOUBLEBUFFER
+      8,      8, // GLX_RED_SIZE
+      9,      8, // GLX_GREEN_SIZE
+      10,     8, // GLX_BLUE_SIZE
+      11,     8, // GLX_ALPHA_SIZE
+      12,     24, // GLX_DEPTH_SIZE
+      13,     8, // GLX_STENCIL_SIZE
       None
     };
     memcpy(glx_attribs, msaa_sample_count > 0 ? glx_attribs_with_msaa : glx_attribs_without_msaa, 25 * sizeof(int));
     int fbconfigs_count = 0;
-    profB("glXChooseFBConfig");
-    GLXFBConfig * fbconfigs = glXChooseFBConfig(dpy, DefaultScreen(dpy), glx_attribs, &fbconfigs_count);
-    profE("glXChooseFBConfig");
+    profB("glx->ChooseFBConfig");
+    void ** fbconfigs = glx->ChooseFBConfig(dpy, DefaultScreen(dpy), glx_attribs, &fbconfigs_count);
+    profE("glx->ChooseFBConfig");
     stdlib_assert(fbconfigs_count != 0);
     stdlib_assert(fbconfigs != NULL);
     profB("fbconfig search");
@@ -551,15 +617,15 @@ static inline void GpuSysX11Window(
 #if 0
       {
         int red_size = 0, green_size = 0, blue_size = 0, alpha_size = 0, depth_size = 0, stencil_size = 0, doublebuffer = 0, sample_buffers = 0, samples = 0;
-        glXGetFBConfigAttrib(dpy, fbconfigs[i], GLX_RED_SIZE,       &red_size);
-        glXGetFBConfigAttrib(dpy, fbconfigs[i], GLX_GREEN_SIZE,     &green_size);
-        glXGetFBConfigAttrib(dpy, fbconfigs[i], GLX_BLUE_SIZE,      &blue_size);
-        glXGetFBConfigAttrib(dpy, fbconfigs[i], GLX_ALPHA_SIZE,     &alpha_size);
-        glXGetFBConfigAttrib(dpy, fbconfigs[i], GLX_DEPTH_SIZE,     &depth_size);
-        glXGetFBConfigAttrib(dpy, fbconfigs[i], GLX_STENCIL_SIZE,   &stencil_size);
-        glXGetFBConfigAttrib(dpy, fbconfigs[i], GLX_DOUBLEBUFFER,   &doublebuffer);
-        glXGetFBConfigAttrib(dpy, fbconfigs[i], GLX_SAMPLE_BUFFERS, &sample_buffers);
-        glXGetFBConfigAttrib(dpy, fbconfigs[i], GLX_SAMPLES,        &samples);
+        glx->GetFBConfigAttrib(dpy, fbconfigs[i], GLX_RED_SIZE,       &red_size);
+        glx->GetFBConfigAttrib(dpy, fbconfigs[i], GLX_GREEN_SIZE,     &green_size);
+        glx->GetFBConfigAttrib(dpy, fbconfigs[i], GLX_BLUE_SIZE,      &blue_size);
+        glx->GetFBConfigAttrib(dpy, fbconfigs[i], GLX_ALPHA_SIZE,     &alpha_size);
+        glx->GetFBConfigAttrib(dpy, fbconfigs[i], GLX_DEPTH_SIZE,     &depth_size);
+        glx->GetFBConfigAttrib(dpy, fbconfigs[i], GLX_STENCIL_SIZE,   &stencil_size);
+        glx->GetFBConfigAttrib(dpy, fbconfigs[i], GLX_DOUBLEBUFFER,   &doublebuffer);
+        glx->GetFBConfigAttrib(dpy, fbconfigs[i], GLX_SAMPLE_BUFFERS, &sample_buffers);
+        glx->GetFBConfigAttrib(dpy, fbconfigs[i], GLX_SAMPLES,        &samples);
         stdlib_nprintf(GPULIB_MAX_PRINT_BYTES,
           "fbconfigs[%d]: %p, "
           "GLX_RED_SIZE: %d, "
@@ -584,7 +650,7 @@ static inline void GpuSysX11Window(
       }
 #endif
       XFree(visual);
-      visual = glXGetVisualFromFBConfig(dpy, fbconfigs[i]);
+      visual = glx->GetVisualFromFBConfig(dpy, fbconfigs[i]);
       if (visual == NULL)
         continue;
       XRenderPictFormat * format = XRenderFindVisualFormat(dpy, visual->visual);
@@ -682,26 +748,23 @@ static inline void GpuSysX11Window(
     profE("XChangeProperty");
   }
 
-  GLXContext glx_ctx = NULL;
+  void * glx_ctx = NULL;
   {
-    GLXContext (*glXCreateContextAttribsARB)(Display *, GLXFBConfig, GLXContext, int, int *) = (void *)glXGetProcAddressARB((unsigned char *)"glXCreateContextAttribsARB");
+    void * (*glXCreateContextAttribsARB)(Display *, void *, void *, int, int *) = glx->GetProcAddressARB("glXCreateContextAttribsARB");
     stdlib_assert(glXCreateContextAttribsARB != NULL);
     int attribs[] = {
       0x2091, 3, // GLX_CONTEXT_MAJOR_VERSION_ARB
       0x2092, 3, // GLX_CONTEXT_MINOR_VERSION_ARB
-      GLX_CONTEXT_PROFILE_MASK_ARB, GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
+      0x9126, 0x00000001, // GLX_CONTEXT_PROFILE_MASK_ARB, GLX_CONTEXT_CORE_PROFILE_BIT_ARB
       None
     };
     profB("glXCreateContextAttribsARB");
     glx_ctx = glXCreateContextAttribsARB(dpy, fbconfig, 0, 1, attribs);
     profE("glXCreateContextAttribsARB");
     stdlib_assert(glx_ctx != NULL);
-  }
-
-  {
-    profB("glXMakeContextCurrent");
-    int is_glx_context_current = glXMakeContextCurrent(dpy, win, win, glx_ctx);
-    profE("glXMakeContextCurrent");
+    profB("glx->MakeContextCurrent");
+    int is_glx_context_current = glx->MakeContextCurrent(dpy, win, win, glx_ctx);
+    profE("glx->MakeContextCurrent");
     stdlib_assert(is_glx_context_current != 0);
   }
 
@@ -738,9 +801,10 @@ static inline void GpuSysX11Window(
 }
 
 static inline void GpuWindow(
-    char * window_title, int window_title_bytes, int window_width, int window_height, int msaa_samples,
-    char * out_scancodes, Display ** out_dpy, Window * out_win)
+    char * window_title, int window_title_bytes, int window_width, int window_height, int msaa_samples, char * out_scancodes, Display ** out_dpy, Window * out_win)
 {
+  __auto_type gl = g_gpulib_libgl;
+
   GpuSysGetLibcProcedureAddresses();
 
   profB(__func__);
@@ -748,7 +812,9 @@ static inline void GpuWindow(
   Window win = 0;
   GpuSysX11Window(window_title, window_title_bytes, 0, 0, window_width, window_height, msaa_samples, &dpy, &win);
 
-  glGetStringi = (void *)glXGetProcAddressARB((unsigned char *)"glGetStringi");
+  profB("GpuSysGetGLProcedureAddresses");
+  GpuSysGetGLProcedureAddresses();
+  profE("GpuSysGetGLProcedureAddresses");
 
   {
     char * extensions[] = {
@@ -782,36 +848,32 @@ static inline void GpuWindow(
     GpuSysCheckExtensions(sizeof(extensions) / sizeof(extensions[0]), extensions);
   }
 
-  profB("GpuSysGetOpenGLProcedureAddresses");
-  GpuSysGetOpenGLProcedureAddresses();
-  profE("GpuSysGetOpenGLProcedureAddresses");
-
   profB("OpenGL state setup");
   {
-    glViewport(0, 0, window_width, window_height);
+    gl->Viewport(0, 0, window_width, window_height);
 #ifndef RELEASE
-    glEnable(0x92E0); // GL_DEBUG_OUTPUT
-    glEnable(0x8242); // GL_DEBUG_OUTPUT_SYNCHRONOUS
+    gl->Enable(0x92E0); // GL_DEBUG_OUTPUT
+    gl->Enable(0x8242); // GL_DEBUG_OUTPUT_SYNCHRONOUS
 #endif
-    glEnable(0x884F); // GL_TEXTURE_CUBE_MAP_SEAMLESS
-    glEnable(0x8DB9); // GL_FRAMEBUFFER_SRGB
-    glEnable(0x809D); // GL_MULTISAMPLE
-    glEnable(0x864f); // GL_DEPTH_CLAMP
-    glEnable(0x0B71); // GL_DEPTH_TEST
-    glEnable(0x0B44); // GL_CULL_FACE
-    glEnable(0x0BE2); // GL_BLEND
-    glBlendFunc(0x0302, 0x0303); // GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA
-    glClipControl(0x8CA1, 0x935F); // GL_LOWER_LEFT, GL_ZERO_TO_ONE
-    glDepthRange(1, 0);
-    glClearDepth(0);
-    glDepthFunc(0x0204); // GL_GREATER
-    glFrontFace(0x0900); // GL_CW
+    gl->Enable(0x884F); // GL_TEXTURE_CUBE_MAP_SEAMLESS
+    gl->Enable(0x8DB9); // GL_FRAMEBUFFER_SRGB
+    gl->Enable(0x809D); // GL_MULTISAMPLE
+    gl->Enable(0x864f); // GL_DEPTH_CLAMP
+    gl->Enable(0x0B71); // GL_DEPTH_TEST
+    gl->Enable(0x0B44); // GL_CULL_FACE
+    gl->Enable(0x0BE2); // GL_BLEND
+    gl->BlendFunc(0x0302, 0x0303); // GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA
+    gl->ClipControl(0x8CA1, 0x935F); // GL_LOWER_LEFT, GL_ZERO_TO_ONE
+    gl->DepthRange(1, 0);
+    gl->ClearDepth(0);
+    gl->DepthFunc(0x0204); // GL_GREATER
+    gl->FrontFace(0x0900); // GL_CW
   }
   {
     // OPENGL REQUIRED GARBAGE //////
     unsigned vao = 0;              //
-    glCreateVertexArrays(1, &vao); //
-    glBindVertexArray(vao);        //
+    gl->CreateVertexArrays(1, &vao); //
+    gl->BindVertexArray(vao);        //
     /////////////////////////////////
   }
   profE("OpenGL state setup");
@@ -841,17 +903,19 @@ static inline void GpuWindow(
 
 static inline void * GpuMalloc(ptrdiff_t bytes, unsigned * out_buf_id) {
   profB(__func__);
+  __auto_type gl = g_gpulib_libgl;
   unsigned buf_id = 0;
-  glCreateBuffers(1, &buf_id);
+  gl->CreateBuffers(1, &buf_id);
   out_buf_id[0] = buf_id;
-  glNamedBufferStorage(buf_id, bytes, NULL, 0xC2); // GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT
-  void * buf_ptr = glMapNamedBufferRange(buf_id, 0, bytes, 0xC2);
+  gl->NamedBufferStorage(buf_id, bytes, NULL, 0xC2); // GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT
+  void * buf_ptr = gl->MapNamedBufferRange(buf_id, 0, bytes, 0xC2);
   profE(__func__);
   return buf_ptr;
 }
 
 static inline void * GpuCalloc(ptrdiff_t bytes, unsigned * out_buf_id) {
   profB(__func__);
+  __auto_type gl = g_gpulib_libgl;
   void * buf_ptr = GpuMalloc(bytes, out_buf_id);
   memset(buf_ptr, 0, bytes);
   profE(__func__);
@@ -860,28 +924,31 @@ static inline void * GpuCalloc(ptrdiff_t bytes, unsigned * out_buf_id) {
 
 static inline unsigned GpuCast(unsigned buf_id, enum gpu_buf_format_e format, ptrdiff_t bytes_first, ptrdiff_t bytes_count) {
   profB(__func__);
+  __auto_type gl = g_gpulib_libgl;
   unsigned tex_id = 0;
-  glCreateTextures(0x8C2A, 1, &tex_id); // GL_TEXTURE_BUFFER
-  glTextureBufferRange(tex_id, format, buf_id, bytes_first, bytes_count);
+  gl->CreateTextures(0x8C2A, 1, &tex_id); // GL_TEXTURE_BUFFER
+  gl->TextureBufferRange(tex_id, format, buf_id, bytes_first, bytes_count);
   profE(__func__);
   return tex_id;
 }
 
 static inline unsigned * GpuMallocIndices(ptrdiff_t count, unsigned * out_idb_id) {
   profB(__func__);
+  __auto_type gl = g_gpulib_libgl;
   unsigned idb_id = 0;
-  glGenBuffers(1, &idb_id);
+  gl->GenBuffers(1, &idb_id);
   out_idb_id[0] = idb_id;
-  glBindBuffer(0x8893, idb_id); // GL_ELEMENT_ARRAY_BUFFER
-  glBufferStorage(0x8893, count * sizeof(unsigned), NULL, 0xC2); // GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT
-  unsigned * idb_ptr = glMapBufferRange(0x8893, 0, count * sizeof(unsigned), 0xC2);
-  glBindBuffer(0x8893, 0);
+  gl->BindBuffer(0x8893, idb_id); // GL_ELEMENT_ARRAY_BUFFER
+  gl->BufferStorage(0x8893, count * sizeof(unsigned), NULL, 0xC2); // GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT
+  unsigned * idb_ptr = gl->MapBufferRange(0x8893, 0, count * sizeof(unsigned), 0xC2);
+  gl->BindBuffer(0x8893, 0);
   profE(__func__);
   return idb_ptr;
 }
 
 static inline unsigned * GpuCallocIndices(ptrdiff_t count, unsigned * out_idb_id) {
   profB(__func__);
+  __auto_type gl = g_gpulib_libgl;
   unsigned * idb_ptr = GpuMallocIndices(count, out_idb_id);
   memset(idb_ptr, 0, count * sizeof(unsigned));
   profE(__func__);
@@ -890,19 +957,21 @@ static inline unsigned * GpuCallocIndices(ptrdiff_t count, unsigned * out_idb_id
 
 static inline struct gpu_cmd_t * GpuMallocCommands(ptrdiff_t count, unsigned * out_dib_id) {
   profB(__func__);
+  __auto_type gl = g_gpulib_libgl;
   unsigned dib_id = 0;
-  glGenBuffers(1, &dib_id);
+  gl->GenBuffers(1, &dib_id);
   out_dib_id[0] = dib_id;
-  glBindBuffer(0x8F3F, dib_id); // GL_DRAW_INDIRECT_BUFFER
-  glBufferStorage(0x8F3F, count * sizeof(struct gpu_cmd_t), NULL, 0xC2); // GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT
-  struct gpu_cmd_t * dib_ptr = glMapBufferRange(0x8F3F, 0, count * sizeof(struct gpu_cmd_t), 0xC2);
-  glBindBuffer(0x8F3F, 0);
+  gl->BindBuffer(0x8F3F, dib_id); // GL_DRAW_INDIRECT_BUFFER
+  gl->BufferStorage(0x8F3F, count * sizeof(struct gpu_cmd_t), NULL, 0xC2); // GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT
+  struct gpu_cmd_t * dib_ptr = gl->MapBufferRange(0x8F3F, 0, count * sizeof(struct gpu_cmd_t), 0xC2);
+  gl->BindBuffer(0x8F3F, 0);
   profE(__func__);
   return dib_ptr;
 }
 
 static inline struct gpu_cmd_t * GpuCallocCommands(ptrdiff_t count, unsigned * out_dib_id) {
   profB(__func__);
+  __auto_type gl = g_gpulib_libgl;
   struct gpu_cmd_t * dib_ptr = GpuMallocCommands(count, out_dib_id);
   memset(dib_ptr, 0, count * sizeof(struct gpu_cmd_t));
   profE(__func__);
@@ -911,49 +980,53 @@ static inline struct gpu_cmd_t * GpuCallocCommands(ptrdiff_t count, unsigned * o
 
 static inline unsigned GpuMallocImg(enum gpu_tex_format_e format, int width, int height, int layer_count, int mipmap_count) {
   profB(__func__);
+  __auto_type gl = g_gpulib_libgl;
   unsigned tex_id = 0;
-  glCreateTextures(0x8C1A, 1, &tex_id); // GL_TEXTURE_2D_ARRAY
+  gl->CreateTextures(0x8C1A, 1, &tex_id); // GL_TEXTURE_2D_ARRAY
   if (width != height && mipmap_count > 1)
     stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Warning: Rectangle image (width: %d, height: %d) is set to have more than one mipmap (mipmap_count: %d).\n\n", width, height, mipmap_count);
   if (width / (1 << (mipmap_count - 1)) < 1)
     stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Warning: Image (width: %d) mipmap count (mipmap_count: %d) is greater than the max count of %d.\n\n", width, mipmap_count, stdlib_log2i(width) + 1);
-  glTextureStorage3D(tex_id, mipmap_count, format, width, height, layer_count);
+  gl->TextureStorage3D(tex_id, mipmap_count, format, width, height, layer_count);
   profE(__func__);
   return tex_id;
 }
 
 static inline unsigned GpuMallocCbm(enum gpu_tex_format_e format, int width, int height, int layer_count, int mipmap_count) {
   profB(__func__);
+  __auto_type gl = g_gpulib_libgl;
   unsigned tex_id = 0;
-  glCreateTextures(0x9009, 1, &tex_id); // GL_TEXTURE_CUBE_MAP_ARRAY
+  gl->CreateTextures(0x9009, 1, &tex_id); // GL_TEXTURE_CUBE_MAP_ARRAY
   if (width != height)
     stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Warning: Rectangle cubemap (width: %d, height: %d).\n\n", width, height);
   if (width / (1 << (mipmap_count - 1)) < 1)
     stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Warning: Cubemap (width: %d) mipmap count (mipmap_count: %d) is greater than the max count of %d.\n\n", width, mipmap_count, stdlib_log2i(width) + 1);
-  glTextureStorage3D(tex_id, mipmap_count, format, width, height, layer_count * 6);
+  gl->TextureStorage3D(tex_id, mipmap_count, format, width, height, layer_count * 6);
   profE(__func__);
   return tex_id;
 }
 
 static inline unsigned GpuMallocMsi(enum gpu_tex_format_e format, int width, int height, int layer_count, int msaa_samples) {
   profB(__func__);
+  __auto_type gl = g_gpulib_libgl;
   unsigned tex_id = 0;
-  glCreateTextures(0x9102, 1, &tex_id); // GL_TEXTURE_2D_MULTISAMPLE_ARRAY
-  glTextureStorage3DMultisample(tex_id, msaa_samples, format, width, height, layer_count, 0);
+  gl->CreateTextures(0x9102, 1, &tex_id); // GL_TEXTURE_2D_MULTISAMPLE_ARRAY
+  gl->TextureStorage3DMultisample(tex_id, msaa_samples, format, width, height, layer_count, 0);
   profE(__func__);
   return tex_id;
 }
 
 static inline unsigned GpuCallocImg(enum gpu_tex_format_e format, int width, int height, int layer_count, int mipmap_count) {
   profB(__func__);
+  __auto_type gl = g_gpulib_libgl;
   unsigned tex_id = GpuMallocImg(format, width, height, layer_count, mipmap_count);
   switch (format) {
-    break; case 0x8CAC: { for (int i = 0; i < mipmap_count; i += 1) glClearTexSubImage(tex_id, i, 0, 0, 0, width / (1 << i), height / (1 << i), layer_count, 0x1902, 0x1406, (float [1]){0}); }                  // GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT
-    break; case 0x8051: { for (int i = 0; i < mipmap_count; i += 1) glClearTexSubImage(tex_id, i, 0, 0, 0, width / (1 << i), height / (1 << i), layer_count, 0x1907, 0x1400, (unsigned char [3]){0, 0, 0}); }    // GL_RGB8, GL_RGB, GL_BYTE
-    break; case 0x8058: { for (int i = 0; i < mipmap_count; i += 1) glClearTexSubImage(tex_id, i, 0, 0, 0, width / (1 << i), height / (1 << i), layer_count, 0x1908, 0x1400, (unsigned char [4]){0, 0, 0, 0}); } // GL_RGBA8, GL_RGBA, GL_BYTE
-    break; case 0x8C41: { for (int i = 0; i < mipmap_count; i += 1) glClearTexSubImage(tex_id, i, 0, 0, 0, width / (1 << i), height / (1 << i), layer_count, 0x1907, 0x1400, (unsigned char [3]){0, 0, 0}); }    // GL_SRGB8, GL_RGB, GL_BYTE
-    break; case 0x8C43: { for (int i = 0; i < mipmap_count; i += 1) glClearTexSubImage(tex_id, i, 0, 0, 0, width / (1 << i), height / (1 << i), layer_count, 0x1908, 0x1400, (unsigned char [4]){0, 0, 0, 0}); } // GL_SRGB8_ALPHA8, GL_RGBA, GL_BYTE
-    break; case 0x8814: { for (int i = 0; i < mipmap_count; i += 1) glClearTexSubImage(tex_id, i, 0, 0, 0, width / (1 << i), height / (1 << i), layer_count, 0x1908, 0x1406, (float [4]){0, 0, 0, 0}); }         // GL_RGBA32F, GL_RGBA, GL_FLOAT
+    break; case 0x8CAC: { for (int i = 0; i < mipmap_count; i += 1) gl->ClearTexSubImage(tex_id, i, 0, 0, 0, width / (1 << i), height / (1 << i), layer_count, 0x1902, 0x1406, (float [1]){0}); }                  // GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT
+    break; case 0x8051: { for (int i = 0; i < mipmap_count; i += 1) gl->ClearTexSubImage(tex_id, i, 0, 0, 0, width / (1 << i), height / (1 << i), layer_count, 0x1907, 0x1400, (unsigned char [3]){0, 0, 0}); }    // GL_RGB8, GL_RGB, GL_BYTE
+    break; case 0x8058: { for (int i = 0; i < mipmap_count; i += 1) gl->ClearTexSubImage(tex_id, i, 0, 0, 0, width / (1 << i), height / (1 << i), layer_count, 0x1908, 0x1400, (unsigned char [4]){0, 0, 0, 0}); } // GL_RGBA8, GL_RGBA, GL_BYTE
+    break; case 0x8C41: { for (int i = 0; i < mipmap_count; i += 1) gl->ClearTexSubImage(tex_id, i, 0, 0, 0, width / (1 << i), height / (1 << i), layer_count, 0x1907, 0x1400, (unsigned char [3]){0, 0, 0}); }    // GL_SRGB8, GL_RGB, GL_BYTE
+    break; case 0x8C43: { for (int i = 0; i < mipmap_count; i += 1) gl->ClearTexSubImage(tex_id, i, 0, 0, 0, width / (1 << i), height / (1 << i), layer_count, 0x1908, 0x1400, (unsigned char [4]){0, 0, 0, 0}); } // GL_SRGB8_ALPHA8, GL_RGBA, GL_BYTE
+    break; case 0x8814: { for (int i = 0; i < mipmap_count; i += 1) gl->ClearTexSubImage(tex_id, i, 0, 0, 0, width / (1 << i), height / (1 << i), layer_count, 0x1908, 0x1406, (float [4]){0, 0, 0, 0}); }         // GL_RGBA32F, GL_RGBA, GL_FLOAT
     break; case 0x83F0: // GL_COMPRESSED_RGB_S3TC_DXT1_EXT
            case 0x83F1: // GL_COMPRESSED_RGBA_S3TC_DXT1_EXT
            case 0x83F2: // GL_COMPRESSED_RGBA_S3TC_DXT3_EXT
@@ -971,14 +1044,15 @@ static inline unsigned GpuCallocImg(enum gpu_tex_format_e format, int width, int
 
 static inline unsigned GpuCallocCbm(enum gpu_tex_format_e format, int width, int height, int layer_count, int mipmap_count) {
   profB(__func__);
+  __auto_type gl = g_gpulib_libgl;
   unsigned tex_id = GpuMallocCbm(format, width, height, layer_count, mipmap_count);
   switch (format) {
-    break; case 0x8CAC: { for (int i = 0; i < mipmap_count; i += 1) glClearTexSubImage(tex_id, i, 0, 0, 0, width / (1 << i), height / (1 << i), layer_count * 6, 0x1902, 0x1406, (float [1]){0}); }                  // GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT
-    break; case 0x8051: { for (int i = 0; i < mipmap_count; i += 1) glClearTexSubImage(tex_id, i, 0, 0, 0, width / (1 << i), height / (1 << i), layer_count * 6, 0x1907, 0x1400, (unsigned char [3]){0, 0, 0}); }    // GL_RGB8, GL_RGB, GL_BYTE
-    break; case 0x8058: { for (int i = 0; i < mipmap_count; i += 1) glClearTexSubImage(tex_id, i, 0, 0, 0, width / (1 << i), height / (1 << i), layer_count * 6, 0x1908, 0x1400, (unsigned char [4]){0, 0, 0, 0}); } // GL_RGBA8, GL_RGBA, GL_BYTE
-    break; case 0x8C41: { for (int i = 0; i < mipmap_count; i += 1) glClearTexSubImage(tex_id, i, 0, 0, 0, width / (1 << i), height / (1 << i), layer_count * 6, 0x1907, 0x1400, (unsigned char [3]){0, 0, 0}); }    // GL_SRGB8, GL_RGB, GL_BYTE
-    break; case 0x8C43: { for (int i = 0; i < mipmap_count; i += 1) glClearTexSubImage(tex_id, i, 0, 0, 0, width / (1 << i), height / (1 << i), layer_count * 6, 0x1908, 0x1400, (unsigned char [4]){0, 0, 0, 0}); } // GL_SRGB8_ALPHA8, GL_RGBA, GL_BYTE
-    break; case 0x8814: { for (int i = 0; i < mipmap_count; i += 1) glClearTexSubImage(tex_id, i, 0, 0, 0, width / (1 << i), height / (1 << i), layer_count * 6, 0x1908, 0x1406, (float [4]){0, 0, 0, 0}); }         // GL_RGBA32F, GL_RGBA, GL_FLOAT
+    break; case 0x8CAC: { for (int i = 0; i < mipmap_count; i += 1) gl->ClearTexSubImage(tex_id, i, 0, 0, 0, width / (1 << i), height / (1 << i), layer_count * 6, 0x1902, 0x1406, (float [1]){0}); }                  // GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT
+    break; case 0x8051: { for (int i = 0; i < mipmap_count; i += 1) gl->ClearTexSubImage(tex_id, i, 0, 0, 0, width / (1 << i), height / (1 << i), layer_count * 6, 0x1907, 0x1400, (unsigned char [3]){0, 0, 0}); }    // GL_RGB8, GL_RGB, GL_BYTE
+    break; case 0x8058: { for (int i = 0; i < mipmap_count; i += 1) gl->ClearTexSubImage(tex_id, i, 0, 0, 0, width / (1 << i), height / (1 << i), layer_count * 6, 0x1908, 0x1400, (unsigned char [4]){0, 0, 0, 0}); } // GL_RGBA8, GL_RGBA, GL_BYTE
+    break; case 0x8C41: { for (int i = 0; i < mipmap_count; i += 1) gl->ClearTexSubImage(tex_id, i, 0, 0, 0, width / (1 << i), height / (1 << i), layer_count * 6, 0x1907, 0x1400, (unsigned char [3]){0, 0, 0}); }    // GL_SRGB8, GL_RGB, GL_BYTE
+    break; case 0x8C43: { for (int i = 0; i < mipmap_count; i += 1) gl->ClearTexSubImage(tex_id, i, 0, 0, 0, width / (1 << i), height / (1 << i), layer_count * 6, 0x1908, 0x1400, (unsigned char [4]){0, 0, 0, 0}); } // GL_SRGB8_ALPHA8, GL_RGBA, GL_BYTE
+    break; case 0x8814: { for (int i = 0; i < mipmap_count; i += 1) gl->ClearTexSubImage(tex_id, i, 0, 0, 0, width / (1 << i), height / (1 << i), layer_count * 6, 0x1908, 0x1406, (float [4]){0, 0, 0, 0}); }         // GL_RGBA32F, GL_RGBA, GL_FLOAT
     break; case 0x83F0: // GL_COMPRESSED_RGB_S3TC_DXT1_EXT
            case 0x83F1: // GL_COMPRESSED_RGBA_S3TC_DXT1_EXT
            case 0x83F2: // GL_COMPRESSED_RGBA_S3TC_DXT3_EXT
@@ -996,14 +1070,15 @@ static inline unsigned GpuCallocCbm(enum gpu_tex_format_e format, int width, int
 
 static inline unsigned GpuCallocMsi(enum gpu_tex_format_e format, int width, int height, int layer_count, int msaa_samples) {
   profB(__func__);
+  __auto_type gl = g_gpulib_libgl;
   unsigned tex_id = GpuMallocMsi(format, width, height, layer_count, msaa_samples);
   switch (format) {
-    break; case 0x8CAC: { glClearTexSubImage(tex_id, 0, 0, 0, 0, width, height, layer_count, 0x1902, 0x1406, (float [1]){0}); }                  // GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT
-    break; case 0x8051: { glClearTexSubImage(tex_id, 0, 0, 0, 0, width, height, layer_count, 0x1907, 0x1400, (unsigned char [3]){0, 0, 0}); }    // GL_RGB8, GL_RGB, GL_BYTE
-    break; case 0x8058: { glClearTexSubImage(tex_id, 0, 0, 0, 0, width, height, layer_count, 0x1908, 0x1400, (unsigned char [4]){0, 0, 0, 0}); } // GL_RGBA8, GL_RGBA, GL_BYTE
-    break; case 0x8C41: { glClearTexSubImage(tex_id, 0, 0, 0, 0, width, height, layer_count, 0x1907, 0x1400, (unsigned char [3]){0, 0, 0}); }    // GL_SRGB8, GL_RGB, GL_BYTE
-    break; case 0x8C43: { glClearTexSubImage(tex_id, 0, 0, 0, 0, width, height, layer_count, 0x1908, 0x1400, (unsigned char [4]){0, 0, 0, 0}); } // GL_SRGB8_ALPHA8, GL_RGBA, GL_BYTE
-    break; case 0x8814: { glClearTexSubImage(tex_id, 0, 0, 0, 0, width, height, layer_count, 0x1908, 0x1406, (float [4]){0, 0, 0, 0}); }         // GL_RGBA32F, GL_RGBA, GL_FLOAT
+    break; case 0x8CAC: { gl->ClearTexSubImage(tex_id, 0, 0, 0, 0, width, height, layer_count, 0x1902, 0x1406, (float [1]){0}); }                  // GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT
+    break; case 0x8051: { gl->ClearTexSubImage(tex_id, 0, 0, 0, 0, width, height, layer_count, 0x1907, 0x1400, (unsigned char [3]){0, 0, 0}); }    // GL_RGB8, GL_RGB, GL_BYTE
+    break; case 0x8058: { gl->ClearTexSubImage(tex_id, 0, 0, 0, 0, width, height, layer_count, 0x1908, 0x1400, (unsigned char [4]){0, 0, 0, 0}); } // GL_RGBA8, GL_RGBA, GL_BYTE
+    break; case 0x8C41: { gl->ClearTexSubImage(tex_id, 0, 0, 0, 0, width, height, layer_count, 0x1907, 0x1400, (unsigned char [3]){0, 0, 0}); }    // GL_SRGB8, GL_RGB, GL_BYTE
+    break; case 0x8C43: { gl->ClearTexSubImage(tex_id, 0, 0, 0, 0, width, height, layer_count, 0x1908, 0x1400, (unsigned char [4]){0, 0, 0, 0}); } // GL_SRGB8_ALPHA8, GL_RGBA, GL_BYTE
+    break; case 0x8814: { gl->ClearTexSubImage(tex_id, 0, 0, 0, 0, width, height, layer_count, 0x1908, 0x1406, (float [4]){0, 0, 0, 0}); }         // GL_RGBA32F, GL_RGBA, GL_FLOAT
     break; case 0x83F0: // GL_COMPRESSED_RGB_S3TC_DXT1_EXT
            case 0x83F1: // GL_COMPRESSED_RGBA_S3TC_DXT1_EXT
            case 0x83F2: // GL_COMPRESSED_RGBA_S3TC_DXT3_EXT
@@ -1023,9 +1098,10 @@ static inline unsigned GpuCastImg(
     unsigned tex_id, enum gpu_tex_format_e format, int layer_first, int layer_count, int mipmap_first, int mipmap_count)
 {
   profB(__func__);
+  __auto_type gl = g_gpulib_libgl;
   unsigned new_tex_id = 0;
-  glGenTextures(1, &new_tex_id);
-  glTextureView(new_tex_id, 0x8C1A, tex_id, format, mipmap_first, mipmap_count, layer_first, layer_count); // GL_TEXTURE_2D_ARRAY
+  gl->GenTextures(1, &new_tex_id);
+  gl->TextureView(new_tex_id, 0x8C1A, tex_id, format, mipmap_first, mipmap_count, layer_first, layer_count); // GL_TEXTURE_2D_ARRAY
   profE(__func__);
   return new_tex_id;
 }
@@ -1034,9 +1110,10 @@ static inline unsigned GpuCastCbm(
     unsigned tex_id, enum gpu_tex_format_e format, int layer_first, int layer_count, int mipmap_first, int mipmap_count)
 {
   profB(__func__);
+  __auto_type gl = g_gpulib_libgl;
   unsigned new_tex_id = 0;
-  glGenTextures(1, &new_tex_id);
-  glTextureView(new_tex_id, 0x9009, tex_id, format, mipmap_first, mipmap_count, layer_first * 6, layer_count * 6); // GL_TEXTURE_CUBE_MAP_ARRAY
+  gl->GenTextures(1, &new_tex_id);
+  gl->TextureView(new_tex_id, 0x9009, tex_id, format, mipmap_first, mipmap_count, layer_first * 6, layer_count * 6); // GL_TEXTURE_CUBE_MAP_ARRAY
   profE(__func__);
   return new_tex_id;
 }
@@ -1045,9 +1122,10 @@ static inline unsigned GpuCastMsi(
     unsigned tex_id, enum gpu_tex_format_e format, int layer_first, int layer_count, int mipmap_first, int mipmap_count)
 {
   profB(__func__);
+  __auto_type gl = g_gpulib_libgl;
   unsigned new_tex_id = 0;
-  glGenTextures(1, &new_tex_id);
-  glTextureView(new_tex_id, 0x9102, tex_id, format, mipmap_first, mipmap_count, layer_first, layer_count); // GL_TEXTURE_2D_MULTISAMPLE_ARRAY
+  gl->GenTextures(1, &new_tex_id);
+  gl->TextureView(new_tex_id, 0x9102, tex_id, format, mipmap_first, mipmap_count, layer_first, layer_count); // GL_TEXTURE_2D_MULTISAMPLE_ARRAY
   profE(__func__);
   return new_tex_id;
 }
@@ -1057,7 +1135,8 @@ static inline void GpuGet(
     enum gpu_pix_format_e pixel_format, enum gpu_pix_type_e pixel_type, unsigned pixels_bytes, void * pixels)
 {
   profB(__func__);
-  glGetTextureSubImage(tex_id, mipmap_level, x, y, layer, width, height, count, pixel_format, pixel_type, pixels_bytes, pixels);
+  __auto_type gl = g_gpulib_libgl;
+  gl->GetTextureSubImage(tex_id, mipmap_level, x, y, layer, width, height, count, pixel_format, pixel_type, pixels_bytes, pixels);
   profE(__func__);
 }
 
@@ -1066,7 +1145,8 @@ static inline void GpuSet(
     enum gpu_pix_format_e pixel_format, enum gpu_pix_type_e pixel_type, void * pixels)
 {
   profB(__func__);
-  glTextureSubImage3D(tex_id, mipmap_level, x, y, layer, width, height, count, pixel_format, pixel_type, pixels);
+  __auto_type gl = g_gpulib_libgl;
+  gl->TextureSubImage3D(tex_id, mipmap_level, x, y, layer, width, height, count, pixel_format, pixel_type, pixels);
   profE(__func__);
 }
 
@@ -1075,7 +1155,8 @@ static inline void GpuSetPix(
     enum gpu_pix_format_e pixel_format, enum gpu_pix_type_e pixel_type, void * pixel)
 {
   profB(__func__);
-  glClearTexSubImage(tex_id, mipmap_level, x, y, layer, width, height, count, pixel_format, pixel_type, pixel);
+  __auto_type gl = g_gpulib_libgl;
+  gl->ClearTexSubImage(tex_id, mipmap_level, x, y, layer, width, height, count, pixel_format, pixel_type, pixel);
   profE(__func__);
 }
 
@@ -1084,7 +1165,8 @@ static inline void GpuGetCpi(
     unsigned pixels_bytes, void * pixels)
 {
   profB(__func__);
-  glGetCompressedTextureSubImage(tex_id, mipmap_level, x, y, layer, width, height, count, pixels_bytes, pixels);
+  __auto_type gl = g_gpulib_libgl;
+  gl->GetCompressedTextureSubImage(tex_id, mipmap_level, x, y, layer, width, height, count, pixels_bytes, pixels);
   profE(__func__);
 }
 
@@ -1093,12 +1175,14 @@ static inline void GpuSetCpi(
     enum gpu_tex_format_e compression_format, unsigned pixels_bytes, void * pixels)
 {
   profB(__func__);
-  glCompressedTextureSubImage3D(tex_id, mipmap_level, x, y, layer, width, height, count, compression_format, pixels_bytes, pixels);
+  __auto_type gl = g_gpulib_libgl;
+  gl->CompressedTextureSubImage3D(tex_id, mipmap_level, x, y, layer, width, height, count, compression_format, pixels_bytes, pixels);
   profE(__func__);
 }
 
 static inline int GpuLoadRgbImgBinary(unsigned tex_id, int width, int height, int layer_count, char * img_binary_filepath) {
   profB(__func__);
+  __auto_type gl = g_gpulib_libgl;
   int fd = stdlib_open(img_binary_filepath, O_RDONLY);
   if (fd == 0) {
     profE(__func__);
@@ -1109,12 +1193,12 @@ static inline int GpuLoadRgbImgBinary(unsigned tex_id, int width, int height, in
     profE(__func__);
     return 1;
   }
-  profB("glTextureSubImage3D");
-  glTextureSubImage3D(tex_id, 0, 0, 0, 0, width, height, layer_count, 0x1907, 0x1401, p); // GL_RGB, GL_UNSIGNED_BYTE
-  profE("glTextureSubImage3D");
-  profB("glGenerateTextureMipmap");
-  glGenerateTextureMipmap(tex_id);
-  profE("glGenerateTextureMipmap");
+  profB("gl->TextureSubImage3D");
+  gl->TextureSubImage3D(tex_id, 0, 0, 0, 0, width, height, layer_count, 0x1907, 0x1401, p); // GL_RGB, GL_UNSIGNED_BYTE
+  profE("gl->TextureSubImage3D");
+  profB("gl->GenerateTextureMipmap");
+  gl->GenerateTextureMipmap(tex_id);
+  profE("gl->GenerateTextureMipmap");
   stdlib_munmap(p, (width * height * 3) * layer_count);
   stdlib_close(fd);
   profE(__func__);
@@ -1123,6 +1207,7 @@ static inline int GpuLoadRgbImgBinary(unsigned tex_id, int width, int height, in
 
 static inline int GpuLoadRgbCbmBinary(unsigned tex_id, int width, int height, int layer_count, char * cbm_binary_filepath) {
   profB(__func__);
+  __auto_type gl = g_gpulib_libgl;
   int fd = stdlib_open(cbm_binary_filepath, O_RDONLY);
   if (fd == 0) {
     profE(__func__);
@@ -1133,12 +1218,12 @@ static inline int GpuLoadRgbCbmBinary(unsigned tex_id, int width, int height, in
     profE(__func__);
     return 1;
   }
-  profB("glTextureSubImage3D");
-  glTextureSubImage3D(tex_id, 0, 0, 0, 0, width, height, layer_count * 6, 0x1907, 0x1401, p); // GL_RGB, GL_UNSIGNED_BYTE
-  profE("glTextureSubImage3D");
-  profB("glGenerateTextureMipmap");
-  glGenerateTextureMipmap(tex_id);
-  profE("glGenerateTextureMipmap");
+  profB("gl->TextureSubImage3D");
+  gl->TextureSubImage3D(tex_id, 0, 0, 0, 0, width, height, layer_count * 6, 0x1907, 0x1401, p); // GL_RGB, GL_UNSIGNED_BYTE
+  profE("gl->TextureSubImage3D");
+  profB("gl->GenerateTextureMipmap");
+  gl->GenerateTextureMipmap(tex_id);
+  profE("gl->GenerateTextureMipmap");
   stdlib_munmap(p, (width * height * 3) * (layer_count * 6));
   stdlib_close(fd);
   profE(__func__);
@@ -1149,15 +1234,16 @@ static inline unsigned GpuSmp(
     int max_anisotropy, enum gpu_smp_filter_e min_filter, enum gpu_smp_filter_e mag_filter, enum gpu_smp_wrapping_e wrapping)
 {
   profB(__func__);
+  __auto_type gl = g_gpulib_libgl;
   unsigned smp_id = 0;
-  glCreateSamplers(1, &smp_id);
+  gl->CreateSamplers(1, &smp_id);
   if (max_anisotropy > 0)
-    glSamplerParameteri(smp_id, 0x84FE, max_anisotropy); // GL_TEXTURE_MAX_ANISOTROPY_EXT
-  glSamplerParameteri(smp_id, 0x2801, min_filter);       // GL_TEXTURE_MIN_FILTER
-  glSamplerParameteri(smp_id, 0x2800, mag_filter);       // GL_TEXTURE_MAG_FILTER
-  glSamplerParameteri(smp_id, 0x2802, wrapping);         // GL_TEXTURE_WRAP_S
-  glSamplerParameteri(smp_id, 0x2803, wrapping);         // GL_TEXTURE_WRAP_T
-  glSamplerParameteri(smp_id, 0x8072, wrapping);         // GL_TEXTURE_WRAP_R
+    gl->SamplerParameteri(smp_id, 0x84FE, max_anisotropy); // GL_TEXTURE_MAX_ANISOTROPY_EXT
+  gl->SamplerParameteri(smp_id, 0x2801, min_filter);       // GL_TEXTURE_MIN_FILTER
+  gl->SamplerParameteri(smp_id, 0x2800, mag_filter);       // GL_TEXTURE_MAG_FILTER
+  gl->SamplerParameteri(smp_id, 0x2802, wrapping);         // GL_TEXTURE_WRAP_S
+  gl->SamplerParameteri(smp_id, 0x2803, wrapping);         // GL_TEXTURE_WRAP_T
+  gl->SamplerParameteri(smp_id, 0x8072, wrapping);         // GL_TEXTURE_WRAP_R
   profE(__func__);
   return smp_id;
 }
@@ -1170,21 +1256,22 @@ static inline unsigned GpuPro(
     char * xfb_name_3)
 {
   profB(__func__);
-  unsigned shader_id = glCreateShader(shader_type);
+  __auto_type gl = g_gpulib_libgl;
+  unsigned shader_id = gl->CreateShader(shader_type);
 
-  glShaderSource(shader_id, 1, (char **)&shader_string, NULL);
-  glCompileShader(shader_id);
+  gl->ShaderSource(shader_id, 1, (char **)&shader_string, NULL);
+  gl->CompileShader(shader_id);
 
   {
     int is_compiled = 0;
-    glGetShaderiv(shader_id, 0x8B81, &is_compiled); // GL_COMPILE_STATUS
+    gl->GetShaderiv(shader_id, 0x8B81, &is_compiled); // GL_COMPILE_STATUS
     if (!is_compiled) {
       int info_len = 0;
-      glGetShaderiv(shader_id, 0x8B84, &info_len); // GL_INFO_LOG_LENGTH
+      gl->GetShaderiv(shader_id, 0x8B84, &info_len); // GL_INFO_LOG_LENGTH
       if (info_len > 1) {
         char info_log[info_len + 1];
         info_log[info_len] = 0;
-        glGetShaderInfoLog(shader_id, info_len, NULL, info_log);
+        gl->GetShaderInfoLog(shader_id, info_len, NULL, info_log);
         stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Shader compiler: %s\n", info_log);
         {
           int line = 1;
@@ -1199,15 +1286,15 @@ static inline unsigned GpuPro(
           stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "\n\n");
         }
       }
-      glDeleteShader(shader_id);
+      gl->DeleteShader(shader_id);
       return 0;
     }
   }
 
-  unsigned pro_id = glCreateProgram();
-  glProgramParameteri(pro_id, 0x8258, 1); // GL_PROGRAM_SEPARABLE
+  unsigned pro_id = gl->CreateProgram();
+  gl->ProgramParameteri(pro_id, 0x8258, 1); // GL_PROGRAM_SEPARABLE
 
-  glAttachShader(pro_id, shader_id);
+  gl->AttachShader(pro_id, shader_id);
 
   int xfb_count = 0;
   {
@@ -1231,22 +1318,22 @@ static inline unsigned GpuPro(
     }
     if (xfb_count > 0) {
       char * xfb_names[4] = {x0, x1, x2, x3};
-      glTransformFeedbackVaryings(pro_id, xfb_count, xfb_names, 0x8C8D); // GL_SEPARATE_ATTRIBS
+      gl->TransformFeedbackVaryings(pro_id, xfb_count, xfb_names, 0x8C8D); // GL_SEPARATE_ATTRIBS
     }
   }
 
-  glLinkProgram(pro_id);
+  gl->LinkProgram(pro_id);
 
   {
     int is_linked = 0;
-    glGetProgramiv(pro_id, 0x8B82, &is_linked); // GL_LINK_STATUS
+    gl->GetProgramiv(pro_id, 0x8B82, &is_linked); // GL_LINK_STATUS
     if (!is_linked) {
       int info_len = 0;
-      glGetProgramiv(pro_id, 0x8B84, &info_len); // GL_INFO_LOG_LENGTH
+      gl->GetProgramiv(pro_id, 0x8B84, &info_len); // GL_INFO_LOG_LENGTH
       if (info_len > 1) {
         char info_log[info_len + 1];
         info_log[info_len] = 0;
-        glGetProgramInfoLog(pro_id, info_len, NULL, info_log);
+        gl->GetProgramInfoLog(pro_id, info_len, NULL, info_log);
         stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Program linker: %s\n", info_log);
         stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Transform feedback varyings count: %d\n", xfb_count);
         stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Transform feedback varying name 0: %s%s%s\n", xfb_name_0 ? "\"" : "", xfb_name_0 ? xfb_name_0 : "NULL", xfb_name_0 ? "\"" : "");
@@ -1266,14 +1353,14 @@ static inline unsigned GpuPro(
           stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "\n\n");
         }
       }
-      glDetachShader(pro_id, shader_id);
-      glDeleteShader(shader_id);
+      gl->DetachShader(pro_id, shader_id);
+      gl->DeleteShader(shader_id);
       return 0;
     }
   }
 
-  glDetachShader(pro_id, shader_id);
-  glDeleteShader(shader_id);
+  gl->DetachShader(pro_id, shader_id);
+  gl->DeleteShader(shader_id);
   profE(__func__);
   return pro_id;
 }
@@ -1286,6 +1373,7 @@ static inline unsigned GpuProFile(
     char * xfb_name_3)
 {
   profB(__func__);
+  __auto_type gl = g_gpulib_libgl;
   int fd = stdlib_open(shader_filepath, O_RDONLY);
   if (fd == 0) {
     profE(__func__);
@@ -1312,19 +1400,20 @@ static inline unsigned GpuFragXfb(char * shader_string, char * xfb_name_0, char 
 static inline unsigned GpuVertXfbFile(char * shader_filepath, char * xfb_name_0, char * xfb_name_1, char * xfb_name_2, char * xfb_name_3) { return GpuProFile(0x8B31, shader_filepath, xfb_name_0, xfb_name_1, xfb_name_2, xfb_name_3); } // GL_VERTEX_SHADER
 static inline unsigned GpuFragXfbFile(char * shader_filepath, char * xfb_name_0, char * xfb_name_1, char * xfb_name_2, char * xfb_name_3) { return GpuProFile(0x8B30, shader_filepath, xfb_name_0, xfb_name_1, xfb_name_2, xfb_name_3); } // GL_FRAGMENT_SHADER
 
-static inline void GpuU32(unsigned program, int location, int count, unsigned * value) { glProgramUniform1uiv(program, location, count, value); }
-static inline void GpuI32(unsigned program, int location, int count, int      * value) { glProgramUniform1iv(program, location, count, value);  }
-static inline void GpuF32(unsigned program, int location, int count, float    * value) { glProgramUniform1fv(program, location, count, value);  }
-static inline void GpuV2F(unsigned program, int location, int count, float    * value) { glProgramUniform2fv(program, location, count, value);  }
-static inline void GpuV3F(unsigned program, int location, int count, float    * value) { glProgramUniform3fv(program, location, count, value);  }
-static inline void GpuV4F(unsigned program, int location, int count, float    * value) { glProgramUniform4fv(program, location, count, value);  }
+static inline void GpuU32(unsigned program, int location, int count, unsigned * value) { __auto_type gl = g_gpulib_libgl; gl->ProgramUniform1uiv(program, location, count, value); }
+static inline void GpuI32(unsigned program, int location, int count, int      * value) { __auto_type gl = g_gpulib_libgl; gl->ProgramUniform1iv(program, location, count, value);  }
+static inline void GpuF32(unsigned program, int location, int count, float    * value) { __auto_type gl = g_gpulib_libgl; gl->ProgramUniform1fv(program, location, count, value);  }
+static inline void GpuV2F(unsigned program, int location, int count, float    * value) { __auto_type gl = g_gpulib_libgl; gl->ProgramUniform2fv(program, location, count, value);  }
+static inline void GpuV3F(unsigned program, int location, int count, float    * value) { __auto_type gl = g_gpulib_libgl; gl->ProgramUniform3fv(program, location, count, value);  }
+static inline void GpuV4F(unsigned program, int location, int count, float    * value) { __auto_type gl = g_gpulib_libgl; gl->ProgramUniform4fv(program, location, count, value);  }
 
 static inline unsigned GpuPpo(unsigned vert_pro_id, unsigned frag_pro_id) {
   profB(__func__);
+  __auto_type gl = g_gpulib_libgl;
   unsigned ppo_id = 0;
-  glCreateProgramPipelines(1, &ppo_id);
-  if (vert_pro_id) glUseProgramStages(ppo_id, 1, vert_pro_id);
-  if (frag_pro_id) glUseProgramStages(ppo_id, 2, frag_pro_id);
+  gl->CreateProgramPipelines(1, &ppo_id);
+  if (vert_pro_id) gl->UseProgramStages(ppo_id, 1, vert_pro_id);
+  if (frag_pro_id) gl->UseProgramStages(ppo_id, 2, frag_pro_id);
   profE(__func__);
   return ppo_id;
 }
@@ -1337,20 +1426,21 @@ static inline unsigned GpuFbo(
     unsigned depth_tex_id_0, int depth_tex_layer_0)
 {
   profB(__func__);
+  __auto_type gl = g_gpulib_libgl;
   unsigned fbo_id = 0;
-  glCreateFramebuffers(1, &fbo_id);
-  glNamedFramebufferTextureLayer(fbo_id, 0x8CE0 + 0, color_tex_id_0, 0, color_tex_layer_0); // GL_COLOR_ATTACHMENT0
-  glNamedFramebufferTextureLayer(fbo_id, 0x8CE0 + 1, color_tex_id_1, 0, color_tex_layer_1);
-  glNamedFramebufferTextureLayer(fbo_id, 0x8CE0 + 2, color_tex_id_2, 0, color_tex_layer_2);
-  glNamedFramebufferTextureLayer(fbo_id, 0x8CE0 + 3, color_tex_id_3, 0, color_tex_layer_3);
-  glNamedFramebufferTextureLayer(fbo_id, 0x8D00 + 0, depth_tex_id_0, 0, depth_tex_layer_0); // GL_DEPTH_ATTACHMENT
+  gl->CreateFramebuffers(1, &fbo_id);
+  gl->NamedFramebufferTextureLayer(fbo_id, 0x8CE0 + 0, color_tex_id_0, 0, color_tex_layer_0); // GL_COLOR_ATTACHMENT0
+  gl->NamedFramebufferTextureLayer(fbo_id, 0x8CE0 + 1, color_tex_id_1, 0, color_tex_layer_1);
+  gl->NamedFramebufferTextureLayer(fbo_id, 0x8CE0 + 2, color_tex_id_2, 0, color_tex_layer_2);
+  gl->NamedFramebufferTextureLayer(fbo_id, 0x8CE0 + 3, color_tex_id_3, 0, color_tex_layer_3);
+  gl->NamedFramebufferTextureLayer(fbo_id, 0x8D00 + 0, depth_tex_id_0, 0, depth_tex_layer_0); // GL_DEPTH_ATTACHMENT
   int attachments[4] = {
     color_tex_id_0 ? 0x8CE0 + 0 : 0,
     color_tex_id_1 ? 0x8CE0 + 1 : 0,
     color_tex_id_2 ? 0x8CE0 + 2 : 0,
     color_tex_id_3 ? 0x8CE0 + 3 : 0
   };
-  glNamedFramebufferDrawBuffers(fbo_id, 4, attachments);
+  gl->NamedFramebufferDrawBuffers(fbo_id, 4, attachments);
   profE(__func__);
   return fbo_id;
 }
@@ -1362,87 +1452,99 @@ static inline unsigned GpuXfb(
     unsigned buf_3_id, ptrdiff_t buf_3_bytes_first, ptrdiff_t buf_3_bytes_count)
 {
   profB(__func__);
+  __auto_type gl = g_gpulib_libgl;
   unsigned xfb_id = 0;
-  glCreateTransformFeedbacks(1, &xfb_id);
-  if (buf_0_id) glTransformFeedbackBufferRange(xfb_id, 0, buf_0_id, buf_0_bytes_first, buf_0_bytes_count);
-  if (buf_1_id) glTransformFeedbackBufferRange(xfb_id, 1, buf_1_id, buf_1_bytes_first, buf_1_bytes_count);
-  if (buf_2_id) glTransformFeedbackBufferRange(xfb_id, 2, buf_2_id, buf_2_bytes_first, buf_2_bytes_count);
-  if (buf_3_id) glTransformFeedbackBufferRange(xfb_id, 3, buf_3_id, buf_3_bytes_first, buf_3_bytes_count);
+  gl->CreateTransformFeedbacks(1, &xfb_id);
+  if (buf_0_id) gl->TransformFeedbackBufferRange(xfb_id, 0, buf_0_id, buf_0_bytes_first, buf_0_bytes_count);
+  if (buf_1_id) gl->TransformFeedbackBufferRange(xfb_id, 1, buf_1_id, buf_1_bytes_first, buf_1_bytes_count);
+  if (buf_2_id) gl->TransformFeedbackBufferRange(xfb_id, 2, buf_2_id, buf_2_bytes_first, buf_2_bytes_count);
+  if (buf_3_id) gl->TransformFeedbackBufferRange(xfb_id, 3, buf_3_id, buf_3_bytes_first, buf_3_bytes_count);
   profE(__func__);
   return xfb_id;
 }
 
 static inline void GpuBindFbo(unsigned fbo_id) {
   profB(__func__);
-  glBindFramebuffer(0x8D40, fbo_id); // GL_FRAMEBUFFER
+  __auto_type gl = g_gpulib_libgl;
+  gl->BindFramebuffer(0x8D40, fbo_id); // GL_FRAMEBUFFER
   profE(__func__);
 }
 
 static inline void GpuBindXfb(unsigned xfb_id) {
   profB(__func__);
-  glBindTransformFeedback(0x8E22, xfb_id); // GL_TRANSFORM_FEEDBACK
+  __auto_type gl = g_gpulib_libgl;
+  gl->BindTransformFeedback(0x8E22, xfb_id); // GL_TRANSFORM_FEEDBACK
   profE(__func__);
 }
 
 static inline void GpuBindIndices(unsigned idb_id) {
   profB(__func__);
-  glBindBuffer(0x8893, idb_id); // GL_ELEMENT_ARRAY_BUFFER
+  __auto_type gl = g_gpulib_libgl;
+  gl->BindBuffer(0x8893, idb_id); // GL_ELEMENT_ARRAY_BUFFER
   profE(__func__);
 }
 
 static inline void GpuBindCommands(unsigned dib_id) {
   profB(__func__);
-  glBindBuffer(0x8F3F, dib_id); // GL_DRAW_INDIRECT_BUFFER
+  __auto_type gl = g_gpulib_libgl;
+  gl->BindBuffer(0x8F3F, dib_id); // GL_DRAW_INDIRECT_BUFFER
   profE(__func__);
 }
 
 static inline void GpuBindTextures(int first, int count, unsigned * textures) {
   profB(__func__);
-  glBindTextures(first, count, textures);
+  __auto_type gl = g_gpulib_libgl;
+  gl->BindTextures(first, count, textures);
   profE(__func__);
 }
 
 static inline void GpuBindSamplers(int first, int count, unsigned * samplers) {
   profB(__func__);
-  glBindSamplers(first, count, samplers);
+  __auto_type gl = g_gpulib_libgl;
+  gl->BindSamplers(first, count, samplers);
   profE(__func__);
 }
 
 static inline void GpuBindPpo(unsigned ppo) {
   profB(__func__);
-  glBindProgramPipeline(ppo);
+  __auto_type gl = g_gpulib_libgl;
+  gl->BindProgramPipeline(ppo);
   profE(__func__);
 }
 
 static inline void GpuDraw(enum gpu_mode_e mode, unsigned binded_dib_cmd_first, unsigned binded_dib_cmd_count) {
   profB(__func__);
-  glMultiDrawElementsIndirect(mode, 0x1405, (void *)(binded_dib_cmd_first * 5 * sizeof(unsigned)), binded_dib_cmd_count, 0); // GL_UNSIGNED_INT
+  __auto_type gl = g_gpulib_libgl;
+  gl->MultiDrawElementsIndirect(mode, 0x1405, (void *)(binded_dib_cmd_first * 5 * sizeof(unsigned)), binded_dib_cmd_count, 0); // GL_UNSIGNED_INT
   profE(__func__);
 }
 
 static inline void GpuDrawXfb(enum gpu_mode_e mode, unsigned binded_dib_cmd_first, unsigned binded_dib_cmd_count) {
   profB(__func__);
-  glEnable(0x8C89); // GL_RASTERIZER_DISCARD
-  glBeginTransformFeedback(mode);
-  glMultiDrawElementsIndirect(mode, 0x1405, (void *)(binded_dib_cmd_first * 5 * sizeof(unsigned)), binded_dib_cmd_count, 0); // GL_UNSIGNED_INT
-  glEndTransformFeedback();
-  glDisable(0x8C89);
+  __auto_type gl = g_gpulib_libgl;
+  gl->Enable(0x8C89); // GL_RASTERIZER_DISCARD
+  gl->BeginTransformFeedback(mode);
+  gl->MultiDrawElementsIndirect(mode, 0x1405, (void *)(binded_dib_cmd_first * 5 * sizeof(unsigned)), binded_dib_cmd_count, 0); // GL_UNSIGNED_INT
+  gl->EndTransformFeedback();
+  gl->Disable(0x8C89);
   profE(__func__);
 }
 
 static inline void GpuDrawOnce(enum gpu_mode_e mode, unsigned first, unsigned count, unsigned instance_count) {
   profB(__func__);
-  glDrawArraysInstanced(mode, first, count, instance_count);
+  __auto_type gl = g_gpulib_libgl;
+  gl->DrawArraysInstanced(mode, first, count, instance_count);
   profE(__func__);
 }
 
 static inline void GpuDrawOnceXfb(enum gpu_mode_e mode, unsigned first, unsigned count, unsigned instance_count) {
   profB(__func__);
-  glEnable(0x8C89); // GL_RASTERIZER_DISCARD
-  glBeginTransformFeedback(mode);
-  glDrawArraysInstanced(mode, first, count, instance_count);
-  glEndTransformFeedback();
-  glDisable(0x8C89);
+  __auto_type gl = g_gpulib_libgl;
+  gl->Enable(0x8C89); // GL_RASTERIZER_DISCARD
+  gl->BeginTransformFeedback(mode);
+  gl->DrawArraysInstanced(mode, first, count, instance_count);
+  gl->EndTransformFeedback();
+  gl->Disable(0x8C89);
   profE(__func__);
 }
 
@@ -1451,9 +1553,10 @@ static inline void GpuBlit(
     unsigned target_fbo_id, int target_color_id, int target_x, int target_y, int target_width, int target_height)
 {
   profB(__func__);
-  glNamedFramebufferReadBuffer(source_fbo_id, 0x8CE0 + source_color_id); // GL_COLOR_ATTACHMENT0
-  glNamedFramebufferDrawBuffer(target_fbo_id, 0x8CE0 + target_color_id);
-  glBlitNamedFramebuffer(
+  __auto_type gl = g_gpulib_libgl;
+  gl->NamedFramebufferReadBuffer(source_fbo_id, 0x8CE0 + source_color_id); // GL_COLOR_ATTACHMENT0
+  gl->NamedFramebufferDrawBuffer(target_fbo_id, 0x8CE0 + target_color_id);
+  gl->BlitNamedFramebuffer(
       source_fbo_id, target_fbo_id,
       source_x, source_y, source_width, source_height,
       target_x, target_y, target_width, target_height, 0x00004000, 0x2600); // GL_COLOR_BUFFER_BIT, GL_NEAREST
@@ -1466,9 +1569,10 @@ static inline void GpuBlitToScreen(
     int screen_x, int screen_y, int screen_width, int screen_height)
 {
   profB(__func__);
-  glNamedFramebufferReadBuffer(source_fbo_id, 0x8CE0 + source_color_id); // GL_COLOR_ATTACHMENT0
-  glNamedFramebufferDrawBuffer(0, 0x0405); // GL_BACK
-  glBlitNamedFramebuffer(
+  __auto_type gl = g_gpulib_libgl;
+  gl->NamedFramebufferReadBuffer(source_fbo_id, 0x8CE0 + source_color_id); // GL_COLOR_ATTACHMENT0
+  gl->NamedFramebufferDrawBuffer(0, 0x0405); // GL_BACK
+  gl->BlitNamedFramebuffer(
       source_fbo_id, 0,
       source_x, source_y, source_width, source_height,
       screen_x, screen_y, screen_width, screen_height, 0x00004000, 0x2600); // GL_COLOR_BUFFER_BIT, GL_NEAREST
@@ -1477,44 +1581,51 @@ static inline void GpuBlitToScreen(
 
 static inline void GpuClear() {
   profB(__func__);
-  glClear(0x4100); // GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT
+  __auto_type gl = g_gpulib_libgl;
+  gl->Clear(0x4100); // GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT
   profE(__func__);
 }
 
 static inline void GpuFinish() {
   profB(__func__);
-  glFinish();
+  __auto_type gl = g_gpulib_libgl;
+  gl->Finish();
   profE(__func__);
 }
 
 static inline void GpuSwap(Display * dpy, Window win) {
   profB(__func__);
-  glXSwapBuffers(dpy, win);
+  __auto_type glx = g_gpulib_libglx;
+  glx->SwapBuffers(dpy, win);
   profE(__func__);
   GpuFinish();
 }
 
 static inline void GpuEnable(unsigned flags) {
   profB(__func__);
-  glEnable(flags);
+  __auto_type gl = g_gpulib_libgl;
+  gl->Enable(flags);
   profE(__func__);
 }
 
 static inline void GpuDisable(unsigned flags) {
   profB(__func__);
-  glDisable(flags);
+  __auto_type gl = g_gpulib_libgl;
+  gl->Disable(flags);
   profE(__func__);
 }
 
 static inline void GpuViewport(int x, int y, int width, int height) {
   profB(__func__);
-  glViewport(x, y, width, height);
+  __auto_type gl = g_gpulib_libgl;
+  gl->Viewport(x, y, width, height);
   profE(__func__);
 }
 
 static inline void GpuSetDebugCallback(void * callback) {
   profB(__func__);
-  glDebugMessageCallback(callback, NULL);
+  __auto_type gl = g_gpulib_libgl;
+  gl->DebugMessageCallback(callback, NULL);
   profE(__func__);
 }
 
