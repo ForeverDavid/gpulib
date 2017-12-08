@@ -36,5 +36,8 @@ Naming convention:
  * `fbo`: Framebuffer Object
  * `xfb`: Transform Feedback Object
 
-Special thanks to Nicolas [@nlguillemot](https://github.com/nlguillemot) and Andreas [@ands](https://github.com/ands) for
-answering my OpenGL questions and Micha [@vurtun](https://github.com/vurtun) for suggestions on how to improve the library!
+Special thanks to Nicolas [@nlguillemot](https://github.com/nlguillemot) and Andreas [@ands](https://github.com/ands)
+for answering my OpenGL questions!
+Micha [@vurtun](https://github.com/vurtun) for suggestions on how to improve the library!
+Rich [@JodiTheTigger](https://github.com/JodiTheTigger) for helping me debugging a very hard problem I had!
+Mārtiņš [@mmozeiko](https://github.com/mmozeiko) for explaining me why I had a serious problem on some Linux distro!
