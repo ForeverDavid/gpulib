@@ -1,5 +1,7 @@
 #include "../../gpulib.h"
 
+enum {MAX_STR = 10000};
+
 typedef struct { float x, y, z; } vec3;
 
 int main() {
@@ -79,16 +81,17 @@ int main() {
     [1] = GpuCast(v2_id, gpu_xyz_f32_e, 0, 4 * sizeof(vec3))
   };
 
-  GpuBindXfb(xfb);
   GpuBindPpo(ppo);
   GpuBindTextures(0, 16, textures);
+  GpuBindXfb(xfb);
   GpuDrawOnceXfb(gpu_points_e, 0, 4, 1);
   GpuBindXfb(0);
+
   GpuFinish();
 
-  char cmd[10000] = {0};
+  char cmd[MAX_STR] = {0};
   stdlib_snprintf(
-    cmd, 10000,
+    cmd, MAX_STR,
     "notify-send \""
     "[GpuLib] Completed "
     "v3[0].xyz: %.1f %.1f %.1f "

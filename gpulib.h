@@ -870,11 +870,11 @@ static inline void GpuWindow(
     gl->FrontFace(0x0900); // GL_CW
   }
   {
-    // OPENGL REQUIRED GARBAGE //////
-    unsigned vao = 0;              //
+    // OPENGL REQUIRED GARBAGE ////////
+    unsigned vao = 0;                //
     gl->CreateVertexArrays(1, &vao); //
     gl->BindVertexArray(vao);        //
-    /////////////////////////////////
+    ///////////////////////////////////
   }
   profE("OpenGL state setup");
 

@@ -1,5 +1,7 @@
 #include "../../gpulib_debug.h"
 
+enum {MAX_STR = 10000};
+
 int main() {
   Display * dpy = NULL;
   Window win = 0;
@@ -9,7 +11,7 @@ int main() {
   int dim_x = 800;
   int dim_y = 450;
 
-  char vert_string[4096] = GPULIB_VERT_HEADER
+  char vert_string[MAX_STR] = GPULIB_VERT_HEADER
       "const vec2 g_tri[] = vec2[]("                    "\n"
       "  vec2(-1,-1),"                                  "\n"
       "  vec2(-1, 3),"                                  "\n"
@@ -20,7 +22,7 @@ int main() {
       "  gl_Position = vec4(g_tri[gl_VertexID], 0, 1);" "\n"
       "}"                                               "\n";
 
-  char frag_string[4096] = GPULIB_FRAG_HEADER
+  char frag_string[MAX_STR] = GPULIB_FRAG_HEADER
       "layout(location = 0) out vec4 g_color;"       "\n"
       ""                                             "\n"
       "void main() {"                                "\n"
