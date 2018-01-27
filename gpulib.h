@@ -613,7 +613,7 @@ static inline void GpuSysX11Window(char * title, int title_bytes, int x, int y, 
     stdlib_assert(fbconfigs_count != 0);
     stdlib_assert(fbconfigs != NULL);
     profB("fbconfig search");
-    for (int i = 0; i < fbconfigs_count; i += 1) {
+    for (int i = fbconfigs_count - 1; i >= 0; i -= 1) {
 #if 0
       {
         int red_size = 0, green_size = 0, blue_size = 0, alpha_size = 0, depth_size = 0, stencil_size = 0, doublebuffer = 0, sample_buffers = 0, samples = 0;
@@ -666,6 +666,42 @@ static inline void GpuSysX11Window(char * title, int title_bytes, int x, int y, 
     profE("fbconfig search");
   }
   stdlib_assert(fbconfig != NULL);
+
+#if 0
+  {
+    int red_size = 0, green_size = 0, blue_size = 0, alpha_size = 0, depth_size = 0, stencil_size = 0, doublebuffer = 0, sample_buffers = 0, samples = 0;
+    glx->GetFBConfigAttrib(dpy, fbconfig, GLX_RED_SIZE,       &red_size);
+    glx->GetFBConfigAttrib(dpy, fbconfig, GLX_GREEN_SIZE,     &green_size);
+    glx->GetFBConfigAttrib(dpy, fbconfig, GLX_BLUE_SIZE,      &blue_size);
+    glx->GetFBConfigAttrib(dpy, fbconfig, GLX_ALPHA_SIZE,     &alpha_size);
+    glx->GetFBConfigAttrib(dpy, fbconfig, GLX_DEPTH_SIZE,     &depth_size);
+    glx->GetFBConfigAttrib(dpy, fbconfig, GLX_STENCIL_SIZE,   &stencil_size);
+    glx->GetFBConfigAttrib(dpy, fbconfig, GLX_DOUBLEBUFFER,   &doublebuffer);
+    glx->GetFBConfigAttrib(dpy, fbconfig, GLX_SAMPLE_BUFFERS, &sample_buffers);
+    glx->GetFBConfigAttrib(dpy, fbconfig, GLX_SAMPLES,        &samples);
+    stdlib_nprintf(GPULIB_MAX_PRINT_BYTES,
+      "fbconfig: %p, "
+      "GLX_RED_SIZE: %d, "
+      "GLX_GREEN_SIZE: %d, "
+      "GLX_BLUE_SIZE: %d, "
+      "GLX_ALPHA_SIZE: %d, "
+      "GLX_DEPTH_SIZE: %d, "
+      "GLX_STENCIL_SIZE: %d, "
+      "GLX_DOUBLEBUFFER: %d, "
+      "GLX_SAMPLE_BUFFERS: %d, "
+      "GLX_SAMPLES: %d\n",
+      fbconfig,
+      red_size,
+      green_size,
+      blue_size,
+      alpha_size,
+      depth_size,
+      stencil_size,
+      doublebuffer,
+      sample_buffers,
+      samples);
+  }
+#endif
 
   Window win = 0;
   {
