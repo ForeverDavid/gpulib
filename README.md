@@ -9,7 +9,7 @@ geometry, post-process textures and compute arrays on GPU.
 The contract:
 
  * x64 Linux and X11 only. Doesn't target Windows, macOS, WebGL or OpenGL ES devices.
- * Not all modern OpenGL extensions are used, only those which are supported on low-end integrated GPUs and Mesa.
+ * Not all modern OpenGL extensions are used, only those which are supported on low-end GPUs and latest Mesa.
 
 Features:
 
