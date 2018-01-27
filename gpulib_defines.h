@@ -41,7 +41,6 @@
 #define glDrawArraysInstanced (g_gpulib_libgl->DrawArraysInstanced)
 #define glEnable (g_gpulib_libgl->Enable)
 #define glEndTransformFeedback (g_gpulib_libgl->EndTransformFeedback)
-#define glFinish (g_gpulib_libgl->Finish)
 #define glFrontFace (g_gpulib_libgl->FrontFace)
 #define glGenBuffers (g_gpulib_libgl->GenBuffers)
 #define glGenerateTextureMipmap (g_gpulib_libgl->GenerateTextureMipmap)

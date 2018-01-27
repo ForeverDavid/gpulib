@@ -277,7 +277,6 @@ struct g_gpulib_libgl_t {
   void (*Enable)(unsigned);
   void (*EndQuery)(unsigned);
   void (*EndTransformFeedback)();
-  void (*Finish)();
   void (*FrontFace)(unsigned);
   void (*GenBuffers)(int, unsigned *);
   void (*GenerateTextureMipmap)(unsigned);
@@ -406,7 +405,6 @@ static inline void GpuSysGetGLProcedureAddresses() {
   gl->Enable = glx->GetProcAddressARB("glEnable");
   gl->EndQuery = glx->GetProcAddressARB("glEndQuery");
   gl->EndTransformFeedback = glx->GetProcAddressARB("glEndTransformFeedback");
-  gl->Finish = glx->GetProcAddressARB("glFinish");
   gl->FrontFace = glx->GetProcAddressARB("glFrontFace");
   gl->GenBuffers = glx->GetProcAddressARB("glGenBuffers");
   gl->GenerateTextureMipmap = glx->GetProcAddressARB("glGenerateTextureMipmap");
@@ -1629,13 +1627,6 @@ static inline void GpuClear() {
   profB(__func__);
   __auto_type gl = g_gpulib_libgl;
   gl->Clear(0x4100); // GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT
-  profE(__func__);
-}
-
-static inline void GpuFinish() {
-  profB(__func__);
-  __auto_type gl = g_gpulib_libgl;
-  gl->Finish();
   profE(__func__);
 }
 
