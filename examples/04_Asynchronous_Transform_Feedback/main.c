@@ -87,22 +87,20 @@ int main() {
   GpuDrawOnceXfb(gpu_points_e, 0, 4, 1);
   GpuBindXfb(0);
 
-  GpuFinish();
-
-  char cmd[MAX_STR] = {0};
-  stdlib_snprintf(
-    cmd, MAX_STR,
-    "notify-send \""
-    "[GpuLib] Completed "
-    "v3[0].xyz: %.1f %.1f %.1f "
-    "v3[1].xyz: %.1f %.1f %.1f "
-    "v3[2].xyz: %.1f %.1f %.1f "
-    "v3[3].xyz: %.1f %.1f %.1f \"",
-    v3[0].x, v3[0].y, v3[0].z,
-    v3[1].x, v3[1].y, v3[1].z,
-    v3[2].x, v3[2].y, v3[2].z,
-    v3[3].x, v3[3].y, v3[3].z);
-  GpuSysShell(cmd, NULL);
+  for (; v3[0].x == 0;) {
+    GpuSwap(dpy, win);
+    stdlib_nprintf(
+      MAX_STR,
+      "[GpuLib] Completed "        "\n"
+      "v3[0].xyz: %.1f %.1f %.1f " "\n"
+      "v3[1].xyz: %.1f %.1f %.1f " "\n"
+      "v3[2].xyz: %.1f %.1f %.1f " "\n"
+      "v3[3].xyz: %.1f %.1f %.1f " "\n" "\n",
+      v3[0].x, v3[0].y, v3[0].z,
+      v3[1].x, v3[1].y, v3[1].z,
+      v3[2].x, v3[2].y, v3[2].z,
+      v3[3].x, v3[3].y, v3[3].z);
+  }
 
   XDestroyWindow(dpy, win);
   XCloseDisplay(dpy);

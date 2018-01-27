@@ -1634,7 +1634,6 @@ static inline void GpuSwap(Display * dpy, Window win) {
   __auto_type glx = g_gpulib_libglx;
   glx->SwapBuffers(dpy, win);
   profE(__func__);
-  GpuFinish();
 }
 
 static inline void GpuEnable(unsigned flags) {
