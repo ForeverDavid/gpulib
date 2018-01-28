@@ -1202,7 +1202,7 @@ static inline unsigned GpuCastMsi(
   return new_tex_id;
 }
 
-static inline void GpuGet(
+static inline void GpuGetImg(
     unsigned tex_id, int layer, int x, int y, int width, int height, int count, int mipmap_level,
     enum gpu_pix_format_e pixel_format, enum gpu_pix_type_e pixel_type, unsigned pixels_bytes, void * pixels)
 {
@@ -1212,7 +1212,7 @@ static inline void GpuGet(
   profE(__func__);
 }
 
-static inline void GpuSet(
+static inline void GpuSetImg(
     unsigned tex_id, int layer, int x, int y, int width, int height, int count, int mipmap_level,
     enum gpu_pix_format_e pixel_format, enum gpu_pix_type_e pixel_type, void * pixels)
 {

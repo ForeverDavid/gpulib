@@ -169,11 +169,11 @@ static inline void GpuDebugImgEx(unsigned tex_id, char * name) {
     if (e_type == 0x1406) { // GL_FLOAT
       if (e_count == 0x1902) { // GL_DEPTH_COMPONENT
         float pix[1] = {0};
-        GpuGet(state->texture_id, 0, state->texture_x, state->texture_y, 1, 1, 1, 0, e_count, e_type, sizeof(pix), pix);
+        GpuGetImg(state->texture_id, 0, state->texture_x, state->texture_y, 1, 1, 1, 0, e_count, e_type, sizeof(pix), pix);
         igText("Pixel output: r: %.7f", pix[0]);
       } else if (e_count == 0x1908) { // GL_RGBA
         float pix[4] = {0};
-        GpuGet(state->texture_id, 0, state->texture_x, state->texture_y, 1, 1, 1, 0, e_count, e_type, sizeof(pix), pix);
+        GpuGetImg(state->texture_id, 0, state->texture_x, state->texture_y, 1, 1, 1, 0, e_count, e_type, sizeof(pix), pix);
         igText("Pixel output: r: %.7f, g: %.7f, b: %.7f, a: %.7f", pix[0], pix[1], pix[2], pix[3]);
       } else {
         stdlib_assert(0);
@@ -181,11 +181,11 @@ static inline void GpuDebugImgEx(unsigned tex_id, char * name) {
     } else if (e_type == 0x1400) { // GL_BYTE
       if (e_count == 0x1907) { // GL_RGB
         unsigned char pix[3] = {0};
-        GpuGet(state->texture_id, 0, state->texture_x, state->texture_y, 1, 1, 1, 0, e_count, e_type, sizeof(pix), pix);
+        GpuGetImg(state->texture_id, 0, state->texture_x, state->texture_y, 1, 1, 1, 0, e_count, e_type, sizeof(pix), pix);
         igText("Pixel output: r: %u, g: %u, b: %u", pix[0], pix[1], pix[2]);
       } else if (e_count == 0x1908) { // GL_RGBA
         unsigned char pix[4] = {0};
-        GpuGet(state->texture_id, 0, state->texture_x, state->texture_y, 1, 1, 1, 0, e_count, e_type, sizeof(pix), pix);
+        GpuGetImg(state->texture_id, 0, state->texture_x, state->texture_y, 1, 1, 1, 0, e_count, e_type, sizeof(pix), pix);
         igText("Pixel output: r: %u, g: %u, b: %u, a: %u", pix[0], pix[1], pix[2], pix[3]);
       } else {
         stdlib_assert(0);

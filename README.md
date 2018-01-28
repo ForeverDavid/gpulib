@@ -31,7 +31,7 @@ Naming convention:
  * `cpi`: Compressed Image
  * `smp`: Sampler
  * `pro`: Program Object
- * `ppo`: Pipeline Program Object
+ * `ppo`: Program Pipeline Object
  * `fbo`: Framebuffer Object
  * `xfb`: Transform Feedback Object
 
