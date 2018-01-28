@@ -81,31 +81,35 @@ int main() {
     [1] = GpuCast(v2_id, gpu_xyz_f32_e, 0, 4 * sizeof(vec3))
   };
 
+  unsigned query = GpuQuery();
+
   GpuBindPpo(ppo);
   GpuBindTextures(0, 16, textures);
+  GpuQueryBeginTimeElapsed(query);
   GpuBindXfb(xfb);
   GpuDrawOnceXfb(gpu_points_e, 0, 4, 1);
   GpuBindXfb(0);
+  GpuQueryEndTimeElapsed();
   void * fence = GpuFence();
 
   for (int fence_complete = 0; fence_complete == 0;) {
     GpuSwap(dpy, win);
     fence_complete = GpuFenceIsComplete(fence);
-    stdlib_nprintf(
-      MAX_STR,
-      "[GpuLib] Fence complete: %d" "\n",
-      fence_complete);
-    stdlib_nprintf(
-      MAX_STR,
+    stdlib_nprintf(MAX_STR, "[GpuLib] Fence complete: %d\n", fence_complete);
+    stdlib_nprintf(MAX_STR,
       "[GpuLib] Returned values:" "\n"
       "v3[0].xyz: %.1f %.1f %.1f" "\n"
       "v3[1].xyz: %.1f %.1f %.1f" "\n"
       "v3[2].xyz: %.1f %.1f %.1f" "\n"
-      "v3[3].xyz: %.1f %.1f %.1f" "\n" "\n",
+      "v3[3].xyz: %.1f %.1f %.1f" "\n\n",
       v3[0].x, v3[0].y, v3[0].z,
       v3[1].x, v3[1].y, v3[1].z,
       v3[2].x, v3[2].y, v3[2].z,
       v3[3].x, v3[3].y, v3[3].z);
+  }
+
+  if (GpuQueryIsResultAvailable(query) == 1) {
+    stdlib_nprintf(MAX_STR, "[GpuLib] Query time elapsed: %zu\n\n", GpuQueryGetResult(query));
   }
 
   XDestroyWindow(dpy, win);

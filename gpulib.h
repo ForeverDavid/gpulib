@@ -1555,6 +1555,47 @@ static inline unsigned GpuXfb(
   return xfb_id;
 }
 
+static inline unsigned GpuQuery() {
+  profB(__func__);
+  __auto_type gl = g_gpulib_libgl;
+  unsigned query_id = 0;
+  gl->GenQueries(1, &query_id);
+  profE(__func__);
+  return query_id;
+}
+
+static inline void GpuQueryBeginTimeElapsed(unsigned query_id) {
+  profB(__func__);
+  __auto_type gl = g_gpulib_libgl;
+  gl->BeginQuery(0x88BF, query_id); // GL_TIME_ELAPSED
+  profE(__func__);
+}
+
+static inline void GpuQueryEndTimeElapsed() {
+  profB(__func__);
+  __auto_type gl = g_gpulib_libgl;
+  gl->EndQuery(0x88BF); // GL_TIME_ELAPSED
+  profE(__func__);
+}
+
+static inline int GpuQueryIsResultAvailable(unsigned query_id) {
+  profB(__func__);
+  __auto_type gl = g_gpulib_libgl;
+  size_t query_is_result_available = 0;
+  gl->GetQueryObjectui64v(query_id, 0x8867, &query_is_result_available); // GL_QUERY_RESULT_AVAILABLE
+  profE(__func__);
+  return query_is_result_available == 1 ? 1 : 0;
+}
+
+static inline size_t GpuQueryGetResult(unsigned query_id) {
+  profB(__func__);
+  __auto_type gl = g_gpulib_libgl;
+  size_t query_result = 0;
+  gl->GetQueryObjectui64v(query_id, 0x8866, &query_result); // GL_QUERY_RESULT
+  profE(__func__);
+  return query_result;
+}
+
 static inline void GpuBindFbo(unsigned fbo_id) {
   profB(__func__);
   __auto_type gl = g_gpulib_libgl;
