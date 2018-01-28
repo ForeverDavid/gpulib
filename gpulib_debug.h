@@ -34,7 +34,7 @@
 
 #endif // #ifndef GPULIB_DEBUG_MANUAL
 
-struct g_gpulib_debug_state_t {
+struct gpu_debug_state_t {
   float    texture_scale[2];
   int      texture_pos[2];
   char *   program_string;
@@ -53,7 +53,7 @@ struct g_gpulib_debug_state_t {
   .texture_sync_pos = 1,
 };
 
-struct g_gpulib_debug_state_t * g_gpulib_debug_state = &g_gpulib_debug_state_data;
+struct gpu_debug_state_t * g_gpulib_debug_state = &g_gpulib_debug_state_data;
 
 static inline int GpuDebugProgramCallback(struct ImGuiTextEditCallbackData * data) {
   __auto_type gl = g_gpulib_libgl;

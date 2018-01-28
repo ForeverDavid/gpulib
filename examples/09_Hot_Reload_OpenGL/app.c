@@ -25,10 +25,10 @@ enum {
 };
 
 static void * AppInit(Display * dpy, Window win, char * scancodes,
-    struct g_gpulib_libc_t * gpulib_libc,
-    struct g_gpulib_libgl_t * gpulib_libgl,
-    struct g_gpulib_libglx_t * gpulib_libglx,
-    struct g_gpulib_debug_state_t * gpulib_debug_state,
+    struct gpu_libc_t * gpulib_libc,
+    struct gpu_libgl_t * gpulib_libgl,
+    struct gpu_libglx_t * gpulib_libglx,
+    struct gpu_debug_state_t * gpulib_debug_state,
     struct ig_state_t * ig_state,
     struct ImGuiContext * ig_context)
 {
@@ -75,10 +75,10 @@ static void * AppInit(Display * dpy, Window win, char * scancodes,
 }
 
 static void AppLoad(void * state, Display * dpy, Window win, char * scancodes,
-    struct g_gpulib_libc_t * gpulib_libc,
-    struct g_gpulib_libgl_t * gpulib_libgl,
-    struct g_gpulib_libglx_t * gpulib_libglx,
-    struct g_gpulib_debug_state_t * gpulib_debug_state,
+    struct gpu_libc_t * gpulib_libc,
+    struct gpu_libgl_t * gpulib_libgl,
+    struct gpu_libglx_t * gpulib_libglx,
+    struct gpu_debug_state_t * gpulib_debug_state,
     struct ig_state_t * ig_state,
     struct ImGuiContext * ig_context)
 {

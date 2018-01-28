@@ -29,14 +29,14 @@ enum {
   gpu_depth_e = 0x0B71, // GL_DEPTH_TEST
 };
 
+enum {
+  gpu_buf_map_flags_e = 0xC2, // GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT
+};
+
 enum gpu_mode_e {
   gpu_points_e    = 0x0000, // GL_POINTS
   gpu_lines_e     = 0x0001, // GL_LINES
   gpu_triangles_e = 0x0004, // GL_TRIANGLES
-};
-
-enum {
-  gpu_buf_map_flags_e = 0xC2, // GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT
 };
 
 enum gpu_buf_format_e {
@@ -201,7 +201,7 @@ struct MWMHints {
   "layout(origin_upper_left) in vec4 gl_FragCoord;"       "\n" \
   ""                                                      "\n"
 
-struct g_gpulib_libc_t {
+struct gpu_libc_t {
   int (*access)(char *, int);
   void * (*calloc)(size_t, size_t);
   int (*fgetc)(int *);
@@ -221,9 +221,9 @@ struct g_gpulib_libc_t {
   int (*usleep)(unsigned);
 } g_gpulib_libc_data = {0};
 
-struct g_gpulib_libc_t * g_gpulib_libc = &g_gpulib_libc_data;
+struct gpu_libc_t * g_gpulib_libc = &g_gpulib_libc_data;
 
-struct g_gpulib_libglx_t {
+struct gpu_libglx_t {
   void ** (*ChooseFBConfig)(Display *, int, int *, int *);
   int (*GetFBConfigAttrib)(Display *, void *, int, int *);
   void * (*GetProcAddressARB)(char *);
@@ -232,9 +232,9 @@ struct g_gpulib_libglx_t {
   void (*SwapBuffers)(Display *, XID);
 } g_gpulib_libglx_data = {0};
 
-struct g_gpulib_libglx_t * g_gpulib_libglx = &g_gpulib_libglx_data;
+struct gpu_libglx_t * g_gpulib_libglx = &g_gpulib_libglx_data;
 
-struct g_gpulib_libgl_t {
+struct gpu_libgl_t {
   void (*AttachShader)(unsigned, unsigned);
   void (*BeginQuery)(unsigned, unsigned);
   void (*BeginTransformFeedback)(unsigned);
@@ -329,7 +329,7 @@ struct g_gpulib_libgl_t {
   void (*Viewport)(int, int, int, int);
 } g_gpulib_libgl_data = {0};
 
-struct g_gpulib_libgl_t * g_gpulib_libgl = &g_gpulib_libgl_data;
+struct gpu_libgl_t * g_gpulib_libgl = &g_gpulib_libgl_data;
 
 static inline void GpuSysGetLibcProcedureAddresses() {
   __auto_type libc = g_gpulib_libc;
