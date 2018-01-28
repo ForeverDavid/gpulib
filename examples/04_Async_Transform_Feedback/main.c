@@ -88,13 +88,13 @@ int main() {
   GpuBindXfb(0);
   void * fence = g_gpulib_libgl->FenceSync(0x9117, 0); // GL_SYNC_GPU_COMMANDS_COMPLETE
 
-  for (int fence_complete = 0x9118; fence_complete == 0x9118;) { // GL_UNSIGNALED
+  for (int fence_status = 0x9118; fence_status == 0x9118;) { // GL_UNSIGNALED
     GpuSwap(dpy, win);
-    g_gpulib_libgl->GetSynciv(fence, 0x9114, 1, NULL, &fence_complete); // GL_SYNC_STATUS
+    g_gpulib_libgl->GetSynciv(fence, 0x9114, 1, NULL, &fence_status); // GL_SYNC_STATUS
     stdlib_nprintf(
       MAX_STR,
-      "[GpuLib] Fence_complete: 0x%04X" "\n",
-      fence_complete);
+      "[GpuLib] Fence sync status: 0x%04X" "\n",
+      fence_status);
     stdlib_nprintf(
       MAX_STR,
       "[GpuLib] Returned values:" "\n"
