@@ -148,7 +148,7 @@ int main() {
   unsigned instance_pos_tex = GpuCast(instance_pos_id, gpu_xyz_f32_e, 0, (30 + 30 + 30) * sizeof(vec3));
 
   unsigned textures = GpuCallocImg(gpu_srgb_b8_e, 512, 512, 3, 4);
-  unsigned skyboxes = GpuCallocCbm(gpu_srgb_b8_e, 512, 512, 2, 4);
+  unsigned skyboxes = GpuCallocCbm(gpu_srgb_b8_e, 512, 512, 2, 1);
 
   GpuLoadRgbImgBinary(textures, 512, 512, 3, g_resources.textures);
   GpuLoadRgbCbmBinary(skyboxes, 512, 512, 2, g_resources.cubemaps);
