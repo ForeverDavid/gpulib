@@ -891,7 +891,6 @@ static inline void GpuWindow(
       "GL_ARB_shading_language_packing",
       "GL_EXT_texture_compression_s3tc",
       "GL_EXT_texture_filter_anisotropic",
-      "GL_ARB_fragment_coord_conventions",
       "GL_ARB_texture_buffer_object_rgb32",
       "GL_ARB_texture_storage_multisample"
     };
