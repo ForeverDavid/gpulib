@@ -267,6 +267,7 @@ struct g_gpulib_libgl_t {
   void (*DeleteQueries)(int, unsigned *);
   void (*DeleteSamplers)(int, unsigned *);
   void (*DeleteShader)(unsigned);
+  void (*DeleteSync)(void *);
   void (*DeleteTextures)(int, unsigned *);
   void (*DeleteTransformFeedbacks)(int, unsigned *);
   void (*DepthFunc)(unsigned);
@@ -277,6 +278,7 @@ struct g_gpulib_libgl_t {
   void (*Enable)(unsigned);
   void (*EndQuery)(unsigned);
   void (*EndTransformFeedback)();
+  void * (*FenceSync)(unsigned, unsigned);
   void (*FrontFace)(unsigned);
   void (*GenBuffers)(int, unsigned *);
   void (*GenerateTextureMipmap)(unsigned);
@@ -290,6 +292,7 @@ struct g_gpulib_libgl_t {
   void (*GetShaderInfoLog)(unsigned, int, int *, char *);
   void (*GetShaderiv)(unsigned, unsigned, int *);
   char * (*GetStringi)(unsigned, unsigned);
+  void (*GetSynciv)(void *, unsigned, int, int *, int *);
   void (*GetTextureLevelParameteriv)(unsigned, int, unsigned, int *);
   void (*GetTextureSubImage)(unsigned, int, int, int, int, int, int, int, unsigned, unsigned, unsigned, void *);
   void (*LinkProgram)(unsigned);
@@ -395,6 +398,7 @@ static inline void GpuSysGetGLProcedureAddresses() {
   gl->DeleteQueries = glx->GetProcAddressARB("glDeleteQueries");
   gl->DeleteSamplers = glx->GetProcAddressARB("glDeleteSamplers");
   gl->DeleteShader = glx->GetProcAddressARB("glDeleteShader");
+  gl->DeleteSync = glx->GetProcAddressARB("glDeleteSync");
   gl->DeleteTextures = glx->GetProcAddressARB("glDeleteTextures");
   gl->DeleteTransformFeedbacks = glx->GetProcAddressARB("glDeleteTransformFeedbacks");
   gl->DepthFunc = glx->GetProcAddressARB("glDepthFunc");
@@ -405,6 +409,7 @@ static inline void GpuSysGetGLProcedureAddresses() {
   gl->Enable = glx->GetProcAddressARB("glEnable");
   gl->EndQuery = glx->GetProcAddressARB("glEndQuery");
   gl->EndTransformFeedback = glx->GetProcAddressARB("glEndTransformFeedback");
+  gl->FenceSync = glx->GetProcAddressARB("glFenceSync");
   gl->FrontFace = glx->GetProcAddressARB("glFrontFace");
   gl->GenBuffers = glx->GetProcAddressARB("glGenBuffers");
   gl->GenerateTextureMipmap = glx->GetProcAddressARB("glGenerateTextureMipmap");
@@ -418,6 +423,7 @@ static inline void GpuSysGetGLProcedureAddresses() {
   gl->GetShaderInfoLog = glx->GetProcAddressARB("glGetShaderInfoLog");
   gl->GetShaderiv = glx->GetProcAddressARB("glGetShaderiv");
   gl->GetStringi = glx->GetProcAddressARB("glGetStringi");
+  gl->GetSynciv = glx->GetProcAddressARB("glGetSynciv");
   gl->GetTextureLevelParameteriv = glx->GetProcAddressARB("glGetTextureLevelParameteriv");
   gl->GetTextureSubImage = glx->GetProcAddressARB("glGetTextureSubImage");
   gl->LinkProgram = glx->GetProcAddressARB("glLinkProgram");

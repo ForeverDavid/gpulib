@@ -83,22 +83,18 @@ int main() {
 
   GpuBindPpo(ppo);
   GpuBindTextures(0, 16, textures);
-  unsigned query = 0;
-  g_gpulib_libgl->GenQueries(1, &query);
-  g_gpulib_libgl->BeginQuery(0x88BF, query); // GL_TIME_ELAPSED
   GpuBindXfb(xfb);
   GpuDrawOnceXfb(gpu_points_e, 0, 4, 1);
   GpuBindXfb(0);
-  g_gpulib_libgl->EndQuery(0x88BF); // GL_TIME_ELAPSED
+  void * fence = g_gpulib_libgl->FenceSync(0x9117, 0); // GL_SYNC_GPU_COMMANDS_COMPLETE
 
-  size_t query_available = 0;
-  for (; query_available == 0;) {
+  for (int fence_complete = 0x9118; fence_complete == 0x9118;) { // GL_UNSIGNALED
     GpuSwap(dpy, win);
-    g_gpulib_libgl->GetQueryObjectui64v(query, 0x8867, &query_available); // GL_QUERY_RESULT_AVAILABLE
+    g_gpulib_libgl->GetSynciv(fence, 0x9114, 1, NULL, &fence_complete); // GL_SYNC_STATUS
     stdlib_nprintf(
       MAX_STR,
-      "[GpuLib] Query result available: %zu" "\n",
-      query_available);
+      "[GpuLib] Fence_complete: 0x%04X" "\n",
+      fence_complete);
     stdlib_nprintf(
       MAX_STR,
       "[GpuLib] Returned values:" "\n"
