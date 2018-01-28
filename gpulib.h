@@ -971,6 +971,29 @@ static inline void * GpuCalloc(ptrdiff_t bytes, unsigned * out_buf_id) {
   return buf_ptr;
 }
 
+static inline void GpuMallocDeviceLocal(ptrdiff_t bytes, unsigned * out_buf_id) {
+  profB(__func__);
+  __auto_type gl = g_gpulib_libgl;
+  unsigned buf_id = 0;
+  gl->CreateBuffers(1, &buf_id);
+  out_buf_id[0] = buf_id;
+  gl->NamedBufferStorage(buf_id, bytes, NULL, 0);
+  profE(__func__);
+}
+
+static inline void GpuCallocDeviceLocal(ptrdiff_t bytes, unsigned * out_buf_id) {
+  profB(__func__);
+  __auto_type gl = g_gpulib_libgl;
+  __auto_type libc = g_gpulib_libc;
+  unsigned buf_id = 0;
+  gl->CreateBuffers(1, &buf_id);
+  out_buf_id[0] = buf_id;
+  void * data = libc->calloc(1, bytes);
+  gl->NamedBufferStorage(buf_id, bytes, data, 0);
+  libc->free(data);
+  profE(__func__);
+}
+
 static inline unsigned GpuCast(unsigned buf_id, enum gpu_buf_format_e format, ptrdiff_t bytes_first, ptrdiff_t bytes_count) {
   profB(__func__);
   __auto_type gl = g_gpulib_libgl;
