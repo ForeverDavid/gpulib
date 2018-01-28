@@ -1667,15 +1667,16 @@ static inline void GpuViewport(int x, int y, int width, int height) {
 static inline void * GpuFence() {
   profB(__func__);
   __auto_type gl = g_gpulib_libgl;
-  void * fence = g_gpulib_libgl->FenceSync(0x9117, 0); // GL_SYNC_GPU_COMMANDS_COMPLETE
+  void * fence = gl->FenceSync(0x9117, 0); // GL_SYNC_GPU_COMMANDS_COMPLETE
   profE(__func__);
   return fence;
 }
 
 static inline int GpuFenceIsComplete(void * fence) {
   profB(__func__);
+  __auto_type gl = g_gpulib_libgl;
   int fence_status = 0;
-  g_gpulib_libgl->GetSynciv(fence, 0x9114, 1, NULL, &fence_status); // GL_SYNC_STATUS
+  gl->GetSynciv(fence, 0x9114, 1, NULL, &fence_status); // GL_SYNC_STATUS
   profE(__func__);
   return fence_status == 0x9119 ? 1 : 0; // GL_SIGNALED
 }
