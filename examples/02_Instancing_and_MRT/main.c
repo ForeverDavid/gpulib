@@ -123,20 +123,18 @@ int main() {
   profB("Mesh upload");
   unsigned di_buf = 0;
   unsigned ib_buf = 0;
-  unsigned vb_tex = SimpleMeshUploadIBVB(g_resources.mesh_ib, g_resources.mesh_vb, 0xC2, 0, 0, &di_buf, &ib_buf, NULL, (unsigned *)g_draw_commands);
+  unsigned vb_tex = SimpleMeshUploadIBVB(g_resources.mesh_ib, g_resources.mesh_vb, gpu_buf_map_flags_e, 0, 0, &di_buf, &ib_buf, NULL, (unsigned *)g_draw_commands);
   unsigned ib_tex = SimpleMeshUploadID(g_resources.mesh_id, 0, NULL);
   unsigned no_tex = SimpleMeshUploadNormals(g_resources.mesh_normals, 0, NULL);
   unsigned uv_tex = SimpleMeshUploadUV(g_resources.mesh_uv, 0, NULL);
   profE("Mesh upload");
 
-  {
-    g_gpulib_libgl->BindBuffer(0x8F3F, di_buf);
-    struct gpu_cmd_t * cmds = g_gpulib_libgl->MapBufferRange(0x8F3F, 0, e_draw_count * sizeof(struct gpu_cmd_t), 0xC2);
-    cmds[0].instance_count = 30;
-    cmds[1].instance_count = 30;
-    cmds[2].instance_count = 30;
-    g_gpulib_libgl->BindBuffer(0x8F3F, 0);
-  }
+  GpuBindCommands(di_buf);
+  struct gpu_cmd_t * cmds = GpuMapCommands(0, e_draw_count * sizeof(struct gpu_cmd_t));
+  cmds[0].instance_count = 30;
+  cmds[1].instance_count = 30;
+  cmds[2].instance_count = 30;
+  GpuBindCommands(0);
 
   unsigned instance_pos_id = 0;
   vec3 * instance_pos = GpuCalloc((30 + 30 + 30) * sizeof(vec3), &instance_pos_id);

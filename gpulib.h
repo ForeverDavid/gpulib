@@ -35,6 +35,10 @@ enum gpu_mode_e {
   gpu_triangles_e = 0x0004, // GL_TRIANGLES
 };
 
+enum {
+  gpu_buf_map_flags_e = 0xC2, // GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT
+};
+
 enum gpu_buf_format_e {
   gpu_x_b8_e     = 0x8229, // GL_R8
   gpu_x_f16_e    = 0x822D, // GL_R16F
@@ -1048,6 +1052,22 @@ static inline struct gpu_cmd_t * GpuCallocCommands(ptrdiff_t count, unsigned * o
   memset(dib_ptr, 0, count * sizeof(struct gpu_cmd_t));
   profE(__func__);
   return dib_ptr;
+}
+
+static inline void * GpuMap(unsigned buf_id, ptrdiff_t bytes_first, ptrdiff_t bytes_count) {
+  profB(__func__);
+  __auto_type gl = g_gpulib_libgl;
+  void * buf_ptr = gl->MapNamedBufferRange(buf_id, bytes_first, bytes_count, 0xC2); // GL_DRAW_INDIRECT_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT
+  profE(__func__);
+  return buf_ptr;
+}
+
+static inline void * GpuMapCommands(ptrdiff_t bytes_first, ptrdiff_t bytes_count) {
+  profB(__func__);
+  __auto_type gl = g_gpulib_libgl;
+  void * buf_ptr = gl->MapBufferRange(0x8F3F, bytes_first, bytes_count, 0xC2); // GL_DRAW_INDIRECT_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT
+  profE(__func__);
+  return buf_ptr;
 }
 
 static inline unsigned GpuMallocImg(enum gpu_tex_format_e format, int width, int height, int layer_count, int mipmap_count) {
