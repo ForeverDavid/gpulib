@@ -1,7 +1,7 @@
 #pragma once
 
 #define GPULIB_DEBUG_MANUAL
-#include "../../gpulib_debug.h"
+#include "../../gpulib_x11_debug.h"
 
 struct api_t {
   void * (*Init)(Display *, Window, char *,

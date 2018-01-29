@@ -136,7 +136,7 @@ static int AppStep(void * state, Display * dpy, Window win, char * scancodes) {
   GpuDraw(gpu_triangles_e, 0, 1);
 
   igRender();
-  GpuSwap(dpy, win);
+  GpuWsiSwap(dpy, win);
 
   return 0;
 }

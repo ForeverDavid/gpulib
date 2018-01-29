@@ -1,11 +1,12 @@
 #include "../../gpulib.h"
-#include "../../gpulib_imgui.h"
+#include "../../gpulib_x11_wsi.h"
+#include "../../gpulib_x11_imgui.h"
 
 int main() {
   char scancodes[256 * 5] = {0};
   Display * dpy = NULL;
   Window win = 0;
-  GpuWindow("Dear ImGui", sizeof("Dear ImGui"), 1280, 720, 0, scancodes, &dpy, &win);
+  GpuWsiWindow("Dear ImGui", sizeof("Dear ImGui"), 1280, 720, 0, scancodes, &dpy, &win);
   GpuSetDebugCallback(GpuDebugCallback);
 
   ImguiInit(dpy, win, scancodes);
@@ -71,7 +72,7 @@ int main() {
 
     igRender();
 
-    GpuSwap(dpy, win);
+    GpuWsiSwap(dpy, win);
   }
 
 exit:;

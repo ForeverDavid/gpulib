@@ -14,6 +14,7 @@ void (*ProfFree)(void *);
 #include "../../tinyprofiler.h"
 
 #include "../../gpulib.h"
+#include "../../gpulib_x11_wsi.h"
 
 typedef struct { float x, y, z; }    vec3;
 typedef struct { float x, y, z, w; } vec4;
@@ -109,7 +110,7 @@ static inline unsigned long GetTimeMs() {
 struct gpu_cmd_t g_draw_commands[e_draw_count];
 
 int main() {
-  GpuSysGetLibcProcedureAddresses();
+  GpuWsiGetLibcProcedureAddresses();
   ProfCalloc = g_gpulib_libc->calloc;
   ProfFree = g_gpulib_libc->free;
   profAlloc(1000000);
@@ -117,7 +118,7 @@ int main() {
   char scancodes[256 * 5] = {0};
   Display * dpy = NULL;
   Window win = 0;
-  GpuWindow("Instancing and MRT", sizeof("Instancing and MRT"), 1280, 720, 0, scancodes, &dpy, &win);
+  GpuWsiWindow("Instancing and MRT", sizeof("Instancing and MRT"), 1280, 720, 0, scancodes, &dpy, &win);
   GpuSetDebugCallback(GpuDebugCallback);
 
   profB("Mesh upload");
@@ -150,8 +151,8 @@ int main() {
   unsigned textures = GpuCallocImg(gpu_srgb_b8_e, 512, 512, 3, 4);
   unsigned skyboxes = GpuCallocCbm(gpu_srgb_b8_e, 512, 512, 2, 1);
 
-  GpuLoadRgbImgBinary(textures, 512, 512, 3, g_resources.textures);
-  GpuLoadRgbCbmBinary(skyboxes, 512, 512, 2, g_resources.cubemaps);
+  GpuWsiBinaryRgbImg(textures, 512, 512, 3, g_resources.textures);
+  GpuWsiBinaryRgbCbm(skyboxes, 512, 512, 2, g_resources.cubemaps);
 
   unsigned mrt_msi_depth = GpuCallocMsi(gpu_d_f32_e, 1280, 720, 1, 4);
   unsigned mrt_msi_color = GpuCallocMsi(gpu_srgba_b8_e, 1280, 720, 1, 4);
@@ -163,14 +164,14 @@ int main() {
   unsigned smp_textures = GpuSmp(4, gpu_linear_mipmap_linear_e, gpu_linear_e, gpu_repeat_e);
   unsigned smp_mrtcolor = GpuSmp(0, gpu_nearest_e, gpu_nearest_e, gpu_clamp_to_border_e);
 
-  unsigned mesh_vert = GpuVertFile(g_resources.vs_mesh);
-  unsigned mesh_frag = GpuFragFile(g_resources.fs_mesh);
+  unsigned mesh_vert = GpuWsiVert(g_resources.vs_mesh);
+  unsigned mesh_frag = GpuWsiFrag(g_resources.fs_mesh);
 
-  unsigned quad_vert = GpuVertFile(g_resources.vs_quad);
-  unsigned quad_frag = GpuFragFile(g_resources.fs_quad);
+  unsigned quad_vert = GpuWsiVert(g_resources.vs_quad);
+  unsigned quad_frag = GpuWsiFrag(g_resources.fs_quad);
 
-  unsigned cube_vert = GpuVertFile(g_resources.vs_cube);
-  unsigned cube_frag = GpuFragFile(g_resources.fs_cube);
+  unsigned cube_vert = GpuWsiVert(g_resources.vs_cube);
+  unsigned cube_frag = GpuWsiFrag(g_resources.fs_cube);
 
   unsigned mesh_ppo = GpuPpo(mesh_vert, mesh_frag);
   unsigned quad_ppo = GpuPpo(quad_vert, quad_frag);
@@ -225,7 +226,7 @@ int main() {
   char key_9 = 0;
   char key_0 = 0;
 
-  GpuSysSetRelativeMouseMode(dpy, win, 1);
+  GpuWsiSetRelativeMouseMode(dpy, win, 1);
 
   unsigned long t_init = GetTimeMs();
   unsigned long t_prev = GetTimeMs();
@@ -382,7 +383,7 @@ int main() {
     GpuBindPpo(quad_ppo);
     GpuDrawOnce(gpu_triangles_e, 0, 3, 1);
 
-    GpuSwap(dpy, win);
+    GpuWsiSwap(dpy, win);
 
     t_prev = t_curr;
     profE("Frame");

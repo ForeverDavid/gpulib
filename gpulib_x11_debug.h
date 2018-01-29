@@ -1,17 +1,18 @@
 #pragma once
 
 #include "gpulib.h"
-#include "gpulib_imgui.h"
+#include "gpulib_x11_wsi.h"
+#include "gpulib_x11_imgui.h"
 
 #ifndef GPULIB_DEBUG_MANUAL
 
-#define GpuWindow(window_title, window_title_bytes, window_width, window_height, msaa_samples, out_scancodes, out_dpy, out_win) do { \
-  char * __out_scancodes = out_scancodes;                                                                                            \
-  char __scancodes_temp[256 * 5] = {0};                                                                                              \
-  char * __scancodes = __out_scancodes != NULL ? __out_scancodes : __scancodes_temp;                                                 \
-  GpuWindow(window_title, window_title_bytes, window_width, window_height, msaa_samples, __scancodes, out_dpy, out_win);             \
-  ImguiInit(dpy, win, __scancodes);                                                                                                  \
-  ImguiNewFrame();                                                                                                                   \
+#define GpuWsiWindow(window_title, window_title_bytes, window_width, window_height, msaa_samples, out_scancodes, out_dpy, out_win) do { \
+  char * __out_scancodes = out_scancodes;                                                                                               \
+  char __scancodes_temp[256 * 5] = {0};                                                                                                 \
+  char * __scancodes = __out_scancodes != NULL ? __out_scancodes : __scancodes_temp;                                                    \
+  GpuWsiWindow(window_title, window_title_bytes, window_width, window_height, msaa_samples, __scancodes, out_dpy, out_win);             \
+  ImguiInit(dpy, win, __scancodes);                                                                                                     \
+  ImguiNewFrame();                                                                                                                      \
 } while(0)
 
 #define XNextEvent(dpy, event) do {                                              \
@@ -26,10 +27,10 @@
   }                                                                              \
 } while(0)
 
-#define GpuSwap(dpy, win) do { \
-  igRender();                  \
-  GpuSwap(dpy, win);           \
-  ImguiNewFrame();             \
+#define GpuWsiSwap(dpy, win) do { \
+  igRender();                     \
+  GpuWsiSwap(dpy, win);           \
+  ImguiNewFrame();                \
 } while(0)
 
 #endif // #ifndef GPULIB_DEBUG_MANUAL

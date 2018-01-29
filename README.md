@@ -9,7 +9,7 @@ geometry, post-process textures and compute arrays on GPU.
 The contract:
 
  * x64 Linux and X11 only. Doesn't target Windows, macOS, WebGL or OpenGL ES devices.
- * Not all modern OpenGL extensions are used, only those which are supported on low-end GPUs and latest Mesa.
+ * Not all modern OpenGL extensions are used, only those which are supported on low-end GPUs and latest Mesa3D.
 
 Features:
 
@@ -66,21 +66,11 @@ struct gpu_libgl_t    g_gpulib_libgl_data;
 struct gpu_libgl_t  * g_gpulib_libgl;
 ```
 
-List of procedures:
+List of `gpulib.h` procedures:
 
 ```c
-static inline void GpuSysGetLibcProcedureAddresses();
-static inline void GpuSysGetGLXProcedureAddresses();
-static inline void GpuSysGetGLProcedureAddresses();
-static inline long GpuSysShell(char * cmd, char * out);
-static inline char * GpuSysGetBasePath();
-static inline void GpuSysSetRelativeMouseMode(Display * dpy, Window win, int enabled);
-static inline int GpuSysIsExtensionSupported(char * extension);
-static inline void GpuSysCheckExtensions(int extension_count, char ** extensions);
-static inline void GpuSysX11Window(char * title, int title_bytes, int x, int y, int w, int h, int msaa_sample_count, Display ** out_display, Window * out_window);
-static inline void GpuWindow(char * window_title, int window_title_bytes, int window_width, int window_height, int msaa_samples, char * out_scancodes, Display ** out_dpy, Window * out_win);
 static inline void GpuSetDebugCallback(void * callback);
-static inline void GpuDebugCallback(unsigned source, unsigned type, unsigned id, unsigned severity, int length, char * message, void * userdata);
+static inline void GpuDebugCallback(unsigned source, unsigned type, unsigned id, unsigned severity, int length, char * message, void * user_data);
 static inline void * GpuMalloc(ptrdiff_t bytes, unsigned * out_buf_id);
 static inline void * GpuCalloc(ptrdiff_t bytes, unsigned * out_buf_id);
 static inline void GpuMallocDeviceLocal(ptrdiff_t bytes, unsigned * out_buf_id);
@@ -109,15 +99,10 @@ static inline unsigned GpuCastMsi(unsigned tex_id, enum gpu_tex_format_e format,
 static inline void GpuGetImg(unsigned tex_id, int layer, int x, int y, int width, int height, int count, int mipmap_level, enum gpu_pix_format_e pixel_format, enum gpu_pix_type_e pixel_type, unsigned pixels_bytes, void * pixels);
 static inline void GpuSetImg(unsigned tex_id, int layer, int x, int y, int width, int height, int count, int mipmap_level, enum gpu_pix_format_e pixel_format, enum gpu_pix_type_e pixel_type, void * pixels);
 static inline void GpuSetPix(unsigned tex_id, int layer, int x, int y, int width, int height, int count, int mipmap_level, enum gpu_pix_format_e pixel_format, enum gpu_pix_type_e pixel_type, void * pixel);
-static inline int GpuLoadRgbImgBinary(unsigned tex_id, int width, int height, int layer_count, char * img_binary_filepath);
-static inline int GpuLoadRgbCbmBinary(unsigned tex_id, int width, int height, int layer_count, char * cbm_binary_filepath);
 static inline unsigned GpuSmp(int max_anisotropy, enum gpu_smp_filter_e min_filter, enum gpu_smp_filter_e mag_filter, enum gpu_smp_wrapping_e wrapping);
 static inline unsigned GpuPro(unsigned shader_type, char * shader_string);
-static inline unsigned GpuProFile(unsigned shader_type, char * shader_filepath);
 static inline unsigned GpuVert(char * shader_string);
 static inline unsigned GpuFrag(char * shader_string);
-static inline unsigned GpuVertFile(char * shader_filepath);
-static inline unsigned GpuFragFile(char * shader_filepath);
 static inline unsigned GpuPpo(unsigned vert_pro_id, unsigned frag_pro_id);
 static inline unsigned GpuFbo(unsigned color_tex_id_0, int color_tex_layer_0, unsigned color_tex_id_1, int color_tex_layer_1, unsigned color_tex_id_2, int color_tex_layer_2, unsigned color_tex_id_3, int color_tex_layer_3, unsigned depth_tex_id_0, int depth_tex_layer_0);
 static inline unsigned GpuXfb(unsigned buf_0_id, ptrdiff_t buf_0_bytes_first, ptrdiff_t buf_0_bytes_count, unsigned buf_1_id, ptrdiff_t buf_1_bytes_first, ptrdiff_t buf_1_bytes_count, unsigned buf_2_id, ptrdiff_t buf_2_bytes_first, ptrdiff_t buf_2_bytes_count, unsigned buf_3_id, ptrdiff_t buf_3_bytes_first, ptrdiff_t buf_3_bytes_count);
@@ -144,10 +129,30 @@ static inline void GpuDrawOnceXfb(enum gpu_draw_mode_e mode, unsigned first, uns
 static inline void GpuBlit(unsigned source_fbo_id, int source_color_id, int source_x, int source_y, int source_width, int source_height, unsigned target_fbo_id, int target_color_id, int target_x, int target_y, int target_width, int target_height);
 static inline void GpuBlitToScreen(unsigned source_fbo_id, int source_color_id, int source_x, int source_y, int source_width, int source_height, int screen_x, int screen_y, int screen_width, int screen_height);
 static inline void GpuClear();
-static inline void GpuSwap(Display * dpy, Window win);
 static inline void GpuEnable(unsigned flags);
 static inline void GpuDisable(unsigned flags);
 static inline void GpuViewport(int x, int y, int width, int height);
+```
+
+List of `gpulib_x11_wsi.h` procedures:
+
+```c
+static inline void GpuWsiGetLibcProcedureAddresses();
+static inline void GpuWsiGetGLXProcedureAddresses();
+static inline void GpuWsiGetGLProcedureAddresses();
+static inline long GpuWsiShell(char * cmd, char * out);
+static inline char * GpuWsiGetBasePath();
+static inline void GpuWsiSetRelativeMouseMode(Display * dpy, Window win, int enabled);
+static inline int GpuWsiIsExtensionSupported(char * extension);
+static inline void GpuWsiCheckExtensions(int extension_count, char ** extensions);
+static inline void GpuWsiX11Window(char * title, int title_bytes, int x, int y, int w, int h, int msaa_sample_count, Display ** out_display, Window * out_window);
+static inline void GpuWsiWindow(char * window_title, int window_title_bytes, int window_width, int window_height, int msaa_samples, char * out_scancodes, Display ** out_dpy, Window * out_win);
+static inline void GpuWsiSwap(Display * dpy, Window win);
+static inline unsigned GpuWsiPro(unsigned shader_type, char * shader_filepath);
+static inline unsigned GpuWsiVert(char * shader_filepath);
+static inline unsigned GpuWsiFrag(char * shader_filepath);
+static inline int GpuWsiBinaryRgbImg(unsigned tex_id, int width, int height, int layer_count, char * img_binary_filepath);
+static inline int GpuWsiBinaryRgbCbm(unsigned tex_id, int width, int height, int layer_count, char * cbm_binary_filepath);
 ```
 
 Special thanks to Nicolas [@nlguillemot](https://github.com/nlguillemot) and Andreas [@ands](https://github.com/ands)

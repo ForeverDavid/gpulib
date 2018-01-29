@@ -1,4 +1,5 @@
 #include "../../gpulib.h"
+#include "../../gpulib_x11_wsi.h"
 
 static inline unsigned long GetTimeMs() {
   struct timeval tv;
@@ -9,7 +10,7 @@ static inline unsigned long GetTimeMs() {
 int main() {
   Display * dpy = NULL;
   Window win = 0;
-  GpuWindow("Drawing Pixels", sizeof("Drawing Pixels"), 1280, 720, 0, NULL, &dpy, &win);
+  GpuWsiWindow("Drawing Pixels", sizeof("Drawing Pixels"), 1280, 720, 0, NULL, &dpy, &win);
   GpuSetDebugCallback(GpuDebugCallback);
 
   unsigned vert = GpuVert(GPULIB_VERT_HEADER
@@ -73,7 +74,7 @@ int main() {
     GpuBindPpo(ppo);
     GpuUniformFloat4(frag, 0, 1, (float [4]){(t_curr - t_init) / 1000.f, 0, 0, 0});
     GpuDrawOnce(gpu_triangles_e, 0, 3, 1);
-    GpuSwap(dpy, win);
+    GpuWsiSwap(dpy, win);
 
     t_prev = t_curr;
   }

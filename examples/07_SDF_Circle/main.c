@@ -1,9 +1,10 @@
 #include "../../gpulib.h"
+#include "../../gpulib_x11_wsi.h"
 
 int main() {
   Display * dpy = NULL;
   Window win = 0;
-  GpuWindow("SDF Circle", sizeof("SDF Circle"), 1280, 720, 0, NULL, &dpy, &win);
+  GpuWsiWindow("SDF Circle", sizeof("SDF Circle"), 1280, 720, 0, NULL, &dpy, &win);
   GpuSetDebugCallback(GpuDebugCallback);
 
   char vert_string[] = GPULIB_VERT_HEADER
@@ -57,7 +58,7 @@ int main() {
     GpuClear();
     GpuBindPpo(ppo);
     GpuDrawOnce(gpu_triangles_e, 0, 3, 1);
-    GpuSwap(dpy, win);
+    GpuWsiSwap(dpy, win);
   }
 
 exit:;

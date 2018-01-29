@@ -1,11 +1,12 @@
 #include "../../gpulib.h"
+#include "../../gpulib_x11_wsi.h"
 
 typedef struct { float x, y, z; } vec3;
 
 int main() {
   Display * dpy = NULL;
   Window win = 0;
-  GpuWindow("Hello Triangle", sizeof("Hello Triangle"), 1280, 720, 0, NULL, &dpy, &win);
+  GpuWsiWindow("Hello Triangle", sizeof("Hello Triangle"), 1280, 720, 0, NULL, &dpy, &win);
   GpuSetDebugCallback(GpuDebugCallback);
 
   unsigned vertices_id = 0;
@@ -61,7 +62,7 @@ int main() {
     GpuBindIndices(indices_id);
     GpuBindCommands(commands_id);
     GpuDraw(gpu_triangles_e, 0, 1);
-    GpuSwap(dpy, win);
+    GpuWsiSwap(dpy, win);
   }
 
 exit:;

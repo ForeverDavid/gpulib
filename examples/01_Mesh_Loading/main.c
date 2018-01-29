@@ -1,4 +1,5 @@
 #include "../../gpulib.h"
+#include "../../gpulib_x11_wsi.h"
 
 enum {MAX_STR = 10000};
 
@@ -41,7 +42,7 @@ struct gpu_cmd_t g_draw_commands[e_draw_count] = {0};
 int main() {
   Display * dpy = NULL;
   Window win = 0;
-  GpuWindow("Mesh Loading", sizeof("Mesh Loading"), 1280, 720, 0, NULL, &dpy, &win);
+  GpuWsiWindow("Mesh Loading", sizeof("Mesh Loading"), 1280, 720, 0, NULL, &dpy, &win);
   GpuSetDebugCallback(GpuDebugCallback);
 
   unsigned di_buf = 0;
@@ -132,7 +133,7 @@ int main() {
     }
     GpuClear();
     MeshDraw(ppo, 0, 16, textures, ib_buf, di_buf, 0, e_draw_count);
-    GpuSwap(dpy, win);
+    GpuWsiSwap(dpy, win);
   }
 
 exit:;

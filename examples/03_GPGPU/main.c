@@ -1,11 +1,11 @@
-#include "../../gpulib_debug.h"
+#include "../../gpulib_x11_debug.h"
 
 enum {MAX_STR = 10000};
 
 int main() {
   Display * dpy = NULL;
   Window win = 0;
-  GpuWindow("GPGPU", sizeof("GPGPU"), 1280, 720, 0, NULL, &dpy, &win);
+  GpuWsiWindow("GPGPU", sizeof("GPGPU"), 1280, 720, 0, NULL, &dpy, &win);
   GpuSetDebugCallback(GpuDebugCallback);
 
   int dim_x = 800;
@@ -87,7 +87,7 @@ int main() {
 
     GpuDebugImg(img_tex);
 
-    GpuSwap(dpy, win);
+    GpuWsiSwap(dpy, win);
   }
 
 exit:;

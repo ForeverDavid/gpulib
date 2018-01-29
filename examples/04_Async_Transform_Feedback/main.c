@@ -1,4 +1,5 @@
 #include "../../gpulib.h"
+#include "../../gpulib_x11_wsi.h"
 
 enum {MAX_STR = 10000};
 
@@ -7,7 +8,7 @@ typedef struct { float x, y, z; } vec3;
 int main() {
   Display * dpy = NULL;
   Window win = 0;
-  GpuWindow("Transform Feedback", sizeof("Transform Feedback"), 1280, 720, 0, NULL, &dpy, &win);
+  GpuWsiWindow("Transform Feedback", sizeof("Transform Feedback"), 1280, 720, 0, NULL, &dpy, &win);
   GpuSetDebugCallback(GpuDebugCallback);
 
   unsigned v1_id = 0;
@@ -88,7 +89,7 @@ int main() {
   void * fence = GpuFence();
 
   for (int fence_complete = 0; fence_complete == 0;) {
-    GpuSwap(dpy, win);
+    GpuWsiSwap(dpy, win);
     fence_complete = GpuFenceIsComplete(fence);
     stdlib_nprintf(MAX_STR, "[GpuLib] Fence complete: %d\n", fence_complete);
     stdlib_nprintf(MAX_STR,

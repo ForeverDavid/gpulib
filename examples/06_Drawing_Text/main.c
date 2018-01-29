@@ -1,4 +1,5 @@
 #include "../../gpulib.h"
+#include "../../gpulib_x11_wsi.h"
 
 #define auto __auto_type
 #define countof(x) (sizeof(x) / sizeof((x)[0]))
@@ -31,7 +32,7 @@ struct gpu_cmd_t g_draw_commands[e_draw_count];
 int main() {
   Display * dpy = NULL;
   Window win = 0;
-  GpuWindow("Drawing Text", sizeof("Drawing Text"), 1280, 720, 0, NULL, &dpy, &win);
+  GpuWsiWindow("Drawing Text", sizeof("Drawing Text"), 1280, 720, 0, NULL, &dpy, &win);
   GpuSetDebugCallback(GpuDebugCallback);
 
   unsigned di_buf = 0;
@@ -107,7 +108,7 @@ int main() {
       GpuUniformFloat4(vert, 0, 1, (float [4]){character_index, 0, 0, 0});
       GpuDraw(gpu_triangles_e, i, 1);
     }
-    GpuSwap(dpy, win);
+    GpuWsiSwap(dpy, win);
   }
 
 exit:;

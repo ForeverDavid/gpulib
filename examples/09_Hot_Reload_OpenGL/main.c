@@ -54,7 +54,7 @@ int main() {
   char scancodes[256 * 5] = {0};
   Display * dpy = NULL;
   Window win = 0;
-  GpuWindow("Hot Reload OpenGL", sizeof("Hot Reload OpenGL"), 1280, 720, 0, scancodes, &dpy, &win);
+  GpuWsiWindow("Hot Reload OpenGL", sizeof("Hot Reload OpenGL"), 1280, 720, 0, scancodes, &dpy, &win);
   GpuSetDebugCallback(GpuDebugCallback);
 
   ImguiInit(dpy, win, scancodes);
