@@ -16,7 +16,6 @@
 #undef glClearTexSubImage
 #undef glClipControl
 #undef glCompileShader
-#undef glCompressedTextureSubImage3D
 #undef glCreateBuffers
 #undef glCreateFramebuffers
 #undef glCreateProgram
@@ -51,7 +50,6 @@
 #undef glGenerateTextureMipmap
 #undef glGenQueries
 #undef glGenTextures
-#undef glGetCompressedTextureSubImage
 #undef glGetIntegerv
 #undef glGetProgramInfoLog
 #undef glGetProgramiv

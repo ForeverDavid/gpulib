@@ -28,7 +28,6 @@ Naming convention:
  * `img`: Image
  * `cbm`: Cubemap
  * `msi`: Multisampled Image
- * `cpi`: Compressed Image
  * `smp`: Sampler
  * `pro`: Program Object
  * `ppo`: Program Pipeline Object
@@ -107,8 +106,6 @@ static inline unsigned GpuCastMsi(unsigned tex_id, enum gpu_tex_format_e format,
 static inline void GpuGetImg(unsigned tex_id, int layer, int x, int y, int width, int height, int count, int mipmap_level, enum gpu_pix_format_e pixel_format, enum gpu_pix_type_e pixel_type, unsigned pixels_bytes, void * pixels);
 static inline void GpuSetImg(unsigned tex_id, int layer, int x, int y, int width, int height, int count, int mipmap_level, enum gpu_pix_format_e pixel_format, enum gpu_pix_type_e pixel_type, void * pixels);
 static inline void GpuSetPix(unsigned tex_id, int layer, int x, int y, int width, int height, int count, int mipmap_level, enum gpu_pix_format_e pixel_format, enum gpu_pix_type_e pixel_type, void * pixel);
-static inline void GpuGetCpi(unsigned tex_id, int layer, int x, int y, int width, int height, int count, int mipmap_level, unsigned pixels_bytes, void * pixels);
-static inline void GpuSetCpi(unsigned tex_id, int layer, int x, int y, int width, int height, int count, int mipmap_level, enum gpu_tex_format_e compression_format, unsigned pixels_bytes, void * pixels);
 static inline int GpuLoadRgbImgBinary(unsigned tex_id, int width, int height, int layer_count, char * img_binary_filepath);
 static inline int GpuLoadRgbCbmBinary(unsigned tex_id, int width, int height, int layer_count, char * cbm_binary_filepath);
 static inline unsigned GpuSmp(int max_anisotropy, enum gpu_smp_filter_e min_filter, enum gpu_smp_filter_e mag_filter, enum gpu_smp_wrapping_e wrapping);

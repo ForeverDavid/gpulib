@@ -73,20 +73,12 @@ enum gpu_buf_format_e {
 };
 
 enum gpu_tex_format_e {
-  gpu_d_f32_e              = 0x8CAC, // GL_DEPTH_COMPONENT32F
-  gpu_rgb_b8_e             = 0x8051, // GL_RGB8
-  gpu_rgba_b8_e            = 0x8058, // GL_RGBA8
-  gpu_srgb_b8_e            = 0x8C41, // GL_SRGB8
-  gpu_srgba_b8_e           = 0x8C43, // GL_SRGB8_ALPHA8
-  gpu_rgba_f32_e           = 0x8814, // GL_RGBA32F
-  gpu_rgb_s3tc_dxt1_b8_e   = 0x83F0, // GL_COMPRESSED_RGB_S3TC_DXT1_EXT
-  gpu_rgba_s3tc_dxt1_b8_e  = 0x83F1, // GL_COMPRESSED_RGBA_S3TC_DXT1_EXT
-  gpu_rgba_s3tc_dxt3_b8_e  = 0x83F2, // GL_COMPRESSED_RGBA_S3TC_DXT3_EXT
-  gpu_rgba_s3tc_dxt5_b8_e  = 0x83F3, // GL_COMPRESSED_RGBA_S3TC_DXT5_EXT
-  gpu_srgb_s3tc_dxt1_b8_e  = 0x8C4C, // GL_COMPRESSED_SRGB_S3TC_DXT1_EXT
-  gpu_srgba_s3tc_dxt1_b8_e = 0x8C4D, // GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT
-  gpu_srgba_s3tc_dxt3_b8_e = 0x8C4E, // GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT
-  gpu_srgba_s3tc_dxt5_b8_e = 0x8C4F, // GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT
+  gpu_d_f32_e    = 0x8CAC, // GL_DEPTH_COMPONENT32F
+  gpu_rgb_b8_e   = 0x8051, // GL_RGB8
+  gpu_rgba_b8_e  = 0x8058, // GL_RGBA8
+  gpu_srgb_b8_e  = 0x8C41, // GL_SRGB8
+  gpu_srgba_b8_e = 0x8C43, // GL_SRGB8_ALPHA8
+  gpu_rgba_f32_e = 0x8814, // GL_RGBA32F
 };
 
 enum gpu_smp_filter_e {
@@ -255,7 +247,6 @@ struct gpu_libgl_t {
   void (*ClearTexSubImage)(unsigned, int, int, int, int, int, int, int, unsigned, unsigned, void *);
   void (*ClipControl)(unsigned, unsigned);
   void (*CompileShader)(unsigned);
-  void (*CompressedTextureSubImage3D)(unsigned, int, int, int, int, int, int, int, unsigned, unsigned, void *);
   void (*CreateBuffers)(int, unsigned *);
   void (*CreateFramebuffers)(int, unsigned *);
   unsigned (*CreateProgram)();
@@ -290,7 +281,6 @@ struct gpu_libgl_t {
   void (*GenerateTextureMipmap)(unsigned);
   void (*GenQueries)(int, unsigned *);
   void (*GenTextures)(int, unsigned *);
-  void (*GetCompressedTextureSubImage)(unsigned, int, int, int, int, int, int, int, int, void *);
   void (*GetIntegerv)(unsigned, int *);
   void (*GetProgramInfoLog)(unsigned, int, int *, char *);
   void (*GetProgramiv)(unsigned, unsigned, int *);
@@ -386,7 +376,6 @@ static inline void GpuSysGetGLProcedureAddresses() {
   gl->ClearTexSubImage = glx->GetProcAddressARB("glClearTexSubImage");
   gl->ClipControl = glx->GetProcAddressARB("glClipControl");
   gl->CompileShader = glx->GetProcAddressARB("glCompileShader");
-  gl->CompressedTextureSubImage3D = glx->GetProcAddressARB("glCompressedTextureSubImage3D");
   gl->CreateBuffers = glx->GetProcAddressARB("glCreateBuffers");
   gl->CreateFramebuffers = glx->GetProcAddressARB("glCreateFramebuffers");
   gl->CreateProgram = glx->GetProcAddressARB("glCreateProgram");
@@ -421,7 +410,6 @@ static inline void GpuSysGetGLProcedureAddresses() {
   gl->GenerateTextureMipmap = glx->GetProcAddressARB("glGenerateTextureMipmap");
   gl->GenQueries = glx->GetProcAddressARB("glGenQueries");
   gl->GenTextures = glx->GetProcAddressARB("glGenTextures");
-  gl->GetCompressedTextureSubImage = glx->GetProcAddressARB("glGetCompressedTextureSubImage");
   gl->GetIntegerv = glx->GetProcAddressARB("glGetIntegerv");
   gl->GetProgramInfoLog = glx->GetProcAddressARB("glGetProgramInfoLog");
   gl->GetProgramiv = glx->GetProcAddressARB("glGetProgramiv");
@@ -896,7 +884,6 @@ static inline void GpuWindow(
       "GL_ARB_separate_shader_objects",
       "GL_ARB_shading_language_420pack",
       "GL_ARB_shading_language_packing",
-      "GL_EXT_texture_compression_s3tc",
       "GL_EXT_texture_filter_anisotropic",
       "GL_ARB_texture_buffer_object_rgb32",
       "GL_ARB_texture_storage_multisample"
@@ -1176,16 +1163,6 @@ static inline unsigned GpuCallocImg(enum gpu_tex_format_e format, int width, int
     break; case 0x8C41: { for (int i = 0; i < mipmap_count; i += 1) gl->ClearTexSubImage(tex_id, i, 0, 0, 0, width / (1 << i), height / (1 << i), layer_count, 0x1907, 0x1400, (unsigned char [3]){0, 0, 0}); }    // GL_SRGB8, GL_RGB, GL_BYTE
     break; case 0x8C43: { for (int i = 0; i < mipmap_count; i += 1) gl->ClearTexSubImage(tex_id, i, 0, 0, 0, width / (1 << i), height / (1 << i), layer_count, 0x1908, 0x1400, (unsigned char [4]){0, 0, 0, 0}); } // GL_SRGB8_ALPHA8, GL_RGBA, GL_BYTE
     break; case 0x8814: { for (int i = 0; i < mipmap_count; i += 1) gl->ClearTexSubImage(tex_id, i, 0, 0, 0, width / (1 << i), height / (1 << i), layer_count, 0x1908, 0x1406, (float [4]){0, 0, 0, 0}); }         // GL_RGBA32F, GL_RGBA, GL_FLOAT
-    break; case 0x83F0: // GL_COMPRESSED_RGB_S3TC_DXT1_EXT
-           case 0x83F1: // GL_COMPRESSED_RGBA_S3TC_DXT1_EXT
-           case 0x83F2: // GL_COMPRESSED_RGBA_S3TC_DXT3_EXT
-           case 0x83F3: // GL_COMPRESSED_RGBA_S3TC_DXT5_EXT
-           case 0x8C4C: // GL_COMPRESSED_SRGB_S3TC_DXT1_EXT
-           case 0x8C4D: // GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT
-           case 0x8C4E: // GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT
-           case 0x8C4F: { // GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT
-             stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Warning: ARB_clear_texture forbids clearing of compressed textures.\n\n");
-           }
   }
   profE(__func__);
   return tex_id;
@@ -1202,16 +1179,6 @@ static inline unsigned GpuCallocCbm(enum gpu_tex_format_e format, int width, int
     break; case 0x8C41: { for (int i = 0; i < mipmap_count; i += 1) gl->ClearTexSubImage(tex_id, i, 0, 0, 0, width / (1 << i), height / (1 << i), layer_count * 6, 0x1907, 0x1400, (unsigned char [3]){0, 0, 0}); }    // GL_SRGB8, GL_RGB, GL_BYTE
     break; case 0x8C43: { for (int i = 0; i < mipmap_count; i += 1) gl->ClearTexSubImage(tex_id, i, 0, 0, 0, width / (1 << i), height / (1 << i), layer_count * 6, 0x1908, 0x1400, (unsigned char [4]){0, 0, 0, 0}); } // GL_SRGB8_ALPHA8, GL_RGBA, GL_BYTE
     break; case 0x8814: { for (int i = 0; i < mipmap_count; i += 1) gl->ClearTexSubImage(tex_id, i, 0, 0, 0, width / (1 << i), height / (1 << i), layer_count * 6, 0x1908, 0x1406, (float [4]){0, 0, 0, 0}); }         // GL_RGBA32F, GL_RGBA, GL_FLOAT
-    break; case 0x83F0: // GL_COMPRESSED_RGB_S3TC_DXT1_EXT
-           case 0x83F1: // GL_COMPRESSED_RGBA_S3TC_DXT1_EXT
-           case 0x83F2: // GL_COMPRESSED_RGBA_S3TC_DXT3_EXT
-           case 0x83F3: // GL_COMPRESSED_RGBA_S3TC_DXT5_EXT
-           case 0x8C4C: // GL_COMPRESSED_SRGB_S3TC_DXT1_EXT
-           case 0x8C4D: // GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT
-           case 0x8C4E: // GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT
-           case 0x8C4F: { // GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT
-             stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Warning: ARB_clear_texture forbids clearing of compressed textures.\n\n");
-           }
   }
   profE(__func__);
   return tex_id;
@@ -1228,16 +1195,6 @@ static inline unsigned GpuCallocMsi(enum gpu_tex_format_e format, int width, int
     break; case 0x8C41: { gl->ClearTexSubImage(tex_id, 0, 0, 0, 0, width, height, layer_count, 0x1907, 0x1400, (unsigned char [3]){0, 0, 0}); }    // GL_SRGB8, GL_RGB, GL_BYTE
     break; case 0x8C43: { gl->ClearTexSubImage(tex_id, 0, 0, 0, 0, width, height, layer_count, 0x1908, 0x1400, (unsigned char [4]){0, 0, 0, 0}); } // GL_SRGB8_ALPHA8, GL_RGBA, GL_BYTE
     break; case 0x8814: { gl->ClearTexSubImage(tex_id, 0, 0, 0, 0, width, height, layer_count, 0x1908, 0x1406, (float [4]){0, 0, 0, 0}); }         // GL_RGBA32F, GL_RGBA, GL_FLOAT
-    break; case 0x83F0: // GL_COMPRESSED_RGB_S3TC_DXT1_EXT
-           case 0x83F1: // GL_COMPRESSED_RGBA_S3TC_DXT1_EXT
-           case 0x83F2: // GL_COMPRESSED_RGBA_S3TC_DXT3_EXT
-           case 0x83F3: // GL_COMPRESSED_RGBA_S3TC_DXT5_EXT
-           case 0x8C4C: // GL_COMPRESSED_SRGB_S3TC_DXT1_EXT
-           case 0x8C4D: // GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT
-           case 0x8C4E: // GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT
-           case 0x8C4F: { // GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT
-             stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Warning: ARB_clear_texture forbids clearing of compressed textures.\n\n");
-           }
   }
   profE(__func__);
   return tex_id;
@@ -1306,26 +1263,6 @@ static inline void GpuSetPix(
   profB(__func__);
   __auto_type gl = g_gpulib_libgl;
   gl->ClearTexSubImage(tex_id, mipmap_level, x, y, layer, width, height, count, pixel_format, pixel_type, pixel);
-  profE(__func__);
-}
-
-static inline void GpuGetCpi(
-    unsigned tex_id, int layer, int x, int y, int width, int height, int count, int mipmap_level,
-    unsigned pixels_bytes, void * pixels)
-{
-  profB(__func__);
-  __auto_type gl = g_gpulib_libgl;
-  gl->GetCompressedTextureSubImage(tex_id, mipmap_level, x, y, layer, width, height, count, pixels_bytes, pixels);
-  profE(__func__);
-}
-
-static inline void GpuSetCpi(
-    unsigned tex_id, int layer, int x, int y, int width, int height, int count, int mipmap_level,
-    enum gpu_tex_format_e compression_format, unsigned pixels_bytes, void * pixels)
-{
-  profB(__func__);
-  __auto_type gl = g_gpulib_libgl;
-  gl->CompressedTextureSubImage3D(tex_id, mipmap_level, x, y, layer, width, height, count, compression_format, pixels_bytes, pixels);
   profE(__func__);
 }
 
