@@ -1101,7 +1101,15 @@ static inline void GpuCallocCommandsDeviceLocal(ptrdiff_t count, unsigned * out_
 static inline void * GpuMap(unsigned buf_id, ptrdiff_t bytes_first, ptrdiff_t bytes_count) {
   profB(__func__);
   __auto_type gl = g_gpulib_libgl;
-  void * buf_ptr = gl->MapNamedBufferRange(buf_id, bytes_first, bytes_count, 0xC2); // GL_DRAW_INDIRECT_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT
+  void * buf_ptr = gl->MapNamedBufferRange(buf_id, bytes_first, bytes_count, 0xC2); // GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT
+  profE(__func__);
+  return buf_ptr;
+}
+
+static inline void * GpuMapIndices(ptrdiff_t bytes_first, ptrdiff_t bytes_count) {
+  profB(__func__);
+  __auto_type gl = g_gpulib_libgl;
+  void * buf_ptr = gl->MapBufferRange(0x8893, bytes_first, bytes_count, 0xC2); // GL_ELEMENT_ARRAY_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT
   profE(__func__);
   return buf_ptr;
 }

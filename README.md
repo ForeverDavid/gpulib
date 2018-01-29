@@ -93,6 +93,7 @@ static inline struct gpu_cmd_t * GpuCallocCommands(ptrdiff_t count, unsigned * o
 static inline void GpuMallocCommandsDeviceLocal(ptrdiff_t count, unsigned * out_dib_id);
 static inline void GpuCallocCommandsDeviceLocal(ptrdiff_t count, unsigned * out_dib_id);
 static inline void * GpuMap(unsigned buf_id, ptrdiff_t bytes_first, ptrdiff_t bytes_count);
+static inline void * GpuMapIndices(ptrdiff_t bytes_first, ptrdiff_t bytes_count);
 static inline void * GpuMapCommands(ptrdiff_t bytes_first, ptrdiff_t bytes_count);
 static inline unsigned GpuMallocImg(enum gpu_tex_format_e format, int width, int height, int layer_count, int mipmap_count);
 static inline unsigned GpuMallocCbm(enum gpu_tex_format_e format, int width, int height, int layer_count, int mipmap_count);
