@@ -108,16 +108,12 @@ static inline void GpuSetCpi(unsigned tex_id, int layer, int x, int y, int width
 static inline int GpuLoadRgbImgBinary(unsigned tex_id, int width, int height, int layer_count, char * img_binary_filepath);
 static inline int GpuLoadRgbCbmBinary(unsigned tex_id, int width, int height, int layer_count, char * cbm_binary_filepath);
 static inline unsigned GpuSmp(int max_anisotropy, enum gpu_smp_filter_e min_filter, enum gpu_smp_filter_e mag_filter, enum gpu_smp_wrapping_e wrapping);
-static inline unsigned GpuPro(unsigned shader_type, char * shader_string, char * xfb_name_0, char * xfb_name_1, char * xfb_name_2, char * xfb_name_3);
-static inline unsigned GpuProFile(unsigned shader_type, char * shader_filepath, char * xfb_name_0, char * xfb_name_1, char * xfb_name_2, char * xfb_name_3);
+static inline unsigned GpuPro(unsigned shader_type, char * shader_string);
+static inline unsigned GpuProFile(unsigned shader_type, char * shader_filepath);
 static inline unsigned GpuVert(char * shader_string);
 static inline unsigned GpuFrag(char * shader_string);
 static inline unsigned GpuVertFile(char * shader_filepath);
 static inline unsigned GpuFragFile(char * shader_filepath);
-static inline unsigned GpuVertXfb(char * shader_string, char * xfb_name_0, char * xfb_name_1, char * xfb_name_2, char * xfb_name_3);
-static inline unsigned GpuFragXfb(char * shader_string, char * xfb_name_0, char * xfb_name_1, char * xfb_name_2, char * xfb_name_3);
-static inline unsigned GpuVertXfbFile(char * shader_filepath, char * xfb_name_0, char * xfb_name_1, char * xfb_name_2, char * xfb_name_3);
-static inline unsigned GpuFragXfbFile(char * shader_filepath, char * xfb_name_0, char * xfb_name_1, char * xfb_name_2, char * xfb_name_3);
 static inline void GpuU32(unsigned program, int location, int count, unsigned * value);
 static inline void GpuI32(unsigned program, int location, int count, int * value);
 static inline void GpuF32(unsigned program, int location, int count, float * value);

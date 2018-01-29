@@ -1,6 +1,7 @@
 #version 330
 #extension GL_ARB_gpu_shader5                : enable
 #extension GL_ARB_shader_precision           : enable
+#extension GL_ARB_enhanced_layouts           : enable
 #extension GL_ARB_texture_cube_map_array     : enable
 #extension GL_ARB_separate_shader_objects    : enable
 #extension GL_ARB_shading_language_420pack   : enable

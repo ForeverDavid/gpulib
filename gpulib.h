@@ -179,6 +179,7 @@ struct MWMHints {
   "#version 330"                                          "\n" \
   "#extension GL_ARB_gpu_shader5                : enable" "\n" \
   "#extension GL_ARB_shader_precision           : enable" "\n" \
+  "#extension GL_ARB_enhanced_layouts           : enable" "\n" \
   "#extension GL_ARB_texture_cube_map_array     : enable" "\n" \
   "#extension GL_ARB_separate_shader_objects    : enable" "\n" \
   "#extension GL_ARB_shading_language_420pack   : enable" "\n" \
@@ -192,6 +193,7 @@ struct MWMHints {
   "#version 330"                                          "\n" \
   "#extension GL_ARB_gpu_shader5                : enable" "\n" \
   "#extension GL_ARB_shader_precision           : enable" "\n" \
+  "#extension GL_ARB_enhanced_layouts           : enable" "\n" \
   "#extension GL_ARB_texture_cube_map_array     : enable" "\n" \
   "#extension GL_ARB_separate_shader_objects    : enable" "\n" \
   "#extension GL_ARB_shading_language_420pack   : enable" "\n" \
@@ -882,6 +884,7 @@ static inline void GpuWindow(
       "GL_ARB_buffer_storage",
       "GL_ARB_texture_storage",
       "GL_ARB_shader_precision",
+      "GL_ARB_enhanced_layouts",
       "GL_ARB_get_program_binary",
       "GL_ARB_transform_feedback2",
       "GL_ARB_direct_state_access",
@@ -1340,12 +1343,7 @@ static inline unsigned GpuSmp(
   return smp_id;
 }
 
-static inline unsigned GpuPro(
-    unsigned shader_type, char * shader_string,
-    char * xfb_name_0,
-    char * xfb_name_1,
-    char * xfb_name_2,
-    char * xfb_name_3)
+static inline unsigned GpuPro(unsigned shader_type, char * shader_string)
 {
   profB(__func__);
   __auto_type gl = g_gpulib_libgl;
@@ -1388,32 +1386,6 @@ static inline unsigned GpuPro(
 
   gl->AttachShader(pro_id, shader_id);
 
-  int xfb_count = 0;
-  {
-    char * x0 = xfb_name_0;
-    char * x1 = xfb_name_1;
-    char * x2 = xfb_name_2;
-    char * x3 = xfb_name_3;
-    int xfb_place = 0;
-    if (x0) { xfb_count += 1; xfb_place = 1; }
-    if (x1) { xfb_count += 1; xfb_place = 2; }
-    if (x2) { xfb_count += 1; xfb_place = 3; }
-    if (x3) { xfb_count += 1; xfb_place = 4; }
-    if (xfb_count != xfb_place) {
-      stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Error: Transform feedback varying names should not have NULL values in-between.\n");
-      stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Transform feedback varyings count: %d\n", xfb_count);
-      stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Transform feedback varying name 0: %s%s%s\n", xfb_name_0 ? "\"" : "", xfb_name_0 ? xfb_name_0 : "NULL", xfb_name_0 ? "\"" : "");
-      stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Transform feedback varying name 1: %s%s%s\n", xfb_name_1 ? "\"" : "", xfb_name_1 ? xfb_name_1 : "NULL", xfb_name_1 ? "\"" : "");
-      stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Transform feedback varying name 2: %s%s%s\n", xfb_name_2 ? "\"" : "", xfb_name_2 ? xfb_name_2 : "NULL", xfb_name_2 ? "\"" : "");
-      stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Transform feedback varying name 3: %s%s%s\n", xfb_name_3 ? "\"" : "", xfb_name_3 ? xfb_name_3 : "NULL", xfb_name_3 ? "\"" : "");
-      stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "\n");
-    }
-    if (xfb_count > 0) {
-      char * xfb_names[4] = {x0, x1, x2, x3};
-      gl->TransformFeedbackVaryings(pro_id, xfb_count, xfb_names, 0x8C8D); // GL_SEPARATE_ATTRIBS
-    }
-  }
-
   gl->LinkProgram(pro_id);
 
   {
@@ -1427,11 +1399,6 @@ static inline unsigned GpuPro(
         info_log[info_len] = 0;
         gl->GetProgramInfoLog(pro_id, info_len, NULL, info_log);
         stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Program linker: %s\n", info_log);
-        stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Transform feedback varyings count: %d\n", xfb_count);
-        stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Transform feedback varying name 0: %s%s%s\n", xfb_name_0 ? "\"" : "", xfb_name_0 ? xfb_name_0 : "NULL", xfb_name_0 ? "\"" : "");
-        stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Transform feedback varying name 1: %s%s%s\n", xfb_name_1 ? "\"" : "", xfb_name_1 ? xfb_name_1 : "NULL", xfb_name_1 ? "\"" : "");
-        stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Transform feedback varying name 2: %s%s%s\n", xfb_name_2 ? "\"" : "", xfb_name_2 ? xfb_name_2 : "NULL", xfb_name_2 ? "\"" : "");
-        stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Transform feedback varying name 3: %s%s%s\n", xfb_name_3 ? "\"" : "", xfb_name_3 ? xfb_name_3 : "NULL", xfb_name_3 ? "\"" : "");
         {
           int line = 1;
           stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] %05d: ", line);
@@ -1457,12 +1424,7 @@ static inline unsigned GpuPro(
   return pro_id;
 }
 
-static inline unsigned GpuProFile(
-    unsigned shader_type, char * shader_filepath,
-    char * xfb_name_0,
-    char * xfb_name_1,
-    char * xfb_name_2,
-    char * xfb_name_3)
+static inline unsigned GpuProFile(unsigned shader_type, char * shader_filepath)
 {
   profB(__func__);
   __auto_type gl = g_gpulib_libgl;
@@ -1476,21 +1438,17 @@ static inline unsigned GpuProFile(
     profE(__func__);
     return 0;
   }
-  int pro_id = GpuPro(shader_type, shader_string, xfb_name_0, xfb_name_1, xfb_name_2, xfb_name_3);
+  int pro_id = GpuPro(shader_type, shader_string);
   stdlib_munmap(shader_string, 256 * 1024 * 1024);
   stdlib_close(fd);
   profE(__func__);
   return pro_id;
 }
 
-static inline unsigned GpuVert(char * shader_string) { return GpuPro(0x8B31, shader_string, NULL, NULL, NULL, NULL); } // GL_VERTEX_SHADER
-static inline unsigned GpuFrag(char * shader_string) { return GpuPro(0x8B30, shader_string, NULL, NULL, NULL, NULL); } // GL_FRAGMENT_SHADER
-static inline unsigned GpuVertFile(char * shader_filepath) { return GpuProFile(0x8B31, shader_filepath, NULL, NULL, NULL, NULL); } // GL_VERTEX_SHADER
-static inline unsigned GpuFragFile(char * shader_filepath) { return GpuProFile(0x8B30, shader_filepath, NULL, NULL, NULL, NULL); } // GL_FRAGMENT_SHADER
-static inline unsigned GpuVertXfb(char * shader_string, char * xfb_name_0, char * xfb_name_1, char * xfb_name_2, char * xfb_name_3) { return GpuPro(0x8B31, shader_string, xfb_name_0, xfb_name_1, xfb_name_2, xfb_name_3); } // GL_VERTEX_SHADER
-static inline unsigned GpuFragXfb(char * shader_string, char * xfb_name_0, char * xfb_name_1, char * xfb_name_2, char * xfb_name_3) { return GpuPro(0x8B30, shader_string, xfb_name_0, xfb_name_1, xfb_name_2, xfb_name_3); } // GL_FRAGMENT_SHADER
-static inline unsigned GpuVertXfbFile(char * shader_filepath, char * xfb_name_0, char * xfb_name_1, char * xfb_name_2, char * xfb_name_3) { return GpuProFile(0x8B31, shader_filepath, xfb_name_0, xfb_name_1, xfb_name_2, xfb_name_3); } // GL_VERTEX_SHADER
-static inline unsigned GpuFragXfbFile(char * shader_filepath, char * xfb_name_0, char * xfb_name_1, char * xfb_name_2, char * xfb_name_3) { return GpuProFile(0x8B30, shader_filepath, xfb_name_0, xfb_name_1, xfb_name_2, xfb_name_3); } // GL_FRAGMENT_SHADER
+static inline unsigned GpuVert(char * shader_string) { return GpuPro(0x8B31, shader_string); } // GL_VERTEX_SHADER
+static inline unsigned GpuFrag(char * shader_string) { return GpuPro(0x8B30, shader_string); } // GL_FRAGMENT_SHADER
+static inline unsigned GpuVertFile(char * shader_filepath) { return GpuProFile(0x8B31, shader_filepath); } // GL_VERTEX_SHADER
+static inline unsigned GpuFragFile(char * shader_filepath) { return GpuProFile(0x8B30, shader_filepath); } // GL_FRAGMENT_SHADER
 
 static inline void GpuU32(unsigned program, int location, int count, unsigned * value) { __auto_type gl = g_gpulib_libgl; gl->ProgramUniform1uiv(program, location, count, value); }
 static inline void GpuI32(unsigned program, int location, int count, int      * value) { __auto_type gl = g_gpulib_libgl; gl->ProgramUniform1iv(program, location, count, value);  }

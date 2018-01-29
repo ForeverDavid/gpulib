@@ -50,31 +50,26 @@ int main() {
   v2[3].z = 24.0;
 
   char vert_string[] = GPULIB_VERT_HEADER
-      "layout(binding = 0) uniform samplerBuffer s_v1;" "\n"
-      "layout(binding = 1) uniform samplerBuffer s_v2;" "\n"
-      ""                                                "\n"
-      "out vec3 g_out;"                                 "\n"
-      ""                                                "\n"
-      "void main() {"                                   "\n"
-      "  vec3 v1 = texelFetch(s_v1, gl_VertexID).xyz;"  "\n"
-      "  vec3 v2 = texelFetch(s_v2, gl_VertexID).xyz;"  "\n"
-      ""                                                "\n"
-      "  g_out = v1 + v2;"                              "\n"
-      "}"                                               "\n";
+      "layout(binding = 0) uniform samplerBuffer s_v1;"        "\n"
+      "layout(binding = 1) uniform samplerBuffer s_v2;"        "\n"
+      ""                                                       "\n"
+      "layout(xfb_offset = 0, xfb_buffer = 0) out vec3 g_out;" "\n"
+      ""                                                       "\n"
+      "void main() {"                                          "\n"
+      "  vec3 v1 = texelFetch(s_v1, gl_VertexID).xyz;"         "\n"
+      "  vec3 v2 = texelFetch(s_v2, gl_VertexID).xyz;"         "\n"
+      ""                                                       "\n"
+      "  g_out = v1 + v2;"                                     "\n"
+      "}"                                                      "\n";
 
-  unsigned compute_vert = GpuVertXfb(vert_string,
-    "g_out",
-    NULL,
-    NULL,
-    NULL);
+  unsigned vert = GpuVert(vert_string);
+  unsigned ppo = GpuPpo(vert, 0);
 
   unsigned xfb = GpuXfb(
     v3_id, 0, 4 * sizeof(vec3),
     0, 0, 0,
     0, 0, 0,
     0, 0, 0);
-
-  unsigned ppo = GpuPpo(compute_vert, 0);
 
   unsigned textures[16] = {
     [0] = GpuCast(v1_id, gpu_xyz_f32_e, 0, 4 * sizeof(vec3)),
