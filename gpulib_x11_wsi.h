@@ -53,6 +53,28 @@ struct MWMHints {
 
 #define MWM_TEAROFF_WINDOW      (1L<<0)
 
+struct gpu_libc_t {
+  int (*access)(char *, int);
+  void * (*calloc)(size_t, size_t);
+  int (*fgetc)(int *);
+  void (*free)(void *);
+  pid_t (*getpid)();
+  int (*pclose)(int *);
+  int * (*popen)(char *, char *);
+  ssize_t (*readlink)(char *, char *, size_t);
+  void * (*realloc)(void *, size_t);
+  char * (*setlocale)(int, char *);
+  char * (*strcat)(char *, char *);
+  int (*strcmp)(char *, char *);
+  size_t (*strlen)(char *);
+  char * (*strndup)(char *, size_t);
+  char * (*strrchr)(char *, int);
+  long (*strtol)(char *, char **, int);
+  int (*usleep)(unsigned);
+} g_gpulib_libc_data = {0};
+
+struct gpu_libc_t * g_gpulib_libc = &g_gpulib_libc_data;
+
 struct gpu_libglx_t {
   void ** (*ChooseFBConfig)(Display *, int, int *, int *);
   int (*GetFBConfigAttrib)(Display *, void *, int, int *);

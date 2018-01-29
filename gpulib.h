@@ -144,28 +144,6 @@ enum gpu_pix_type_e {
   "layout(origin_upper_left) in vec4 gl_FragCoord;"       "\n" \
   ""                                                      "\n"
 
-struct gpu_libc_t {
-  int (*access)(char *, int);
-  void * (*calloc)(size_t, size_t);
-  int (*fgetc)(int *);
-  void (*free)(void *);
-  pid_t (*getpid)();
-  int (*pclose)(int *);
-  int * (*popen)(char *, char *);
-  ssize_t (*readlink)(char *, char *, size_t);
-  void * (*realloc)(void *, size_t);
-  char * (*setlocale)(int, char *);
-  char * (*strcat)(char *, char *);
-  int (*strcmp)(char *, char *);
-  size_t (*strlen)(char *);
-  char * (*strndup)(char *, size_t);
-  char * (*strrchr)(char *, int);
-  long (*strtol)(char *, char **, int);
-  int (*usleep)(unsigned);
-} g_gpulib_libc_data = {0};
-
-struct gpu_libc_t * g_gpulib_libc = &g_gpulib_libc_data;
-
 struct gpu_libgl_t {
   void (*AttachShader)(unsigned, unsigned);
   void (*BeginQuery)(unsigned, unsigned);
@@ -312,11 +290,16 @@ static inline void * GpuMalloc(ptrdiff_t bytes, unsigned * out_buf_id) {
   return buf_ptr;
 }
 
-static inline void * GpuCalloc(ptrdiff_t bytes, unsigned * out_buf_id) {
+static inline void * GpuCalloc(ptrdiff_t bytes, unsigned * out_buf_id, void * (*in_calloc)(size_t, size_t), void (*in_free)(void *)) {
   profB(__func__);
   __auto_type gl = g_gpulib_libgl;
-  void * buf_ptr = GpuMalloc(bytes, out_buf_id);
-  memset(buf_ptr, 0, bytes);
+  unsigned buf_id = 0;
+  gl->CreateBuffers(1, &buf_id);
+  out_buf_id[0] = buf_id;
+  void * data = in_calloc(1, bytes);
+  gl->NamedBufferStorage(buf_id, bytes, data, 0xC2); // GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT
+  void * buf_ptr = gl->MapNamedBufferRange(buf_id, 0, bytes, 0xC2);
+  in_free(data);
   profE(__func__);
   return buf_ptr;
 }
@@ -331,16 +314,15 @@ static inline void GpuMallocDeviceLocal(ptrdiff_t bytes, unsigned * out_buf_id) 
   profE(__func__);
 }
 
-static inline void GpuCallocDeviceLocal(ptrdiff_t bytes, unsigned * out_buf_id) {
+static inline void GpuCallocDeviceLocal(ptrdiff_t bytes, unsigned * out_buf_id, void * (*in_calloc)(size_t, size_t), void (*in_free)(void *)) {
   profB(__func__);
   __auto_type gl = g_gpulib_libgl;
-  __auto_type libc = g_gpulib_libc;
   unsigned buf_id = 0;
   gl->CreateBuffers(1, &buf_id);
   out_buf_id[0] = buf_id;
-  void * data = libc->calloc(1, bytes);
+  void * data = in_calloc(1, bytes);
   gl->NamedBufferStorage(buf_id, bytes, data, 0);
-  libc->free(data);
+  in_free(data);
   profE(__func__);
 }
 
@@ -358,11 +340,18 @@ static inline unsigned * GpuMallocIndices(ptrdiff_t count, unsigned * out_idb_id
   return idb_ptr;
 }
 
-static inline unsigned * GpuCallocIndices(ptrdiff_t count, unsigned * out_idb_id) {
+static inline unsigned * GpuCallocIndices(ptrdiff_t count, unsigned * out_idb_id, void * (*in_calloc)(size_t, size_t), void (*in_free)(void *)) {
   profB(__func__);
   __auto_type gl = g_gpulib_libgl;
-  unsigned * idb_ptr = GpuMallocIndices(count, out_idb_id);
-  memset(idb_ptr, 0, count * sizeof(unsigned));
+  unsigned idb_id = 0;
+  gl->GenBuffers(1, &idb_id);
+  out_idb_id[0] = idb_id;
+  void * data = in_calloc(1, count * sizeof(unsigned));
+  gl->BindBuffer(0x8893, idb_id); // GL_ELEMENT_ARRAY_BUFFER
+  gl->BufferStorage(0x8893, count * sizeof(unsigned), data, 0xC2); // GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT
+  unsigned * idb_ptr = gl->MapBufferRange(0x8893, 0, count * sizeof(unsigned), 0xC2);
+  gl->BindBuffer(0x8893, 0);
+  in_free(data);
   profE(__func__);
   return idb_ptr;
 }
@@ -379,18 +368,17 @@ static inline void GpuMallocIndicesDeviceLocal(ptrdiff_t count, unsigned * out_i
   profE(__func__);
 }
 
-static inline void GpuCallocIndicesDeviceLocal(ptrdiff_t count, unsigned * out_idb_id) {
+static inline void GpuCallocIndicesDeviceLocal(ptrdiff_t count, unsigned * out_idb_id, void * (*in_calloc)(size_t, size_t), void (*in_free)(void *)) {
   profB(__func__);
   __auto_type gl = g_gpulib_libgl;
-  __auto_type libc = g_gpulib_libc;
   unsigned idb_id = 0;
   gl->GenBuffers(1, &idb_id);
   out_idb_id[0] = idb_id;
-  void * data = libc->calloc(1, count * sizeof(unsigned));
+  void * data = in_calloc(1, count * sizeof(unsigned));
   gl->BindBuffer(0x8893, idb_id); // GL_ELEMENT_ARRAY_BUFFER
   gl->BufferStorage(0x8893, count * sizeof(unsigned), data, 0);
   gl->BindBuffer(0x8893, 0);
-  libc->free(data);
+  in_free(data);
   profE(__func__);
 }
 
@@ -408,11 +396,18 @@ static inline struct gpu_cmd_t * GpuMallocCommands(ptrdiff_t count, unsigned * o
   return dib_ptr;
 }
 
-static inline struct gpu_cmd_t * GpuCallocCommands(ptrdiff_t count, unsigned * out_dib_id) {
+static inline struct gpu_cmd_t * GpuCallocCommands(ptrdiff_t count, unsigned * out_dib_id, void * (*in_calloc)(size_t, size_t), void (*in_free)(void *)) {
   profB(__func__);
   __auto_type gl = g_gpulib_libgl;
-  struct gpu_cmd_t * dib_ptr = GpuMallocCommands(count, out_dib_id);
-  memset(dib_ptr, 0, count * sizeof(struct gpu_cmd_t));
+  unsigned dib_id = 0;
+  gl->GenBuffers(1, &dib_id);
+  out_dib_id[0] = dib_id;
+  void * data = in_calloc(1, count * sizeof(struct gpu_cmd_t));
+  gl->BindBuffer(0x8F3F, dib_id); // GL_DRAW_INDIRECT_BUFFER
+  gl->BufferStorage(0x8F3F, count * sizeof(struct gpu_cmd_t), data, 0xC2); // GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT
+  struct gpu_cmd_t * dib_ptr = gl->MapBufferRange(0x8F3F, 0, count * sizeof(struct gpu_cmd_t), 0xC2);
+  gl->BindBuffer(0x8F3F, 0);
+  in_free(data);
   profE(__func__);
   return dib_ptr;
 }
@@ -429,18 +424,17 @@ static inline void GpuMallocCommandsDeviceLocal(ptrdiff_t count, unsigned * out_
   profE(__func__);
 }
 
-static inline void GpuCallocCommandsDeviceLocal(ptrdiff_t count, unsigned * out_dib_id) {
+static inline void GpuCallocCommandsDeviceLocal(ptrdiff_t count, unsigned * out_dib_id, void * (*in_calloc)(size_t, size_t), void (*in_free)(void *)) {
   profB(__func__);
   __auto_type gl = g_gpulib_libgl;
-  __auto_type libc = g_gpulib_libc;
   unsigned dib_id = 0;
   gl->GenBuffers(1, &dib_id);
   out_dib_id[0] = dib_id;
-  void * data = libc->calloc(1, count * sizeof(struct gpu_cmd_t));
+  void * data = in_calloc(1, count * sizeof(struct gpu_cmd_t));
   gl->BindBuffer(0x8F3F, dib_id); // GL_DRAW_INDIRECT_BUFFER
   gl->BufferStorage(0x8F3F, count * sizeof(struct gpu_cmd_t), data, 0);
   gl->BindBuffer(0x8F3F, 0);
-  libc->free(data);
+  in_free(data);
   profE(__func__);
 }
 

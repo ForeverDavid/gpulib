@@ -42,9 +42,9 @@ static void * AppInit(Display * dpy, Window win, char * scancodes,
   g_ig_state = ig_state;
   igSetCurrentContext(ig_context);
 
-  s->vertices = GpuCalloc(4096 * sizeof(vec3), &s->vertices_id);
-  s->indices  = GpuCallocIndices(4096, &s->indices_id);
-  s->commands = GpuCallocCommands(4096, &s->commands_id);
+  s->vertices = GpuCalloc(4096 * sizeof(vec3), &s->vertices_id, g_gpulib_libc->calloc, g_gpulib_libc->free);
+  s->indices  = GpuCallocIndices(4096, &s->indices_id, g_gpulib_libc->calloc, g_gpulib_libc->free);
+  s->commands = GpuCallocCommands(4096, &s->commands_id, g_gpulib_libc->calloc, g_gpulib_libc->free);
 
   char vert_string[4096] = GPULIB_VERT_HEADER
       "layout(binding = 0) uniform samplerBuffer s_pos;" "\n"

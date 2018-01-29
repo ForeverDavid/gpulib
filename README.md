@@ -9,7 +9,7 @@ geometry, post-process textures and compute arrays on GPU.
 The contract:
 
  * x64 Linux and X11 only. Doesn't target Windows, macOS, WebGL or OpenGL ES devices.
- * Not all modern OpenGL extensions are used, only those which are supported on low-end GPUs and latest Mesa3D.
+ * Not all modern OpenGL extensions are used, only those which are supported on low-end GPUs and latest Mesa 3D.
 
 Features:
 
@@ -34,16 +34,14 @@ Naming convention:
  * `fbo`: Framebuffer Object
  * `xfb`: Transform Feedback Object
 
-List of structs:
+List of `gpulib.h` structs:
 
 ```c
 struct gpu_cmd_t;
-struct gpu_libc_t;
-struct gpu_libglx_t;
 struct gpu_libgl_t;
 ```
 
-List of enums:
+List of `gpulib.h` enums:
 
 ```c
 enum gpu_draw_mode_e;
@@ -55,13 +53,9 @@ enum gpu_pix_format_e;
 enum gpu_pix_type_e;
 ```
 
-List of global variables:
+List of `gpulib.h` global variables:
 
 ```c
-struct gpu_libc_t     g_gpulib_libc_data;
-struct gpu_libc_t   * g_gpulib_libc;
-struct gpu_libglx_t   g_gpulib_libglx_data;
-struct gpu_libglx_t * g_gpulib_libglx;
 struct gpu_libgl_t    g_gpulib_libgl_data;
 struct gpu_libgl_t  * g_gpulib_libgl;
 ```
@@ -72,17 +66,17 @@ List of `gpulib.h` procedures:
 static inline void GpuSetDebugCallback(void * callback);
 static inline void GpuDebugCallback(unsigned source, unsigned type, unsigned id, unsigned severity, int length, char * message, void * user_data);
 static inline void * GpuMalloc(ptrdiff_t bytes, unsigned * out_buf_id);
-static inline void * GpuCalloc(ptrdiff_t bytes, unsigned * out_buf_id);
+static inline void * GpuCalloc(ptrdiff_t bytes, unsigned * out_buf_id, void * (*in_calloc)(size_t, size_t), void (*in_free)(void *));
 static inline void GpuMallocDeviceLocal(ptrdiff_t bytes, unsigned * out_buf_id);
-static inline void GpuCallocDeviceLocal(ptrdiff_t bytes, unsigned * out_buf_id);
+static inline void GpuCallocDeviceLocal(ptrdiff_t bytes, unsigned * out_buf_id, void * (*in_calloc)(size_t, size_t), void (*in_free)(void *));
 static inline unsigned * GpuMallocIndices(ptrdiff_t count, unsigned * out_idb_id);
-static inline unsigned * GpuCallocIndices(ptrdiff_t count, unsigned * out_idb_id);
+static inline unsigned * GpuCallocIndices(ptrdiff_t count, unsigned * out_idb_id, void * (*in_calloc)(size_t, size_t), void (*in_free)(void *));
 static inline void GpuMallocIndicesDeviceLocal(ptrdiff_t count, unsigned * out_idb_id);
-static inline void GpuCallocIndicesDeviceLocal(ptrdiff_t count, unsigned * out_idb_id);
+static inline void GpuCallocIndicesDeviceLocal(ptrdiff_t count, unsigned * out_idb_id, void * (*in_calloc)(size_t, size_t), void (*in_free)(void *));
 static inline struct gpu_cmd_t * GpuMallocCommands(ptrdiff_t count, unsigned * out_dib_id);
-static inline struct gpu_cmd_t * GpuCallocCommands(ptrdiff_t count, unsigned * out_dib_id);
+static inline struct gpu_cmd_t * GpuCallocCommands(ptrdiff_t count, unsigned * out_dib_id, void * (*in_calloc)(size_t, size_t), void (*in_free)(void *));
 static inline void GpuMallocCommandsDeviceLocal(ptrdiff_t count, unsigned * out_dib_id);
-static inline void GpuCallocCommandsDeviceLocal(ptrdiff_t count, unsigned * out_dib_id);
+static inline void GpuCallocCommandsDeviceLocal(ptrdiff_t count, unsigned * out_dib_id, void * (*in_calloc)(size_t, size_t), void (*in_free)(void *));
 static inline unsigned GpuMallocImg(enum gpu_tex_format_e format, int width, int height, int layer_count, int mipmap_count);
 static inline unsigned GpuMallocCbm(enum gpu_tex_format_e format, int width, int height, int layer_count, int mipmap_count);
 static inline unsigned GpuMallocMsi(enum gpu_tex_format_e format, int width, int height, int layer_count, int msaa_samples);
@@ -132,6 +126,22 @@ static inline void GpuClear();
 static inline void GpuEnable(unsigned flags);
 static inline void GpuDisable(unsigned flags);
 static inline void GpuViewport(int x, int y, int width, int height);
+```
+
+List of `gpulib_x11_wsi.h` structs:
+
+```c
+struct gpu_libc_t;
+struct gpu_libglx_t;
+```
+
+List of `gpulib_x11_wsi.h` global variables:
+
+```c
+struct gpu_libc_t     g_gpulib_libc_data;
+struct gpu_libc_t   * g_gpulib_libc;
+struct gpu_libglx_t   g_gpulib_libglx_data;
+struct gpu_libglx_t * g_gpulib_libglx;
 ```
 
 List of `gpulib_x11_wsi.h` procedures:

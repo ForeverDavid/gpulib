@@ -30,6 +30,8 @@ struct {
 struct gpu_cmd_t g_draw_commands[e_draw_count];
 
 int main() {
+  __auto_type libc = g_gpulib_libc;
+
   Display * dpy = NULL;
   Window win = 0;
   GpuWsiWindow("Drawing Text", sizeof("Drawing Text"), 1280, 720, 0, NULL, &dpy, &win);
@@ -48,7 +50,7 @@ int main() {
   char text[] = "Nothing spectacular here.";
 
   unsigned chars_id = 0;
-  auto chars = GpuCallocCommands(countof(text), &chars_id);
+  auto chars = GpuCallocCommands(countof(text), &chars_id, libc->calloc, libc->free);
   for (int i = 0; i < countof(text); i += 1) {
     chars[i].instance_count = 1;
     chars[i].first = g_draw_commands[text[i] - 33].first;

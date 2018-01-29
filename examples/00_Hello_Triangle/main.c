@@ -4,25 +4,27 @@
 typedef struct { float x, y, z; } vec3;
 
 int main() {
+  __auto_type libc = g_gpulib_libc;
+
   Display * dpy = NULL;
   Window win = 0;
   GpuWsiWindow("Hello Triangle", sizeof("Hello Triangle"), 1280, 720, 0, NULL, &dpy, &win);
   GpuSetDebugCallback(GpuDebugCallback);
 
   unsigned vertices_id = 0;
-  vec3 * vertices = GpuCalloc(3 * sizeof(vec3), &vertices_id);
+  vec3 * vertices = GpuCalloc(3 * sizeof(vec3), &vertices_id, libc->calloc, libc->free);
   vertices[0] = (vec3){ 0.0,  0.5, 0.0};
   vertices[1] = (vec3){ 0.5, -0.5, 0.0};
   vertices[2] = (vec3){-0.5, -0.5, 0.0};
 
   unsigned indices_id = 0;
-  unsigned * indices = GpuCallocIndices(3, &indices_id);
+  unsigned * indices = GpuCallocIndices(3, &indices_id, libc->calloc, libc->free);
   indices[0] = 0;
   indices[1] = 1;
   indices[2] = 2;
 
   unsigned commands_id = 0;
-  struct gpu_cmd_t * commands = GpuCallocCommands(1, &commands_id);
+  struct gpu_cmd_t * commands = GpuCallocCommands(1, &commands_id, libc->calloc, libc->free);
   commands[0].count = 3;
   commands[0].instance_count = 1;
 

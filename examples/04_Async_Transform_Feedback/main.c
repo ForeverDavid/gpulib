@@ -6,6 +6,8 @@ enum {MAX_STR = 10000};
 typedef struct { float x, y, z; } vec3;
 
 int main() {
+  __auto_type libc = g_gpulib_libc;
+
   Display * dpy = NULL;
   Window win = 0;
   GpuWsiWindow("Transform Feedback", sizeof("Transform Feedback"), 1280, 720, 0, NULL, &dpy, &win);
@@ -14,9 +16,9 @@ int main() {
   unsigned v1_id = 0;
   unsigned v2_id = 0;
   unsigned v3_id = 0;
-  vec3 * v1 = GpuCalloc(4 * sizeof(vec3), &v1_id);
-  vec3 * v2 = GpuCalloc(4 * sizeof(vec3), &v2_id);
-  vec3 * v3 = GpuCalloc(4 * sizeof(vec3), &v3_id);
+  vec3 * v1 = GpuCalloc(4 * sizeof(vec3), &v1_id, libc->calloc, libc->free);
+  vec3 * v2 = GpuCalloc(4 * sizeof(vec3), &v2_id, libc->calloc, libc->free);
+  vec3 * v3 = GpuCalloc(4 * sizeof(vec3), &v3_id, libc->calloc, libc->free);
 
   v1[0].x = 1.0;
   v1[0].y = 2.0;

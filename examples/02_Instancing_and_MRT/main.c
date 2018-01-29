@@ -110,6 +110,8 @@ static inline unsigned long GetTimeMs() {
 struct gpu_cmd_t g_draw_commands[e_draw_count];
 
 int main() {
+  __auto_type libc = g_gpulib_libc;
+
   GpuWsiGetLibcProcedureAddresses();
   ProfCalloc = g_gpulib_libc->calloc;
   ProfFree = g_gpulib_libc->free;
@@ -138,7 +140,7 @@ int main() {
   GpuBindCommands(0);
 
   unsigned instance_pos_id = 0;
-  vec3 * instance_pos = GpuCalloc((30 + 30 + 30) * sizeof(vec3), &instance_pos_id);
+  vec3 * instance_pos = GpuCalloc((30 + 30 + 30) * sizeof(vec3), &instance_pos_id, libc->calloc, libc->free);
 
   for (int i = 0, row = 10, space = 3; i < (30 + 30 + 30); i += 1) {
     instance_pos[i].x = (float)i * space - (i / row) * row * space;
