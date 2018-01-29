@@ -33,7 +33,7 @@ enum {
   gpu_buf_map_flags_e = 0xC2, // GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT
 };
 
-enum gpu_mode_e {
+enum gpu_draw_mode_e {
   gpu_points_e    = 0x0000, // GL_POINTS
   gpu_lines_e     = 0x0001, // GL_LINES
   gpu_triangles_e = 0x0004, // GL_TRIANGLES
@@ -1602,14 +1602,14 @@ static inline void GpuBindPpo(unsigned ppo) {
   profE(__func__);
 }
 
-static inline void GpuDraw(enum gpu_mode_e mode, unsigned binded_dib_cmd_first, unsigned binded_dib_cmd_count) {
+static inline void GpuDraw(enum gpu_draw_mode_e mode, unsigned binded_dib_cmd_first, unsigned binded_dib_cmd_count) {
   profB(__func__);
   __auto_type gl = g_gpulib_libgl;
   gl->MultiDrawElementsIndirect(mode, 0x1405, (void *)(binded_dib_cmd_first * 5 * sizeof(unsigned)), binded_dib_cmd_count, 0); // GL_UNSIGNED_INT
   profE(__func__);
 }
 
-static inline void GpuDrawXfb(enum gpu_mode_e mode, unsigned binded_dib_cmd_first, unsigned binded_dib_cmd_count) {
+static inline void GpuDrawXfb(enum gpu_draw_mode_e mode, unsigned binded_dib_cmd_first, unsigned binded_dib_cmd_count) {
   profB(__func__);
   __auto_type gl = g_gpulib_libgl;
   gl->Enable(0x8C89); // GL_RASTERIZER_DISCARD
@@ -1620,14 +1620,14 @@ static inline void GpuDrawXfb(enum gpu_mode_e mode, unsigned binded_dib_cmd_firs
   profE(__func__);
 }
 
-static inline void GpuDrawOnce(enum gpu_mode_e mode, unsigned first, unsigned count, unsigned instance_count) {
+static inline void GpuDrawOnce(enum gpu_draw_mode_e mode, unsigned first, unsigned count, unsigned instance_count) {
   profB(__func__);
   __auto_type gl = g_gpulib_libgl;
   gl->DrawArraysInstanced(mode, first, count, instance_count);
   profE(__func__);
 }
 
-static inline void GpuDrawOnceXfb(enum gpu_mode_e mode, unsigned first, unsigned count, unsigned instance_count) {
+static inline void GpuDrawOnceXfb(enum gpu_draw_mode_e mode, unsigned first, unsigned count, unsigned instance_count) {
   profB(__func__);
   __auto_type gl = g_gpulib_libgl;
   gl->Enable(0x8C89); // GL_RASTERIZER_DISCARD

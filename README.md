@@ -46,7 +46,7 @@ struct gpu_libgl_t;
 List of enums:
 
 ```c
-enum gpu_mode_e;
+enum gpu_draw_mode_e;
 enum gpu_buf_format_e;
 enum gpu_tex_format_e;
 enum gpu_smp_filter_e;
