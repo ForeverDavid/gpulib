@@ -10,10 +10,9 @@
 #extension GL_ARB_fragment_coord_conventions : enable
 out gl_PerVertex { vec4 gl_Position; };
 
-layout(location = 0) uniform vec3  g_cam_pos;
-layout(location = 1) uniform vec4  g_cam_rot;
-layout(location = 2) uniform float g_fov_x;
-layout(location = 3) uniform float g_fov_y;
+layout(location = 0) uniform vec4 g_cam_pos;
+layout(location = 1) uniform vec4 g_cam_rot;
+layout(location = 2) uniform vec4 g_fov;
 
 layout(binding = 0) uniform samplerBuffer  s_pos;
 layout(binding = 1) uniform samplerBuffer  s_instance_pos;
@@ -43,11 +42,11 @@ void main() {
   g_pos += texelFetch(s_instance_pos, (g_index * 30) + gl_InstanceID).xyz;
 
   vec3 mv = g_pos;
-  mv -= g_cam_pos;
+  mv -= g_cam_pos.xyz;
   mv  = qrot(mv, qinv(g_cam_rot));
 
-  mv.x *= g_fov_x;
-  mv.y *= g_fov_y;
+  mv.x *= g_fov.x;
+  mv.y *= g_fov.y;
 
   gl_Position = vec4(mv, mv.z + 0.1);
 }

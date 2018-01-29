@@ -70,11 +70,7 @@
 #undef glNamedFramebufferReadBuffer
 #undef glNamedFramebufferTextureLayer
 #undef glProgramParameteri
-#undef glProgramUniform1fv
 #undef glProgramUniform1iv
-#undef glProgramUniform1uiv
-#undef glProgramUniform2fv
-#undef glProgramUniform3fv
 #undef glProgramUniform4fv
 #undef glSamplerParameteri
 #undef glScissor

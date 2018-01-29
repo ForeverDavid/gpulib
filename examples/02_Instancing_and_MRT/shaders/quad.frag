@@ -10,7 +10,7 @@
 #extension GL_ARB_fragment_coord_conventions : enable
 layout(origin_upper_left) in vec4 gl_FragCoord;
 
-layout(location = 0) uniform float g_time;
+layout(location = 0) uniform vec4 g_time;
 
 layout(binding = 1) uniform sampler2DArray s_color;
 
@@ -19,7 +19,7 @@ layout(location = 0) in vec2 g_uv;
 layout(location = 0) out vec4 g_color;
 
 vec3 ScreenSpaceDither(vec2 screen_pos) {
-  vec3 dither = dot(vec2(171.0, 231.0), screen_pos.xy + g_time).xxx;
+  vec3 dither = dot(vec2(171.0, 231.0), screen_pos.xy + g_time.x).xxx;
   dither.rgb = fract(dither.rgb / vec3(103.0, 71.0, 97.0)) - vec3(0.5, 0.5, 0.5);
   return (dither.rgb / 255.0) * 0.375;
 }

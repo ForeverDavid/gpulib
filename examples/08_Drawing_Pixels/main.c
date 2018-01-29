@@ -27,7 +27,7 @@ int main() {
       "}"                                               "\n");
 
   unsigned frag = GpuFrag(GPULIB_FRAG_HEADER
-      "layout(location = 0) uniform float g_time;"                                        "\n"
+      "layout(location = 0) uniform vec4 g_time;"                                         "\n"
       ""                                                                                  "\n"
       "layout(binding = 0) uniform sampler2DArray s_color;"                               "\n"
       ""                                                                                  "\n"
@@ -36,7 +36,7 @@ int main() {
       "layout(location = 0) out vec4 g_color;"                                            "\n"
       ""                                                                                  "\n"
       "vec3 ScreenSpaceDither(vec2 screen_pos) {"                                         "\n"
-      "  vec3 dither = dot(vec2(171.0, 231.0), screen_pos.xy + g_time).xxx;"              "\n"
+      "  vec3 dither = dot(vec2(171.0, 231.0), screen_pos.xy + g_time.x).xxx;"            "\n"
       "  dither.rgb = fract(dither.rgb / vec3(103.0, 71.0, 97.0)) - vec3(0.5, 0.5, 0.5);" "\n"
       "  return (dither.rgb / 255.0) * 0.375;"                                            "\n"
       "}"                                                                                 "\n"
@@ -71,8 +71,7 @@ int main() {
     GpuBindTextures(0, 16, (unsigned [16]){tex});
     GpuBindSamplers(0, 16, (unsigned [16]){smp});
     GpuBindPpo(ppo);
-    float time = (t_curr - t_init) / 1000.f;
-    GpuF32(frag, 0, 1, &time);
+    GpuUniformFloat4(frag, 0, 1, (float [4]){(t_curr - t_init) / 1000.f, 0, 0, 0});
     GpuDrawOnce(gpu_triangles_e, 0, 3, 1);
     GpuSwap(dpy, win);
 

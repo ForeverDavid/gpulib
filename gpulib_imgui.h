@@ -227,13 +227,8 @@ void ImguiRenderDrawList(struct ImDrawData * draw_data) {
   gl->Enable(0x0C11);  // GL_SCISSOR_TEST
   gl->Disable(0x8DB9); // GL_FRAMEBUFFER_SRGB
 
-  float scale[2] = {0}, translate[2] = {0};
-  scale[0] = 2.f /  w;
-  scale[1] = 2.f / -h;
-  translate[0] = -1.0;
-  translate[1] =  1.0;
-  gl->ProgramUniform2fv(g_ig_state->vert, 0, 1, scale);
-  gl->ProgramUniform2fv(g_ig_state->vert, 1, 1, translate);
+  float xforms[4] = {2.f / w, 2.f / -h, -1, 1};
+  gl->ProgramUniform4fv(g_ig_state->vert, 1, 1, xforms);
   gl->BindProgramPipeline(g_ig_state->ppo);
 
   ptrdiff_t id_bytes = draw_data->TotalIdxCount * (ptrdiff_t)sizeof(ImDrawIdx);
@@ -299,7 +294,7 @@ void ImguiRenderDrawList(struct ImDrawData * draw_data) {
                     (int)(h - pcmd->ClipRect.w),
                     (int)(pcmd->ClipRect.z - pcmd->ClipRect.x),
                     (int)(pcmd->ClipRect.w - pcmd->ClipRect.y));
-        gl->ProgramUniform1iv(g_ig_state->vert, 2, 1, &vt_offset);
+        gl->ProgramUniform1iv(g_ig_state->vert, 0, 1, &vt_offset);
         tex_input[0] = *(unsigned *)pcmd->TextureId;
         gl->BindTextures(0, 1, tex_input);
         gl->DrawArraysInstanced(0x0004, id_offset, pcmd->ElemCount, 1); // GL_TRIANGLES
@@ -527,40 +522,39 @@ static inline void ImguiCreateDeviceObjects() {
   __auto_type gl = g_gpulib_libgl;
   
   char * vert_string =
-      "#version 330"                                                               "\n"
-      "#extension GL_ARB_gpu_shader5                : enable"                      "\n"
-      "#extension GL_ARB_shader_precision           : enable"                      "\n"
-      "#extension GL_ARB_enhanced_layouts           : enable"                      "\n"
-      "#extension GL_ARB_texture_cube_map_array     : enable"                      "\n"
-      "#extension GL_ARB_separate_shader_objects    : enable"                      "\n"
-      "#extension GL_ARB_shading_language_420pack   : enable"                      "\n"
-      "#extension GL_ARB_shading_language_packing   : enable"                      "\n"
-      "#extension GL_ARB_explicit_uniform_location  : enable"                      "\n"
-      "#extension GL_ARB_fragment_coord_conventions : enable"                      "\n"
-      "out gl_PerVertex { vec4 gl_Position; };"                                    "\n"
-      ""                                                                           "\n"
-      "layout(location = 0) uniform vec2 g_scale;"                                 "\n"
-      "layout(location = 1) uniform vec2 g_translate;"                             "\n"
-      "layout(location = 2) uniform int  g_vt_offset;"                             "\n"
-      ""                                                                           "\n"
-      "layout(binding = 1) uniform  samplerBuffer s_vt_f32;"                       "\n"
-      "layout(binding = 2) uniform usamplerBuffer s_vt_u32;"                       "\n"
-      "layout(binding = 3) uniform isamplerBuffer s_id;"                           "\n"
-      ""                                                                           "\n"
-      "layout(location = 0) out vec2 g_uv;"                                        "\n"
-      "layout(location = 1) out vec4 g_colour;"                                    "\n"
-      ""                                                                           "\n"
-      "void main() {"                                                              "\n"
-      "  int i = texelFetch(s_id, gl_VertexID).x;"                                 "\n"
-      "  float pos_x = texelFetch(s_vt_f32, (g_vt_offset + i) * 5 + 0).x;"         "\n"
-      "  float pos_y = texelFetch(s_vt_f32, (g_vt_offset + i) * 5 + 1).x;"         "\n"
-      "  float uv_x  = texelFetch(s_vt_f32, (g_vt_offset + i) * 5 + 2).x;"         "\n"
-      "  float uv_y  = texelFetch(s_vt_f32, (g_vt_offset + i) * 5 + 3).x;"         "\n"
-      "  uint  color = texelFetch(s_vt_u32, (g_vt_offset + i) * 5 + 4).x;"         "\n"
-      "  g_uv = vec2(uv_x, uv_y);"                                                 "\n"
-      "  g_colour = unpackUnorm4x8(color);"                                        "\n"
-      "  gl_Position = vec4(fma(vec2(pos_x, pos_y), g_scale, g_translate), 0, 1);" "\n"
-      "}"                                                                          "\n";
+      "#version 330"                                                                   "\n"
+      "#extension GL_ARB_gpu_shader5                : enable"                          "\n"
+      "#extension GL_ARB_shader_precision           : enable"                          "\n"
+      "#extension GL_ARB_enhanced_layouts           : enable"                          "\n"
+      "#extension GL_ARB_texture_cube_map_array     : enable"                          "\n"
+      "#extension GL_ARB_separate_shader_objects    : enable"                          "\n"
+      "#extension GL_ARB_shading_language_420pack   : enable"                          "\n"
+      "#extension GL_ARB_shading_language_packing   : enable"                          "\n"
+      "#extension GL_ARB_explicit_uniform_location  : enable"                          "\n"
+      "#extension GL_ARB_fragment_coord_conventions : enable"                          "\n"
+      "out gl_PerVertex { vec4 gl_Position; };"                                        "\n"
+      ""                                                                               "\n"
+      "layout(location = 0) uniform int  g_vt_offset;"                                 "\n"
+      "layout(location = 1) uniform vec4 g_xforms;"                                    "\n"
+      ""                                                                               "\n"
+      "layout(binding = 1) uniform  samplerBuffer s_vt_f32;"                           "\n"
+      "layout(binding = 2) uniform usamplerBuffer s_vt_u32;"                           "\n"
+      "layout(binding = 3) uniform isamplerBuffer s_id;"                               "\n"
+      ""                                                                               "\n"
+      "layout(location = 0) out vec2 g_uv;"                                            "\n"
+      "layout(location = 1) out vec4 g_colour;"                                        "\n"
+      ""                                                                               "\n"
+      "void main() {"                                                                  "\n"
+      "  int i = texelFetch(s_id, gl_VertexID).x;"                                     "\n"
+      "  float pos_x = texelFetch(s_vt_f32, (g_vt_offset + i) * 5 + 0).x;"             "\n"
+      "  float pos_y = texelFetch(s_vt_f32, (g_vt_offset + i) * 5 + 1).x;"             "\n"
+      "  float uv_x  = texelFetch(s_vt_f32, (g_vt_offset + i) * 5 + 2).x;"             "\n"
+      "  float uv_y  = texelFetch(s_vt_f32, (g_vt_offset + i) * 5 + 3).x;"             "\n"
+      "  uint  color = texelFetch(s_vt_u32, (g_vt_offset + i) * 5 + 4).x;"             "\n"
+      "  g_uv = vec2(uv_x, uv_y);"                                                     "\n"
+      "  g_colour = unpackUnorm4x8(color);"                                            "\n"
+      "  gl_Position = vec4(fma(vec2(pos_x, pos_y), g_xforms.xy, g_xforms.zw), 0, 1);" "\n"
+      "}"                                                                              "\n";
 
   char * frag_string =
       "#version 330"                                              "\n"

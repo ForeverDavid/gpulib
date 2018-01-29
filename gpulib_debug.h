@@ -220,42 +220,18 @@ static inline void GpuDebugImgEx(unsigned tex_id, char * name) {
   igEnd();
 }
 
-static inline void GpuDebugU32Ex(unsigned program, int location, int count, unsigned * value, char * value_name) {
-  igDragInt(value_name, (int *)value, 1, 0, 0, NULL);
-  GpuU32(program, location, count, value);
-}
-
-static inline void GpuDebugI32Ex(unsigned program, int location, int count, int * value, char * value_name) {
+static inline void GpuDebugUniformIntEx(unsigned program, int location, int count, int * value, char * value_name) {
   igDragInt(value_name, value, 1, 0, 0, NULL);
-  GpuI32(program, location, count, value);
+  GpuUniformInt(program, location, count, value);
 }
 
-static inline void GpuDebugF32Ex(unsigned program, int location, int count, float * value, char * value_name) {
-  igDragFloat(value_name, value, 0.001, 0, 0, NULL, 1);
-  GpuF32(program, location, count, value);
-}
-
-static inline void GpuDebugV2FEx(unsigned program, int location, int count, float * value, char * value_name) {
-  igDragFloat2(value_name, value, 0.001, 0, 0, NULL, 1);
-  GpuV2F(program, location, count, value);
-}
-
-static inline void GpuDebugV3FEx(unsigned program, int location, int count, float * value, char * value_name) {
-  igDragFloat3(value_name, value, 0.001, 0, 0, NULL, 1);
-  GpuV3F(program, location, count, value);
-}
-
-static inline void GpuDebugV4FEx(unsigned program, int location, int count, float * value, char * value_name) {
+static inline void GpuDebugUniformFloat4Ex(unsigned program, int location, int count, float * value, char * value_name) {
   igDragFloat4(value_name, value, 0.001, 0, 0, NULL, 1);
-  GpuV4F(program, location, count, value);
+  GpuUniformFloat4(program, location, count, value);
 }
 
 #define GpuDebugVert(program_id, string, string_bytes) GpuDebugProgramEx(0x8B31, program_id, string, string_bytes, #program_id) // GL_VERTEX_SHADER
 #define GpuDebugFrag(program_id, string, string_bytes) GpuDebugProgramEx(0x8B30, program_id, string, string_bytes, #program_id) // GL_FRAGMENT_SHADER
 #define GpuDebugImg(tex_id) GpuDebugImgEx(tex_id, #tex_id)
-#define GpuDebugU32(program, location, count, value) GpuDebugU32Ex(program, location, count, value, #value)
-#define GpuDebugI32(program, location, count, value) GpuDebugI32Ex(program, location, count, value, #value)
-#define GpuDebugF32(program, location, count, value) GpuDebugF32Ex(program, location, count, value, #value)
-#define GpuDebugV2F(program, location, count, value) GpuDebugV2FEx(program, location, count, value, #value)
-#define GpuDebugV3F(program, location, count, value) GpuDebugV3FEx(program, location, count, value, #value)
-#define GpuDebugV4F(program, location, count, value) GpuDebugV4FEx(program, location, count, value, #value)
+#define GpuDebugUniformInt(program, location, count, value) GpuDebugUniformIntEx(program, location, count, value, #value)
+#define GpuDebugUniformFloat4(program, location, count, value) GpuDebugUniformFloat4Ex(program, location, count, value, #value)

@@ -10,9 +10,8 @@
 #extension GL_ARB_fragment_coord_conventions : enable
 out gl_PerVertex { vec4 gl_Position; };
 
-layout(location = 0) uniform vec4  g_cam_rot;
-layout(location = 1) uniform float g_fov_x;
-layout(location = 2) uniform float g_fov_y;
+layout(location = 0) uniform vec4 g_cam_rot;
+layout(location = 1) uniform vec4 g_fov;
 
 layout(location = 0) out vec3 g_pos;
 
@@ -45,8 +44,8 @@ void main() {
   vec3 mv = g_pos;
   mv = qrot(mv, qinv(g_cam_rot));
 
-  mv.x *= g_fov_x;
-  mv.y *= g_fov_y;
+  mv.x *= g_fov.x;
+  mv.y *= g_fov.y;
 
   gl_Position = vec4(mv, mv.z + 0.1);
 }

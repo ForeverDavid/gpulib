@@ -337,26 +337,24 @@ int main() {
     profE("Instance pos update");
 
     profB("Uniforms");
-    GpuV3F(mesh_vert, 0, 1, &cam_pos.x);
-    GpuV4F(mesh_vert, 1, 1, &cam_rot.x);
-    GpuF32(mesh_vert, 2, 1, &fov_x);
-    GpuF32(mesh_vert, 3, 1, &fov_y);
-
-    GpuV3F(mesh_frag, 0, 1, &cam_pos.x);
-    GpuI32(mesh_frag, 1, 1, &show_pass);
-
-    GpuV4F(cube_vert, 0, 1, &cam_rot.x);
-    GpuF32(cube_vert, 1, 1, &fov_x);
-    GpuF32(cube_vert, 2, 1, &fov_y);
-
     static int cube_index = 0;
     if (key_9) { cube_index = 1; show_pass = 0; }
     if (key_0) { cube_index = 0; show_pass = 0; }
-    GpuI32(mesh_frag, 2, 1, &cube_index);
-    GpuI32(cube_frag, 0, 1, &cube_index);
 
-    float t = (t_curr - t_init) / 1000.f;
-    GpuF32(quad_frag, 0, 1, &t);
+    GpuUniformFloat4(mesh_vert, 0, 1, (float [4]){cam_pos.x, cam_pos.y, cam_pos.z, 0});
+    GpuUniformFloat4(mesh_vert, 1, 1, &cam_rot.x);
+    GpuUniformFloat4(mesh_vert, 2, 1, (float [4]){fov_x, fov_y, 0, 0});
+
+    GpuUniformFloat4(mesh_frag, 0, 1, (float [4]){cam_pos.x, cam_pos.y, cam_pos.z, 0});
+    GpuUniformInt(mesh_frag, 1, 1, &show_pass);
+    GpuUniformInt(mesh_frag, 2, 1, &cube_index);
+
+    GpuUniformFloat4(cube_vert, 0, 1, &cam_rot.x);
+    GpuUniformFloat4(cube_vert, 1, 1, (float [4]){fov_x, fov_y, 0, 0});
+
+    GpuUniformInt(cube_frag, 0, 1, &cube_index);
+
+    GpuUniformFloat4(quad_frag, 0, 1, (float [4]){(t_curr - t_init) / 1000.f, 0, 0, 0});
     profE("Uniforms");
 
     GpuBindFbo(mrt_msi_fbo);

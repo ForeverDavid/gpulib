@@ -58,7 +58,7 @@ int main() {
       "layout(binding = 0) uniform samplerBuffer s_vb;" "\n"
       "layout(binding = 1) uniform samplerBuffer s_uv;" "\n"
       ""                                                "\n"
-      "layout(location = 0) uniform float cid;"         "\n"
+      "layout(location = 0) uniform vec4 cid;"          "\n"
       ""                                                "\n"
       "layout(location = 0) out vec2 g_uv;"             "\n"
       ""                                                "\n"
@@ -66,7 +66,7 @@ int main() {
       "  vec3 pos = texelFetch(s_vb, gl_VertexID).xyz;" "\n"
       "  g_uv     = texelFetch(s_uv, gl_VertexID).xy;"  "\n"
       ""                                                "\n"
-      "  pos += vec3(cid * 0.4521705, 0, 0);"           "\n"
+      "  pos += vec3(cid.x * 0.4521705, 0, 0);"         "\n"
       ""                                                "\n"
       "  pos -= vec3(5.5, 0.2, -4);"                    "\n"
       ""                                                "\n"
@@ -104,7 +104,7 @@ int main() {
     GpuBindCommands(chars_id);
     for (int i = 0; i < countof(text); i += 1) {
       float character_index = (float)i;
-      GpuF32(vert, 0, 1, &character_index);
+      GpuUniformFloat4(vert, 0, 1, (float [4]){character_index, 0, 0, 0});
       GpuDraw(gpu_triangles_e, i, 1);
     }
     GpuSwap(dpy, win);

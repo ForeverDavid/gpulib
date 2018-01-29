@@ -10,7 +10,7 @@
 #extension GL_ARB_fragment_coord_conventions : enable
 layout(origin_upper_left) in vec4 gl_FragCoord;
 
-layout(location = 0) uniform vec3 g_cam_pos;
+layout(location = 0) uniform vec4 g_cam_pos;
 layout(location = 1) uniform int  g_show_pass;
 layout(location = 2) uniform int  g_cubemap_id;
 
@@ -41,14 +41,14 @@ vec3 IntToColor(int i) {
 
 void main() {
   vec4 diff = texture(s_texture, vec3(g_uv, g_index));
-  vec4 refl = texture(s_cubemaps, vec4(reflect((g_pos - g_cam_pos), g_normal), g_cubemap_id));
+  vec4 refl = texture(s_cubemaps, vec4(reflect((g_pos - g_cam_pos.xyz), g_normal), g_cubemap_id));
   vec4 tint = vec4(0);
 
   if (g_index == 0) tint += vec4(1, 0, 0, 1);
   if (g_index == 1) tint += vec4(0, 1, 0, 1);
   if (g_index == 2) tint += vec4(0, 0, 1, 1);
 
-  g_color = mix(diff * 0.4 + tint * 0.6, refl, dot(g_normal, normalize(g_pos - g_cam_pos)) * 0.5 + 0.5);
+  g_color = mix(diff * 0.4 + tint * 0.6, refl, dot(g_normal, normalize(g_pos - g_cam_pos.xyz)) * 0.5 + 0.5);
 
   if (g_show_pass == 1) g_color = diff;
   if (g_show_pass == 2) g_color = refl;

@@ -301,11 +301,7 @@ struct gpu_libgl_t {
   void (*NamedFramebufferReadBuffer)(unsigned, int);
   void (*NamedFramebufferTextureLayer)(unsigned, int, unsigned, int, int);
   void (*ProgramParameteri)(unsigned, unsigned, int);
-  void (*ProgramUniform1fv)(unsigned, int, int, float *);
   void (*ProgramUniform1iv)(unsigned, int, int, int *);
-  void (*ProgramUniform1uiv)(unsigned, int, int, unsigned *);
-  void (*ProgramUniform2fv)(unsigned, int, int, float *);
-  void (*ProgramUniform3fv)(unsigned, int, int, float *);
   void (*ProgramUniform4fv)(unsigned, int, int, float *);
   void (*SamplerParameteri)(unsigned, unsigned, int);
   void (*Scissor)(int, int, int, int);
@@ -430,11 +426,7 @@ static inline void GpuSysGetGLProcedureAddresses() {
   gl->NamedFramebufferReadBuffer = glx->GetProcAddressARB("glNamedFramebufferReadBuffer");
   gl->NamedFramebufferTextureLayer = glx->GetProcAddressARB("glNamedFramebufferTextureLayer");
   gl->ProgramParameteri = glx->GetProcAddressARB("glProgramParameteri");
-  gl->ProgramUniform1fv = glx->GetProcAddressARB("glProgramUniform1fv");
   gl->ProgramUniform1iv = glx->GetProcAddressARB("glProgramUniform1iv");
-  gl->ProgramUniform1uiv = glx->GetProcAddressARB("glProgramUniform1uiv");
-  gl->ProgramUniform2fv = glx->GetProcAddressARB("glProgramUniform2fv");
-  gl->ProgramUniform3fv = glx->GetProcAddressARB("glProgramUniform3fv");
   gl->ProgramUniform4fv = glx->GetProcAddressARB("glProgramUniform4fv");
   gl->SamplerParameteri = glx->GetProcAddressARB("glSamplerParameteri");
   gl->Scissor = glx->GetProcAddressARB("glScissor");
@@ -1449,12 +1441,15 @@ static inline unsigned GpuFrag(char * shader_string) { return GpuPro(0x8B30, sha
 static inline unsigned GpuVertFile(char * shader_filepath) { return GpuProFile(0x8B31, shader_filepath); } // GL_VERTEX_SHADER
 static inline unsigned GpuFragFile(char * shader_filepath) { return GpuProFile(0x8B30, shader_filepath); } // GL_FRAGMENT_SHADER
 
-static inline void GpuU32(unsigned program, int location, int count, unsigned * value) { __auto_type gl = g_gpulib_libgl; gl->ProgramUniform1uiv(program, location, count, value); }
-static inline void GpuI32(unsigned program, int location, int count, int      * value) { __auto_type gl = g_gpulib_libgl; gl->ProgramUniform1iv(program, location, count, value);  }
-static inline void GpuF32(unsigned program, int location, int count, float    * value) { __auto_type gl = g_gpulib_libgl; gl->ProgramUniform1fv(program, location, count, value);  }
-static inline void GpuV2F(unsigned program, int location, int count, float    * value) { __auto_type gl = g_gpulib_libgl; gl->ProgramUniform2fv(program, location, count, value);  }
-static inline void GpuV3F(unsigned program, int location, int count, float    * value) { __auto_type gl = g_gpulib_libgl; gl->ProgramUniform3fv(program, location, count, value);  }
-static inline void GpuV4F(unsigned program, int location, int count, float    * value) { __auto_type gl = g_gpulib_libgl; gl->ProgramUniform4fv(program, location, count, value);  }
+static inline void GpuUniformInt(unsigned program, int location, int count, int * value) {
+  __auto_type gl = g_gpulib_libgl;
+  gl->ProgramUniform1iv(program, location, count, value);
+}
+
+static inline void GpuUniformFloat4(unsigned program, int location, int count, float * value) {
+  __auto_type gl = g_gpulib_libgl;
+  gl->ProgramUniform4fv(program, location, count, value);
+}
 
 static inline unsigned GpuPpo(unsigned vert_pro_id, unsigned frag_pro_id) {
   profB(__func__);
