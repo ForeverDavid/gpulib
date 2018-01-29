@@ -1,3 +1,4 @@
+#include "../../stdlib/stdlib.h"
 #include "../../gpulib_x11_debug.h"
 
 enum {MAX_STR = 10000};

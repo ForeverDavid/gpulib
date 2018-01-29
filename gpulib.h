@@ -12,7 +12,6 @@
 #define profE(x)
 #endif
 
-#include "stdlib/stdlib.h"
 #include <stddef.h>
 
 struct gpu_cmd_t {

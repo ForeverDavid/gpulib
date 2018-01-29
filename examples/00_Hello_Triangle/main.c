@@ -1,3 +1,4 @@
+#include "../../stdlib/stdlib.h"
 #include "../../gpulib.h"
 #include "../../gpulib_x11_wsi.h"
 

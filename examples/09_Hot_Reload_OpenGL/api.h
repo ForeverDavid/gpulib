@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../../stdlib/stdlib.h"
 #define GPULIB_DEBUG_MANUAL
 #include "../../gpulib_x11_debug.h"
 

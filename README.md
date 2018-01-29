@@ -56,8 +56,8 @@ enum gpu_pix_type_e;
 List of `gpulib.h` global variables:
 
 ```c
-struct gpu_libgl_t    g_gpulib_libgl_data;
-struct gpu_libgl_t  * g_gpulib_libgl;
+struct gpu_libgl_t   g_gpulib_libgl_data;
+struct gpu_libgl_t * g_gpulib_libgl;
 ```
 
 List of `gpulib.h` procedures:
