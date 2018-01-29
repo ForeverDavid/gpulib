@@ -79,6 +79,8 @@ static inline int GpuSysIsExtensionSupported(char * extension);
 static inline void GpuSysCheckExtensions(int extension_count, char ** extensions);
 static inline void GpuSysX11Window(char * title, int title_bytes, int x, int y, int w, int h, int msaa_sample_count, Display ** out_display, Window * out_window);
 static inline void GpuWindow(char * window_title, int window_title_bytes, int window_width, int window_height, int msaa_samples, char * out_scancodes, Display ** out_dpy, Window * out_win);
+static inline void GpuSetDebugCallback(void * callback);
+static inline void GpuDebugCallback(unsigned source, unsigned type, unsigned id, unsigned severity, int length, char * message, void * userdata);
 static inline void * GpuMalloc(ptrdiff_t bytes, unsigned * out_buf_id);
 static inline void * GpuCalloc(ptrdiff_t bytes, unsigned * out_buf_id);
 static inline void GpuMallocDeviceLocal(ptrdiff_t bytes, unsigned * out_buf_id);
@@ -116,13 +118,13 @@ static inline unsigned GpuVert(char * shader_string);
 static inline unsigned GpuFrag(char * shader_string);
 static inline unsigned GpuVertFile(char * shader_filepath);
 static inline unsigned GpuFragFile(char * shader_filepath);
-static inline void GpuUniformInt(unsigned program, int location, int count, int * value);
-static inline void GpuUniformFloat4(unsigned program, int location, int count, float * value);
 static inline unsigned GpuPpo(unsigned vert_pro_id, unsigned frag_pro_id);
 static inline unsigned GpuFbo(unsigned color_tex_id_0, int color_tex_layer_0, unsigned color_tex_id_1, int color_tex_layer_1, unsigned color_tex_id_2, int color_tex_layer_2, unsigned color_tex_id_3, int color_tex_layer_3, unsigned depth_tex_id_0, int depth_tex_layer_0);
 static inline unsigned GpuXfb(unsigned buf_0_id, ptrdiff_t buf_0_bytes_first, ptrdiff_t buf_0_bytes_count, unsigned buf_1_id, ptrdiff_t buf_1_bytes_first, ptrdiff_t buf_1_bytes_count, unsigned buf_2_id, ptrdiff_t buf_2_bytes_first, ptrdiff_t buf_2_bytes_count, unsigned buf_3_id, ptrdiff_t buf_3_bytes_first, ptrdiff_t buf_3_bytes_count);
 static inline void * GpuFence();
 static inline unsigned GpuQuery();
+static inline void GpuUniformInt(unsigned program, int location, int count, int * value);
+static inline void GpuUniformFloat4(unsigned program, int location, int count, float * value);
 static inline int GpuFenceIsComplete(void * fence);
 static inline void GpuQueryBeginTimeElapsed(unsigned query_id);
 static inline void GpuQueryEndTimeElapsed();
@@ -146,8 +148,6 @@ static inline void GpuSwap(Display * dpy, Window win);
 static inline void GpuEnable(unsigned flags);
 static inline void GpuDisable(unsigned flags);
 static inline void GpuViewport(int x, int y, int width, int height);
-static inline void GpuSetDebugCallback(void * callback);
-static inline void GpuDebugCallback(unsigned source, unsigned type, unsigned id, unsigned severity, int length, char * message, void * userdata);
 ```
 
 Special thanks to Nicolas [@nlguillemot](https://github.com/nlguillemot) and Andreas [@ands](https://github.com/ands)

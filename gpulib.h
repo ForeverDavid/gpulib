@@ -936,6 +936,49 @@ static inline void GpuWindow(
   profE(__func__);
 }
 
+static inline void GpuSetDebugCallback(void * callback) {
+  profB(__func__);
+  __auto_type gl = g_gpulib_libgl;
+  gl->DebugMessageCallback(callback, NULL);
+  profE(__func__);
+}
+
+static inline void GpuDebugCallback(unsigned source, unsigned type, unsigned id, unsigned severity, int length, char * message, void * userdata) {
+  char * GL_ERROR_SOURCE[] = {
+    "API",
+    "WINDOW SYSTEM",
+    "SHADER COMPILER",
+    "THIRD PARTY",
+    "APPLICATION",
+    "OTHER"
+  };
+
+  char * GL_ERROR_SEVERITY[] = {
+    "HIGH",
+    "MEDIUM",
+    "LOW",
+    "NOTIFICATION"
+  };
+
+  char * GL_ERROR_TYPE[] = {
+    "ERROR",
+    "DEPRECATED BEHAVIOR",
+    "UNDEFINED DEHAVIOUR",
+    "PORTABILITY",
+    "PERFORMANCE",
+    "OTHER"
+  };
+
+  stdlib_nprintf(GPULIB_MAX_PRINT_BYTES,
+    "[GpuLib] OpenGL Debug Callback: ID: %u, Source: %s, Severity: %s, Type: %s\n"
+    "[GpuLib] Message: %s\n\n",
+    id,
+    GL_ERROR_SOURCE[source - 0x8246], // GL_DEBUG_SOURCE_API
+    GL_ERROR_SEVERITY[severity != 0x826B ? severity - 0x9146 : 3], // GL_DEBUG_SEVERITY_NOTIFICATION, GL_DEBUG_SEVERITY_HIGH
+    GL_ERROR_TYPE[type - 0x824C], // GL_DEBUG_TYPE_ERROR
+    message);
+}
+
 static inline void * GpuMalloc(ptrdiff_t bytes, unsigned * out_buf_id) {
   profB(__func__);
   __auto_type gl = g_gpulib_libgl;
@@ -1441,16 +1484,6 @@ static inline unsigned GpuFrag(char * shader_string) { return GpuPro(0x8B30, sha
 static inline unsigned GpuVertFile(char * shader_filepath) { return GpuProFile(0x8B31, shader_filepath); } // GL_VERTEX_SHADER
 static inline unsigned GpuFragFile(char * shader_filepath) { return GpuProFile(0x8B30, shader_filepath); } // GL_FRAGMENT_SHADER
 
-static inline void GpuUniformInt(unsigned program, int location, int count, int * value) {
-  __auto_type gl = g_gpulib_libgl;
-  gl->ProgramUniform1iv(program, location, count, value);
-}
-
-static inline void GpuUniformFloat4(unsigned program, int location, int count, float * value) {
-  __auto_type gl = g_gpulib_libgl;
-  gl->ProgramUniform4fv(program, location, count, value);
-}
-
 static inline unsigned GpuPpo(unsigned vert_pro_id, unsigned frag_pro_id) {
   profB(__func__);
   __auto_type gl = g_gpulib_libgl;
@@ -1522,6 +1555,16 @@ static inline unsigned GpuQuery() {
   gl->GenQueries(1, &query_id);
   profE(__func__);
   return query_id;
+}
+
+static inline void GpuUniformInt(unsigned program, int location, int count, int * value) {
+  __auto_type gl = g_gpulib_libgl;
+  gl->ProgramUniform1iv(program, location, count, value);
+}
+
+static inline void GpuUniformFloat4(unsigned program, int location, int count, float * value) {
+  __auto_type gl = g_gpulib_libgl;
+  gl->ProgramUniform4fv(program, location, count, value);
 }
 
 static inline int GpuFenceIsComplete(void * fence) {
@@ -1714,47 +1757,4 @@ static inline void GpuViewport(int x, int y, int width, int height) {
   __auto_type gl = g_gpulib_libgl;
   gl->Viewport(x, y, width, height);
   profE(__func__);
-}
-
-static inline void GpuSetDebugCallback(void * callback) {
-  profB(__func__);
-  __auto_type gl = g_gpulib_libgl;
-  gl->DebugMessageCallback(callback, NULL);
-  profE(__func__);
-}
-
-static inline void GpuDebugCallback(unsigned source, unsigned type, unsigned id, unsigned severity, int length, char * message, void * userdata) {
-  char * GL_ERROR_SOURCE[] = {
-    "API",
-    "WINDOW SYSTEM",
-    "SHADER COMPILER",
-    "THIRD PARTY",
-    "APPLICATION",
-    "OTHER"
-  };
-
-  char * GL_ERROR_SEVERITY[] = {
-    "HIGH",
-    "MEDIUM",
-    "LOW",
-    "NOTIFICATION"
-  };
-
-  char * GL_ERROR_TYPE[] = {
-    "ERROR",
-    "DEPRECATED BEHAVIOR",
-    "UNDEFINED DEHAVIOUR",
-    "PORTABILITY",
-    "PERFORMANCE",
-    "OTHER"
-  };
-
-  stdlib_nprintf(GPULIB_MAX_PRINT_BYTES,
-    "[GpuLib] OpenGL Debug Callback: ID: %u, Source: %s, Severity: %s, Type: %s\n"
-    "[GpuLib] Message: %s\n\n",
-    id,
-    GL_ERROR_SOURCE[source - 0x8246], // GL_DEBUG_SOURCE_API
-    GL_ERROR_SEVERITY[severity != 0x826B ? severity - 0x9146 : 3], // GL_DEBUG_SEVERITY_NOTIFICATION, GL_DEBUG_SEVERITY_HIGH
-    GL_ERROR_TYPE[type - 0x824C], // GL_DEBUG_TYPE_ERROR
-    message);
 }
