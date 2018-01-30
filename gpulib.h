@@ -531,18 +531,18 @@ static inline void * GpuMap(unsigned buf_id, ptrdiff_t bytes_first, ptrdiff_t by
   return buf_ptr;
 }
 
-static inline void * GpuMapIndices(ptrdiff_t bytes_first, ptrdiff_t bytes_count) {
+static inline unsigned * GpuMapIndices(ptrdiff_t first, ptrdiff_t count) {
   profB(__func__);
   __auto_type gl = g_gpulib_libgl;
-  void * buf_ptr = gl->MapBufferRange(0x8893, bytes_first, bytes_count, 0xC2); // GL_ELEMENT_ARRAY_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT
+  unsigned * buf_ptr = gl->MapBufferRange(0x8893, first * sizeof(unsigned), count * sizeof(unsigned), 0xC2); // GL_ELEMENT_ARRAY_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT
   profE(__func__);
   return buf_ptr;
 }
 
-static inline void * GpuMapCommands(ptrdiff_t bytes_first, ptrdiff_t bytes_count) {
+static inline struct gpu_cmd_t * GpuMapCommands(ptrdiff_t first, ptrdiff_t count) {
   profB(__func__);
   __auto_type gl = g_gpulib_libgl;
-  void * buf_ptr = gl->MapBufferRange(0x8F3F, bytes_first, bytes_count, 0xC2); // GL_DRAW_INDIRECT_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT
+  struct gpu_cmd_t * buf_ptr = gl->MapBufferRange(0x8F3F, first * sizeof(struct gpu_cmd_t), count * sizeof(struct gpu_cmd_t), 0xC2); // GL_DRAW_INDIRECT_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT
   profE(__func__);
   return buf_ptr;
 }

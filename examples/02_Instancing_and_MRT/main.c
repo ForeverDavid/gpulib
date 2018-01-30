@@ -133,7 +133,7 @@ int main() {
   profE("Mesh upload");
 
   GpuBindCommands(di_buf);
-  struct gpu_cmd_t * cmds = GpuMapCommands(0, e_draw_count * sizeof(struct gpu_cmd_t));
+  struct gpu_cmd_t * cmds = GpuMapCommands(0, e_draw_count);
   cmds[0].instance_count = 30;
   cmds[1].instance_count = 30;
   cmds[2].instance_count = 30;

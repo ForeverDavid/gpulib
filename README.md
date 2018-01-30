@@ -84,8 +84,8 @@ static inline unsigned GpuCallocImg(enum gpu_tex_format_e format, int width, int
 static inline unsigned GpuCallocCbm(enum gpu_tex_format_e format, int width, int height, int layer_count, int mipmap_count);
 static inline unsigned GpuCallocMsi(enum gpu_tex_format_e format, int width, int height, int layer_count, int msaa_samples);
 static inline void * GpuMap(unsigned buf_id, ptrdiff_t bytes_first, ptrdiff_t bytes_count);
-static inline void * GpuMapIndices(ptrdiff_t bytes_first, ptrdiff_t bytes_count);
-static inline void * GpuMapCommands(ptrdiff_t bytes_first, ptrdiff_t bytes_count);
+static inline unsigned * GpuMapIndices(ptrdiff_t first, ptrdiff_t count);
+static inline struct gpu_cmd_t * GpuMapCommands(ptrdiff_t first, ptrdiff_t count);
 static inline unsigned GpuCast(unsigned buf_id, enum gpu_buf_format_e format, ptrdiff_t bytes_first, ptrdiff_t bytes_count);
 static inline unsigned GpuCastImg(unsigned tex_id, enum gpu_tex_format_e format, int layer_first, int layer_count, int mipmap_first, int mipmap_count);
 static inline unsigned GpuCastCbm(unsigned tex_id, enum gpu_tex_format_e format, int layer_first, int layer_count, int mipmap_first, int mipmap_count);
