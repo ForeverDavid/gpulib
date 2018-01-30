@@ -233,6 +233,8 @@ int main() {
   unsigned long t_init = GetTimeMs();
   unsigned long t_prev = GetTimeMs();
 
+  void * fence = NULL;
+
   for (Atom quit = XInternAtom(dpy, "WM_DELETE_WINDOW", 0);;) {
     profB("Frame");
     unsigned long t_curr = GetTimeMs();
@@ -334,11 +336,6 @@ int main() {
     if (key_7) show_pass = 7;
     if (key_8) show_pass = 8;
 
-    profB("Instance pos update");
-    for (int i = 0; i < (30 + 30 + 30); i += 1)
-      instance_pos[i].y = stdlib_sinf((t_curr - t_init) * 0.0015 + i * 0.5) * 0.3;
-    profE("Instance pos update");
-
     profB("Uniforms");
     static int cube_index = 0;
     if (key_9) { cube_index = 1; show_pass = 0; }
@@ -360,6 +357,12 @@ int main() {
     GpuUniformFloat4(quad_frag, 0, 1, (float [4]){(t_curr - t_init) / 1000.f, 0, 0, 0});
     profE("Uniforms");
 
+    profB("Instance pos update");
+    for (; fence != NULL && GpuFenceIsComplete(fence) == 0;) {}
+    for (int i = 0; i < (30 + 30 + 30); i += 1)
+      instance_pos[i].y = stdlib_sinf((t_curr - t_init) * 0.0015 + i * 0.5) * 0.3;
+    profE("Instance pos update");
+
     GpuBindFbo(mrt_msi_fbo);
     GpuClear();
     if (!show_pass) {
@@ -376,6 +379,7 @@ int main() {
     GpuBindIndices(ib_buf);
     GpuBindPpo(mesh_ppo);
     GpuDraw(gpu_triangles_e, 0, e_draw_count);
+    fence = GpuFence();
     GpuBindFbo(0);
 
     GpuBlit(mrt_msi_fbo, 0, 0, 0, 1280, 720,
