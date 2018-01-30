@@ -1,19 +1,16 @@
 #undef glAttachShader
 #undef glBeginQuery
-#undef glBeginTransformFeedback
 #undef glBindBuffer
 #undef glBindFramebuffer
 #undef glBindProgramPipeline
 #undef glBindSamplers
 #undef glBindTextures
-#undef glBindTransformFeedback
 #undef glBindVertexArray
 #undef glBlendFunc
 #undef glBlitNamedFramebuffer
 #undef glBufferStorage
 #undef glClear
 #undef glClearDepth
-#undef glClearTexSubImage
 #undef glClipControl
 #undef glCompileShader
 #undef glCreateBuffers
@@ -23,7 +20,6 @@
 #undef glCreateSamplers
 #undef glCreateShader
 #undef glCreateTextures
-#undef glCreateTransformFeedbacks
 #undef glCreateVertexArrays
 #undef glDebugMessageCallback
 #undef glDeleteBuffers
@@ -35,7 +31,6 @@
 #undef glDeleteShader
 #undef glDeleteSync
 #undef glDeleteTextures
-#undef glDeleteTransformFeedbacks
 #undef glDepthFunc
 #undef glDepthRange
 #undef glDetachShader
@@ -43,7 +38,6 @@
 #undef glDrawArraysInstanced
 #undef glEnable
 #undef glEndQuery
-#undef glEndTransformFeedback
 #undef glFenceSync
 #undef glFrontFace
 #undef glGenBuffers
@@ -80,7 +74,5 @@
 #undef glTextureStorage3DMultisample
 #undef glTextureSubImage3D
 #undef glTextureView
-#undef glTransformFeedbackBufferRange
-#undef glTransformFeedbackVaryings
 #undef glUseProgramStages
 #undef glViewport

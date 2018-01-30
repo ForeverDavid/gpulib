@@ -110,8 +110,6 @@ static inline unsigned long GetTimeMs() {
 struct gpu_cmd_t g_draw_commands[e_draw_count];
 
 int main() {
-  __auto_type libc = g_gpulib_libc;
-
   GpuWsiGetLibcProcedureAddresses();
   ProfCalloc = g_gpulib_libc->calloc;
   ProfFree = g_gpulib_libc->free;
@@ -140,7 +138,7 @@ int main() {
   GpuBindCommands(0);
 
   unsigned instance_pos_id = 0;
-  vec3 * instance_pos = GpuCalloc((30 + 30 + 30) * sizeof(vec3), &instance_pos_id, libc->calloc, libc->free);
+  vec3 * instance_pos = GpuMalloc((30 + 30 + 30) * sizeof(vec3), &instance_pos_id);
 
   for (int i = 0, row = 10, space = 3; i < (30 + 30 + 30); i += 1) {
     instance_pos[i].x = (float)i * space - (i / row) * row * space;
@@ -148,36 +146,36 @@ int main() {
     instance_pos[i].z = ((float)i / row) * space;
   }
 
-  unsigned instance_pos_tex = GpuCast(instance_pos_id, gpu_xyz_f32_e, 0, (30 + 30 + 30) * sizeof(vec3));
+  unsigned instance_pos_tex = GpuView(instance_pos_id, gpu_xyz_f32_e, 0, (30 + 30 + 30) * sizeof(vec3));
 
-  unsigned textures = GpuCallocImg(gpu_srgb_b8_e, 512, 512, 3, 4);
-  unsigned skyboxes = GpuCallocCbm(gpu_srgb_b8_e, 512, 512, 2, 1);
+  unsigned textures = GpuMallocImage(gpu_srgb_b8_e, 512, 512, 3, 4);
+  unsigned skyboxes = GpuMallocCubemap(gpu_srgb_b8_e, 512, 512, 2, 1);
 
-  GpuWsiBinaryRgbImg(textures, 512, 512, 3, g_resources.textures);
-  GpuWsiBinaryRgbCbm(skyboxes, 512, 512, 2, g_resources.cubemaps);
+  GpuWsiBinaryRgbImage(textures, 512, 512, 3, g_resources.textures);
+  GpuWsiBinaryRgbCubemap(skyboxes, 512, 512, 2, g_resources.cubemaps);
 
-  unsigned mrt_msi_depth = GpuCallocMsi(gpu_d_f32_e, 1280, 720, 1, 4);
-  unsigned mrt_msi_color = GpuCallocMsi(gpu_srgba_b8_e, 1280, 720, 1, 4);
-  unsigned mrt_nms_color = GpuCallocImg(gpu_srgba_b8_e, 1280, 720, 1, 1);
+  unsigned mrt_msi_depth = GpuMallocMultisampledImage(gpu_d_f32_e, 1280, 720, 1, 4);
+  unsigned mrt_msi_color = GpuMallocMultisampledImage(gpu_srgba_b8_e, 1280, 720, 1, 4);
+  unsigned mrt_nms_color = GpuMallocImage(gpu_srgba_b8_e, 1280, 720, 1, 1);
 
-  unsigned mrt_msi_fbo = GpuFbo(mrt_msi_color, 0, 0, 0, 0, 0, 0, 0, mrt_msi_depth, 0);
-  unsigned mrt_nms_fbo = GpuFbo(mrt_nms_color, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+  unsigned mrt_msi_fbo = GpuFramebuffer(mrt_msi_color, 0, 0, 0, 0, 0, 0, 0, mrt_msi_depth, 0);
+  unsigned mrt_nms_fbo = GpuFramebuffer(mrt_nms_color, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
-  unsigned smp_textures = GpuSmp(4, gpu_linear_mipmap_linear_e, gpu_linear_e, gpu_repeat_e);
-  unsigned smp_mrtcolor = GpuSmp(0, gpu_nearest_e, gpu_nearest_e, gpu_clamp_to_border_e);
+  unsigned smp_textures = GpuSampler(4, gpu_linear_mipmap_linear_e, gpu_linear_e, gpu_repeat_e);
+  unsigned smp_mrtcolor = GpuSampler(0, gpu_nearest_e, gpu_nearest_e, gpu_clamp_to_border_e);
 
-  unsigned mesh_vert = GpuWsiVert(g_resources.vs_mesh);
-  unsigned mesh_frag = GpuWsiFrag(g_resources.fs_mesh);
+  unsigned mesh_vert = GpuWsiProgramVert(g_resources.vs_mesh);
+  unsigned mesh_frag = GpuWsiProgramFrag(g_resources.fs_mesh);
 
-  unsigned quad_vert = GpuWsiVert(g_resources.vs_quad);
-  unsigned quad_frag = GpuWsiFrag(g_resources.fs_quad);
+  unsigned quad_vert = GpuWsiProgramVert(g_resources.vs_quad);
+  unsigned quad_frag = GpuWsiProgramFrag(g_resources.fs_quad);
 
-  unsigned cube_vert = GpuWsiVert(g_resources.vs_cube);
-  unsigned cube_frag = GpuWsiFrag(g_resources.fs_cube);
+  unsigned cube_vert = GpuWsiProgramVert(g_resources.vs_cube);
+  unsigned cube_frag = GpuWsiProgramFrag(g_resources.fs_cube);
 
-  unsigned mesh_ppo = GpuPpo(mesh_vert, mesh_frag);
-  unsigned quad_ppo = GpuPpo(quad_vert, quad_frag);
-  unsigned cube_ppo = GpuPpo(cube_vert, cube_frag);
+  unsigned mesh_ppo = GpuPipeline(mesh_vert, mesh_frag);
+  unsigned quad_ppo = GpuPipeline(quad_vert, quad_frag);
+  unsigned cube_ppo = GpuPipeline(cube_vert, cube_frag);
 
   unsigned texture_ids[16] = {
     [0] = vb_tex,
@@ -363,30 +361,30 @@ int main() {
       instance_pos[i].y = stdlib_sinf((t_curr - t_init) * 0.0015 + i * 0.5) * 0.3;
     profE("Instance pos update");
 
-    GpuBindFbo(mrt_msi_fbo);
+    GpuBindFramebuffer(mrt_msi_fbo);
     GpuClear();
     if (!show_pass) {
+      GpuBindPipeline(cube_ppo);
       GpuBindTextures(0, 16, sky_texture_ids);
       GpuBindSamplers(0, 16, sky_sampler_ids);
-      GpuBindPpo(cube_ppo);
       GpuDisable(gpu_depth_e);
       GpuDrawOnce(gpu_triangles_e, 0, 36, 1);
       GpuEnable(gpu_depth_e);
     }
+    GpuBindPipeline(mesh_ppo);
     GpuBindTextures(0, 16, texture_ids);
     GpuBindSamplers(0, 16, sampler_ids);
     GpuBindCommands(di_buf);
     GpuBindIndices(ib_buf);
-    GpuBindPpo(mesh_ppo);
     GpuDraw(gpu_triangles_e, 0, e_draw_count);
     fence = GpuFence();
-    GpuBindFbo(0);
+    GpuBindFramebuffer(0);
 
     GpuBlit(mrt_msi_fbo, 0, 0, 0, 1280, 720,
             mrt_nms_fbo, 0, 0, 0, 1280, 720);
 
     GpuClear();
-    GpuBindPpo(quad_ppo);
+    GpuBindPipeline(quad_ppo);
     GpuDrawOnce(gpu_triangles_e, 0, 3, 1);
 
     GpuWsiSwap(dpy, win);

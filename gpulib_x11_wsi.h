@@ -123,20 +123,17 @@ static inline void GpuWsiGetGLProcedureAddresses() {
   __auto_type glx = g_gpulib_libglx;
   gl->AttachShader = glx->GetProcAddressARB("glAttachShader");
   gl->BeginQuery = glx->GetProcAddressARB("glBeginQuery");
-  gl->BeginTransformFeedback = glx->GetProcAddressARB("glBeginTransformFeedback");
   gl->BindBuffer = glx->GetProcAddressARB("glBindBuffer");
   gl->BindFramebuffer = glx->GetProcAddressARB("glBindFramebuffer");
   gl->BindProgramPipeline = glx->GetProcAddressARB("glBindProgramPipeline");
   gl->BindSamplers = glx->GetProcAddressARB("glBindSamplers");
   gl->BindTextures = glx->GetProcAddressARB("glBindTextures");
-  gl->BindTransformFeedback = glx->GetProcAddressARB("glBindTransformFeedback");
   gl->BindVertexArray = glx->GetProcAddressARB("glBindVertexArray");
   gl->BlendFunc = glx->GetProcAddressARB("glBlendFunc");
   gl->BlitNamedFramebuffer = glx->GetProcAddressARB("glBlitNamedFramebuffer");
   gl->BufferStorage = glx->GetProcAddressARB("glBufferStorage");
   gl->Clear = glx->GetProcAddressARB("glClear");
   gl->ClearDepth = glx->GetProcAddressARB("glClearDepth");
-  gl->ClearTexSubImage = glx->GetProcAddressARB("glClearTexSubImage");
   gl->ClipControl = glx->GetProcAddressARB("glClipControl");
   gl->CompileShader = glx->GetProcAddressARB("glCompileShader");
   gl->CreateBuffers = glx->GetProcAddressARB("glCreateBuffers");
@@ -146,7 +143,6 @@ static inline void GpuWsiGetGLProcedureAddresses() {
   gl->CreateSamplers = glx->GetProcAddressARB("glCreateSamplers");
   gl->CreateShader = glx->GetProcAddressARB("glCreateShader");
   gl->CreateTextures = glx->GetProcAddressARB("glCreateTextures");
-  gl->CreateTransformFeedbacks = glx->GetProcAddressARB("glCreateTransformFeedbacks");
   gl->CreateVertexArrays = glx->GetProcAddressARB("glCreateVertexArrays");
   gl->DebugMessageCallback = glx->GetProcAddressARB("glDebugMessageCallback");
   gl->DeleteBuffers = glx->GetProcAddressARB("glDeleteBuffers");
@@ -158,7 +154,6 @@ static inline void GpuWsiGetGLProcedureAddresses() {
   gl->DeleteShader = glx->GetProcAddressARB("glDeleteShader");
   gl->DeleteSync = glx->GetProcAddressARB("glDeleteSync");
   gl->DeleteTextures = glx->GetProcAddressARB("glDeleteTextures");
-  gl->DeleteTransformFeedbacks = glx->GetProcAddressARB("glDeleteTransformFeedbacks");
   gl->DepthFunc = glx->GetProcAddressARB("glDepthFunc");
   gl->DepthRange = glx->GetProcAddressARB("glDepthRange");
   gl->DetachShader = glx->GetProcAddressARB("glDetachShader");
@@ -166,7 +161,6 @@ static inline void GpuWsiGetGLProcedureAddresses() {
   gl->DrawArraysInstanced = glx->GetProcAddressARB("glDrawArraysInstanced");
   gl->Enable = glx->GetProcAddressARB("glEnable");
   gl->EndQuery = glx->GetProcAddressARB("glEndQuery");
-  gl->EndTransformFeedback = glx->GetProcAddressARB("glEndTransformFeedback");
   gl->FenceSync = glx->GetProcAddressARB("glFenceSync");
   gl->FrontFace = glx->GetProcAddressARB("glFrontFace");
   gl->GenBuffers = glx->GetProcAddressARB("glGenBuffers");
@@ -203,8 +197,6 @@ static inline void GpuWsiGetGLProcedureAddresses() {
   gl->TextureStorage3DMultisample = glx->GetProcAddressARB("glTextureStorage3DMultisample");
   gl->TextureSubImage3D = glx->GetProcAddressARB("glTextureSubImage3D");
   gl->TextureView = glx->GetProcAddressARB("glTextureView");
-  gl->TransformFeedbackBufferRange = glx->GetProcAddressARB("glTransformFeedbackBufferRange");
-  gl->TransformFeedbackVaryings = glx->GetProcAddressARB("glTransformFeedbackVaryings");
   gl->UseProgramStages = glx->GetProcAddressARB("glUseProgramStages");
   gl->Viewport = glx->GetProcAddressARB("glViewport");
 }
@@ -627,13 +619,11 @@ static inline void GpuWsiWindow(
       "GL_ARB_clip_control",
       "GL_ARB_texture_view",
       "GL_EXT_texture_sRGB",
-      "GL_ARB_clear_texture",
       "GL_ARB_buffer_storage",
       "GL_ARB_texture_storage",
       "GL_ARB_shader_precision",
       "GL_ARB_enhanced_layouts",
       "GL_ARB_get_program_binary",
-      "GL_ARB_transform_feedback2",
       "GL_ARB_direct_state_access",
       "GL_ARB_multi_draw_indirect",
       "GL_ARB_texture_buffer_range",
@@ -710,7 +700,7 @@ static inline void GpuWsiSwap(Display * dpy, Window win) {
   profE(__func__);
 }
 
-static inline unsigned GpuWsiPro(unsigned shader_type, char * shader_filepath) {
+static inline unsigned GpuWsiProgram(unsigned shader_type, char * shader_filepath) {
   profB(__func__);
   __auto_type gl = g_gpulib_libgl;
   int fd = stdlib_open(shader_filepath, O_RDONLY);
@@ -723,17 +713,22 @@ static inline unsigned GpuWsiPro(unsigned shader_type, char * shader_filepath) {
     profE(__func__);
     return 0;
   }
-  int pro_id = GpuPro(shader_type, shader_string);
+  int pro_id = GpuProgram(shader_type, shader_string);
   stdlib_munmap(shader_string, 256 * 1024 * 1024);
   stdlib_close(fd);
   profE(__func__);
   return pro_id;
 }
 
-static inline unsigned GpuWsiVert(char * shader_filepath) { return GpuWsiPro(0x8B31, shader_filepath); } // GL_VERTEX_SHADER
-static inline unsigned GpuWsiFrag(char * shader_filepath) { return GpuWsiPro(0x8B30, shader_filepath); } // GL_FRAGMENT_SHADER
+static inline unsigned GpuWsiProgramVert(char * shader_filepath) {
+  return GpuWsiProgram(0x8B31, shader_filepath); // GL_VERTEX_SHADER
+}
 
-static inline int GpuWsiBinaryRgbImg(unsigned tex_id, int width, int height, int layer_count, char * img_binary_filepath) {
+static inline unsigned GpuWsiProgramFrag(char * shader_filepath) {
+  return GpuWsiProgram(0x8B30, shader_filepath); // GL_FRAGMENT_SHADER
+}
+
+static inline int GpuWsiBinaryRgbImage(unsigned tex_id, int width, int height, int layer_count, char * img_binary_filepath) {
   profB(__func__);
   __auto_type gl = g_gpulib_libgl;
   int fd = stdlib_open(img_binary_filepath, O_RDONLY);
@@ -758,7 +753,7 @@ static inline int GpuWsiBinaryRgbImg(unsigned tex_id, int width, int height, int
   return 0;
 }
 
-static inline int GpuWsiBinaryRgbCbm(unsigned tex_id, int width, int height, int layer_count, char * cbm_binary_filepath) {
+static inline int GpuWsiBinaryRgbCubemap(unsigned tex_id, int width, int height, int layer_count, char * cbm_binary_filepath) {
   profB(__func__);
   __auto_type gl = g_gpulib_libgl;
   int fd = stdlib_open(cbm_binary_filepath, O_RDONLY);
