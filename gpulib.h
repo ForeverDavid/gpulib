@@ -26,7 +26,7 @@ enum {
 };
 
 enum {
-  gpu_buf_map_flags_e = 0xC2, // GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT
+  gpu_buffer_map_flags_e = 0xC2, // GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT
 };
 
 enum gpu_draw_mode_e {

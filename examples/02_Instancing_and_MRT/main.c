@@ -124,7 +124,7 @@ int main() {
   profB("Mesh upload");
   unsigned di_buf = 0;
   unsigned ib_buf = 0;
-  unsigned vb_tex = SimpleMeshUploadIBVB(g_resources.mesh_ib, g_resources.mesh_vb, gpu_buf_map_flags_e, 0, 0, &di_buf, &ib_buf, NULL, (unsigned *)g_draw_commands);
+  unsigned vb_tex = SimpleMeshUploadIBVB(g_resources.mesh_ib, g_resources.mesh_vb, gpu_buffer_map_flags_e, 0, 0, &di_buf, &ib_buf, NULL, (unsigned *)g_draw_commands);
   unsigned ib_tex = SimpleMeshUploadID(g_resources.mesh_id, 0, NULL);
   unsigned no_tex = SimpleMeshUploadNormals(g_resources.mesh_normals, 0, NULL);
   unsigned uv_tex = SimpleMeshUploadUV(g_resources.mesh_uv, 0, NULL);
