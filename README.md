@@ -40,9 +40,12 @@ struct gpu_libgl_t * g_gpulib_libgl;
 List of `gpulib.h` global defines:
 
 ```c
-#ifndef GPULIB_MAX_PRINT_BYTES
-#ifndef profB
-#ifndef profE
+#define profB(x)
+#define profE(x)
+#define GPULIB_MAX_PRINT_BYTES (4096)
+#define GPULIB_VERTEX_HEADER
+#define GPULIB_FRAGMENT_HEADER
+#define GPULIB_COMPUTE_HEADER
 ```
 
 List of `gpulib.h` structs:
