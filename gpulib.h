@@ -1,4 +1,5 @@
 #pragma once
+#include <stddef.h>
 
 #ifndef GPULIB_MAX_PRINT_BYTES
 #define GPULIB_MAX_PRINT_BYTES (4096)
@@ -11,8 +12,6 @@
 #ifndef profE
 #define profE(x)
 #endif
-
-#include <stddef.h>
 
 struct gpu_cmd_t {
   unsigned count;
