@@ -3,8 +3,8 @@ GpuLib
 
 <img width="800px" src="https://i.imgur.com/dQEm83w.gif" />
 
-GpuLib is a public domain header-only C library that uses less than a 100 modern AZDO OpenGL functions to draw 3D
-geometry, post-process images, asynchronously transfer and compute data on GPU.
+GpuLib is a public domain header-only C library that uses 80 modern AZDO OpenGL functions to draw 3D geometry,
+post-process images, asynchronously transfer and compute data on GPU.
 
 The contract:
 

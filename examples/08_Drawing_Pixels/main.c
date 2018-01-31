@@ -14,7 +14,7 @@ int main() {
   GpuWsiWindow("Drawing Pixels", sizeof("Drawing Pixels"), 1280, 720, 0, NULL, &dpy, &win);
   GpuSetDebugCallback(GpuDebugCallback);
 
-  unsigned vert = GpuVert(GPULIB_VERT_HEADER
+  unsigned vert = GpuProgramVertex(GPULIB_VERTEX_HEADER
       "layout(location = 0) out vec2 g_uv;"             "\n"
       ""                                                "\n"
       "const vec2 g_tri[] = vec2[]("                    "\n"
@@ -28,7 +28,7 @@ int main() {
       "  gl_Position = vec4(g_tri[gl_VertexID], 0, 1);" "\n"
       "}"                                               "\n");
 
-  unsigned frag = GpuFrag(GPULIB_FRAG_HEADER
+  unsigned frag = GpuProgramFragment(GPULIB_FRAGMENT_HEADER
       "layout(location = 0) uniform vec4 g_time;"                                         "\n"
       ""                                                                                  "\n"
       "layout(binding = 0) uniform sampler2DArray s_color;"                               "\n"
@@ -49,9 +49,9 @@ int main() {
       "  g_color.xyz += ScreenSpaceDither(gl_FragCoord.xy) * 10;"                         "\n"
       "}"                                                                                 "\n");
 
-  unsigned ppo = GpuPpo(vert, frag);
-  unsigned tex = GpuCallocImg(gpu_srgba_b8_e, 1280, 720, 1, 1);
-  unsigned smp = GpuSmp(0, gpu_nearest_e, gpu_nearest_e, gpu_clamp_to_border_e);
+  unsigned ppo = GpuPipeline(vert, frag);
+  unsigned tex = GpuMallocImage(gpu_srgba_b8_e, 1280, 720, 1, 1);
+  unsigned smp = GpuSampler(0, gpu_nearest_e, gpu_nearest_e, gpu_clamp_to_border_e);
 
   unsigned long t_init = GetTimeMs();
   unsigned long t_prev = GetTimeMs();
@@ -72,9 +72,9 @@ int main() {
     GpuClear();
     GpuBindTextures(0, 16, (unsigned [16]){tex});
     GpuBindSamplers(0, 16, (unsigned [16]){smp});
-    GpuBindPpo(ppo);
+    GpuBindPipeline(ppo);
     GpuUniformFloat4(frag, 0, 1, (float [4]){(t_curr - t_init) / 1000.f, 0, 0, 0});
-    GpuDrawOnce(gpu_triangles_e, 0, 3, 1);
+    GpuDraw(gpu_triangles_e, 0, 3, 1);
     GpuWsiSwap(dpy, win);
 
     t_prev = t_curr;

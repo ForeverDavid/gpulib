@@ -31,8 +31,6 @@ struct {
 struct gpu_cmd_t g_draw_commands[e_draw_count];
 
 int main() {
-  __auto_type libc = g_gpulib_libc;
-
   Display * dpy = NULL;
   Window win = 0;
   GpuWsiWindow("Drawing Text", sizeof("Drawing Text"), 1280, 720, 0, NULL, &dpy, &win);
@@ -44,21 +42,23 @@ int main() {
   unsigned uv_tex = SimpleMeshUploadUV(g_resources.mesh_uv, 0, NULL);
 
   unsigned textures[16] = {
-    vb_tex,
-    uv_tex,
+    [0] = vb_tex,
+    [1] = uv_tex,
   };
 
   char text[] = "Nothing spectacular here.";
 
   unsigned chars_id = 0;
-  auto chars = GpuCallocCommands(countof(text), &chars_id, libc->calloc, libc->free);
+  auto chars = GpuMallocCommands(countof(text), &chars_id);
   for (int i = 0; i < countof(text); i += 1) {
-    chars[i].instance_count = 1;
     chars[i].first = g_draw_commands[text[i] - 33].first;
     chars[i].count = g_draw_commands[text[i] - 33].count;
+    chars[i].instance_first = 0;
+    chars[i].instance_count = 1;
+    chars[i].base_vertex = 0;
   }
 
-  unsigned vert = GpuVert(GPULIB_VERT_HEADER
+  unsigned vert = GpuProgramVertex(GPULIB_VERTEX_HEADER
       "layout(binding = 0) uniform samplerBuffer s_vb;" "\n"
       "layout(binding = 1) uniform samplerBuffer s_uv;" "\n"
       ""                                                "\n"
@@ -80,7 +80,7 @@ int main() {
       "  gl_Position = vec4(pos, pos.z + 0.1);"         "\n"
       "}"                                               "\n");
 
-  unsigned frag = GpuFrag(GPULIB_FRAG_HEADER
+  unsigned frag = GpuProgramFragment(GPULIB_FRAGMENT_HEADER
       "layout(location = 0) in vec2 g_uv;"      "\n"
       ""                                        "\n"
       "layout(location = 0) out vec4 g_color;"  "\n"
@@ -89,7 +89,7 @@ int main() {
       "  g_color = vec4(g_uv.x, g_uv.y, 1, 1);" "\n"
       "}"                                       "\n");
 
-  unsigned ppo = GpuPpo(vert, frag);
+  unsigned ppo = GpuPipeline(vert, frag);
 
   for (Atom quit = XInternAtom(dpy, "WM_DELETE_WINDOW", 0);;) {
     for (XEvent event = {0}; XPending(dpy);) {
@@ -102,14 +102,14 @@ int main() {
       }
     }
     GpuClear();
-    GpuBindPpo(ppo);
+    GpuBindPipeline(ppo);
     GpuBindTextures(0, 16, textures);
     GpuBindIndices(ib_buf);
     GpuBindCommands(chars_id);
     for (int i = 0; i < countof(text); i += 1) {
       float character_index = (float)i;
       GpuUniformFloat4(vert, 0, 1, (float [4]){character_index, 0, 0, 0});
-      GpuDraw(gpu_triangles_e, i, 1);
+      GpuDrawIndirect(gpu_triangles_e, i, 1);
     }
     GpuWsiSwap(dpy, win);
   }

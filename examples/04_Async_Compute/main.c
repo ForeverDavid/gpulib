@@ -19,15 +19,20 @@ int main() {
   vec4 * v2 = GpuMalloc(4 * sizeof(vec4), &v2_id);
   vec4 * v3 = GpuMalloc(4 * sizeof(vec4), &v3_id);
 
-  v1[0] = (vec4){ 1,  2,  3, 0};
-  v1[1] = (vec4){ 4,  5,  6, 0};
-  v1[2] = (vec4){ 7,  8,  9, 0};
-  v1[3] = (vec4){10, 11, 12, 0};
+  v1[0] = (vec4){ 1,  2,  3,  0};
+  v1[1] = (vec4){ 4,  5,  6,  0};
+  v1[2] = (vec4){ 7,  8,  9,  0};
+  v1[3] = (vec4){10, 11, 12,  0};
 
-  v2[0] = (vec4){13, 14, 15, 0};
-  v2[1] = (vec4){16, 17, 18, 0};
-  v2[2] = (vec4){19, 20, 21, 0};
-  v2[3] = (vec4){22, 23, 24, 0};
+  v2[0] = (vec4){13, 14, 15,  0};
+  v2[1] = (vec4){16, 17, 18,  0};
+  v2[2] = (vec4){19, 20, 21,  0};
+  v2[3] = (vec4){22, 23, 24,  0};
+
+  v3[0] = (vec4){ 0,  0,  0,  0};
+  v3[1] = (vec4){ 0,  0,  0,  0};
+  v3[2] = (vec4){ 0,  0,  0,  0};
+  v3[3] = (vec4){ 0,  0,  0,  0};
 
   char comp_string[] = GPULIB_COMPUTE_HEADER
     "layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;"          "\n"
@@ -38,6 +43,8 @@ int main() {
     ""                                                                          "\n"
     "void main() {"                                                             "\n"
     "  int i = int(gl_GlobalInvocationID.x);"                                   "\n"
+    "  int j = int(gl_GlobalInvocationID.y);"                                   "\n"
+    "  int k = int(gl_GlobalInvocationID.z);"                                   "\n"
     ""                                                                          "\n"
     "  vec4 v1 = texelFetch(s_v1, i);"                                          "\n"
     "  vec4 v2 = texelFetch(s_v2, i);"                                          "\n"

@@ -12,7 +12,7 @@ int main() {
   int dim_x = 800;
   int dim_y = 450;
 
-  char vert_string[MAX_STR] = GPULIB_VERT_HEADER
+  char vert_string[MAX_STR] = GPULIB_VERTEX_HEADER
       "const vec2 g_tri[] = vec2[]("                    "\n"
       "  vec2(-1,-1),"                                  "\n"
       "  vec2(-1, 3),"                                  "\n"
@@ -23,7 +23,7 @@ int main() {
       "  gl_Position = vec4(g_tri[gl_VertexID], 0, 1);" "\n"
       "}"                                               "\n";
 
-  char frag_string[MAX_STR] = GPULIB_FRAG_HEADER
+  char frag_string[MAX_STR] = GPULIB_FRAGMENT_HEADER
       "layout(location = 0) out vec4 g_color;"       "\n"
       ""                                             "\n"
       "void main() {"                                "\n"
@@ -54,12 +54,12 @@ int main() {
       "  g_color = C;"                               "\n"
       "}"                                            "\n";
 
-  unsigned vert = GpuVert(vert_string);
-  unsigned frag = GpuFrag(frag_string);
-  unsigned ppo  = GpuPpo(vert, frag);
+  unsigned vert = GpuProgramVertex(vert_string);
+  unsigned frag = GpuProgramFragment(frag_string);
+  unsigned ppo  = GpuPipeline(vert, frag);
 
-  unsigned img_tex = GpuCallocImg(gpu_rgba_f32_e, dim_x, dim_y, 1, 1);
-  unsigned fbo = GpuFbo(img_tex, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+  unsigned img_tex = GpuMallocImage(gpu_rgba_f32_e, dim_x, dim_y, 1, 1);
+  unsigned fbo = GpuFramebuffer(img_tex, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
   for (Atom quit = XInternAtom(dpy, "WM_DELETE_WINDOW", 0);;) {
     for (XEvent event = {0}; XPending(dpy);) {
@@ -72,21 +72,20 @@ int main() {
       }
     }
 
-    if (GpuDebugVert(&vert, vert_string, sizeof(vert_string)) ||
-        GpuDebugFrag(&frag, frag_string, sizeof(frag_string))) {
+    if (GpuDebugProgramVertex(&vert, vert_string, sizeof(vert_string)) ||
+        GpuDebugProgramFragment(&frag, frag_string, sizeof(frag_string))) {
       g_gpulib_libgl->DeleteProgramPipelines(1, &ppo);
-      ppo = GpuPpo(vert, frag);
+      ppo = GpuPipeline(vert, frag);
     }
 
+    GpuBindFramebuffer(fbo);
     GpuClear();
-    GpuBindPpo(ppo);
-    GpuViewport(0, 0, dim_x, dim_y);
-    GpuBindFbo(fbo);
-    GpuDrawOnce(gpu_triangles_e, 0, 3, 1);
-    GpuBindFbo(0);
-    GpuViewport(0, 0, 1280, 720);
+    GpuBindPipeline(ppo);
+    GpuDraw(gpu_triangles_e, 0, 3, 1);
+    GpuBindFramebuffer(0);
 
-    GpuDebugImg(img_tex);
+    GpuClear();
+    GpuDebugImage(img_tex);
 
     GpuWsiSwap(dpy, win);
   }

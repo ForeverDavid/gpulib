@@ -8,7 +8,7 @@ int main() {
   GpuWsiWindow("SDF Circle", sizeof("SDF Circle"), 1280, 720, 0, NULL, &dpy, &win);
   GpuSetDebugCallback(GpuDebugCallback);
 
-  char vert_string[] = GPULIB_VERT_HEADER
+  char vert_string[] = GPULIB_VERTEX_HEADER
     "layout(location = 0) out vec2 g_uv;"             "\n"
     ""                                                "\n"
     "const vec2 g_tri[] = vec2[]("                    "\n"
@@ -22,7 +22,7 @@ int main() {
     "  gl_Position = vec4(g_tri[gl_VertexID], 0, 1);" "\n"
     "}"                                               "\n";
 
-  char frag_string[] = GPULIB_FRAG_HEADER
+  char frag_string[] = GPULIB_FRAGMENT_HEADER
     "float ShapeCircle(vec2 p, float radius) {"                                "\n"
     "  return length(p) - radius;"                                             "\n"
     "}"                                                                        "\n"
@@ -42,9 +42,9 @@ int main() {
     "  g_color = mix(vec4(1, 0.05, 0.05, 1), vec4(1, 1, 1, 1), DrawSolid(d));" "\n"
     "}"                                                                        "\n";
 
-  unsigned vert = GpuVert(vert_string);
-  unsigned frag = GpuFrag(frag_string);
-  unsigned ppo  = GpuPpo(vert, frag);
+  unsigned vert = GpuProgramVertex(vert_string);
+  unsigned frag = GpuProgramFragment(frag_string);
+  unsigned ppo  = GpuPipeline(vert, frag);
 
   for (Atom quit = XInternAtom(dpy, "WM_DELETE_WINDOW", 0);;) {
     for (XEvent event = {0}; XPending(dpy);) {
@@ -57,8 +57,8 @@ int main() {
       }
     }
     GpuClear();
-    GpuBindPpo(ppo);
-    GpuDrawOnce(gpu_triangles_e, 0, 3, 1);
+    GpuBindPipeline(ppo);
+    GpuDraw(gpu_triangles_e, 0, 3, 1);
     GpuWsiSwap(dpy, win);
   }
 

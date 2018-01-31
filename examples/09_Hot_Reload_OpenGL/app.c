@@ -42,11 +42,14 @@ static void * AppInit(Display * dpy, Window win, char * scancodes,
   g_ig_state = ig_state;
   igSetCurrentContext(ig_context);
 
-  s->vertices = GpuCalloc(4096 * sizeof(vec3), &s->vertices_id, g_gpulib_libc->calloc, g_gpulib_libc->free);
-  s->indices  = GpuCallocIndices(4096, &s->indices_id, g_gpulib_libc->calloc, g_gpulib_libc->free);
-  s->commands = GpuCallocCommands(4096, &s->commands_id, g_gpulib_libc->calloc, g_gpulib_libc->free);
+  s->vertices = GpuMalloc(4096 * sizeof(vec3), &s->vertices_id);
+  s->indices  = GpuMallocIndices(4096, &s->indices_id);
+  s->commands = GpuMallocCommands(4096, &s->commands_id);
 
-  char vert_string[4096] = GPULIB_VERT_HEADER
+  for (int i = 0; i < 4096; i += 1)
+    s->commands[i].instance_count = 0;
+
+  char vert_string[4096] = GPULIB_VERTEX_HEADER
       "layout(binding = 0) uniform samplerBuffer s_pos;" "\n"
       ""                                                 "\n"
       "void main() {"                                    "\n"
@@ -54,7 +57,7 @@ static void * AppInit(Display * dpy, Window win, char * scancodes,
       "  gl_Position = vec4(pos, 1);"                    "\n"
       "}"                                                "\n";
 
-  char frag_string[4096] = GPULIB_FRAG_HEADER
+  char frag_string[4096] = GPULIB_FRAGMENT_HEADER
       "layout(location = 0) out vec4 g_color;" "\n"
       ""                                       "\n"
       "void main() {"                          "\n"
@@ -67,9 +70,9 @@ static void * AppInit(Display * dpy, Window win, char * scancodes,
   for (int i = 0; i < 4096; i += 1)
     s->frag_string[i] = frag_string[i];
 
-  s->vert = GpuVert(s->vert_string);
-  s->frag = GpuFrag(s->frag_string);
-  s->ppo = GpuPpo(s->vert, s->frag);
+  s->vert = GpuProgramVertex(s->vert_string);
+  s->frag = GpuProgramFragment(s->frag_string);
+  s->ppo = GpuPipeline(s->vert, s->frag);
 
   return state;
 }
@@ -99,10 +102,13 @@ static void AppLoad(void * state, Display * dpy, Window win, char * scancodes,
   s->indices[1] = 1;
   s->indices[2] = 2;
 
+  s->commands[0].first = 0;
   s->commands[0].count = 3;
+  s->commands[0].instance_first = 0;
   s->commands[0].instance_count = 1;
+  s->commands[0].base_vertex = 0;
 
-  s->cast_tex[cast_tex_vertices_e] = GpuCast(s->vertices_id, gpu_xyz_f32_e, 0, 3 * sizeof(vec3));
+  s->cast_tex[cast_tex_vertices_e] = GpuView(s->vertices_id, gpu_xyz_f32_e, 0, 3 * sizeof(vec3));
 
   s->textures[0] = s->cast_tex[cast_tex_vertices_e];
 }
@@ -123,17 +129,17 @@ static int AppStep(void * state, Display * dpy, Window win, char * scancodes) {
 
   ImguiNewFrame();
 
-  if (GpuDebugFrag(&s->frag, s->frag_string, sizeof(s->frag_string))) {
+  if (GpuDebugProgramFragment(&s->frag, s->frag_string, sizeof(s->frag_string))) {
     g_gpulib_libgl->DeleteProgramPipelines(1, &s->ppo);
-    s->ppo = GpuPpo(s->vert, s->frag);
+    s->ppo = GpuPipeline(s->vert, s->frag);
   }
 
   GpuClear();
-  GpuBindPpo(s->ppo);
   GpuBindTextures(0, 16, s->textures);
+  GpuBindPipeline(s->ppo);
   GpuBindIndices(s->indices_id);
   GpuBindCommands(s->commands_id);
-  GpuDraw(gpu_triangles_e, 0, 1);
+  GpuDrawIndirect(gpu_triangles_e, 0, 1);
 
   igRender();
   GpuWsiSwap(dpy, win);

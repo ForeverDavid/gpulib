@@ -164,14 +164,14 @@ int main() {
   unsigned smp_textures = GpuSampler(4, gpu_linear_mipmap_linear_e, gpu_linear_e, gpu_repeat_e);
   unsigned smp_mrtcolor = GpuSampler(0, gpu_nearest_e, gpu_nearest_e, gpu_clamp_to_border_e);
 
-  unsigned mesh_vert = GpuWsiProgramVert(g_resources.vs_mesh);
-  unsigned mesh_frag = GpuWsiProgramFrag(g_resources.fs_mesh);
+  unsigned mesh_vert = GpuWsiProgramVertex(g_resources.vs_mesh);
+  unsigned mesh_frag = GpuWsiProgramFragment(g_resources.fs_mesh);
 
-  unsigned quad_vert = GpuWsiProgramVert(g_resources.vs_quad);
-  unsigned quad_frag = GpuWsiProgramFrag(g_resources.fs_quad);
+  unsigned quad_vert = GpuWsiProgramVertex(g_resources.vs_quad);
+  unsigned quad_frag = GpuWsiProgramFragment(g_resources.fs_quad);
 
-  unsigned cube_vert = GpuWsiProgramVert(g_resources.vs_cube);
-  unsigned cube_frag = GpuWsiProgramFrag(g_resources.fs_cube);
+  unsigned cube_vert = GpuWsiProgramVertex(g_resources.vs_cube);
+  unsigned cube_frag = GpuWsiProgramFragment(g_resources.fs_cube);
 
   unsigned mesh_ppo = GpuPipeline(mesh_vert, mesh_frag);
   unsigned quad_ppo = GpuPipeline(quad_vert, quad_frag);
@@ -368,15 +368,15 @@ int main() {
       GpuBindTextures(0, 16, sky_texture_ids);
       GpuBindSamplers(0, 16, sky_sampler_ids);
       GpuDisable(gpu_depth_e);
-      GpuDrawOnce(gpu_triangles_e, 0, 36, 1);
+      GpuDraw(gpu_triangles_e, 0, 36, 1);
       GpuEnable(gpu_depth_e);
     }
     GpuBindPipeline(mesh_ppo);
     GpuBindTextures(0, 16, texture_ids);
     GpuBindSamplers(0, 16, sampler_ids);
-    GpuBindCommands(di_buf);
     GpuBindIndices(ib_buf);
-    GpuDraw(gpu_triangles_e, 0, e_draw_count);
+    GpuBindCommands(di_buf);
+    GpuDrawIndirect(gpu_triangles_e, 0, e_draw_count);
     fence = GpuFence();
     GpuBindFramebuffer(0);
 
@@ -385,7 +385,7 @@ int main() {
 
     GpuClear();
     GpuBindPipeline(quad_ppo);
-    GpuDrawOnce(gpu_triangles_e, 0, 3, 1);
+    GpuDraw(gpu_triangles_e, 0, 3, 1);
 
     GpuWsiSwap(dpy, win);
 

@@ -66,7 +66,7 @@ int main() {
     xform_t_tex,
   };
 
-  unsigned vert = GpuVert(GPULIB_VERT_HEADER
+  unsigned vert = GpuProgramVertex(GPULIB_VERTEX_HEADER
       "layout(binding = 0) uniform samplerBuffer  s_vb;"            "\n"
       "layout(binding = 1) uniform isamplerBuffer s_id;"            "\n"
       "layout(binding = 2) uniform samplerBuffer  s_uv;"            "\n"
@@ -111,7 +111,7 @@ int main() {
       "  gl_Position = vec4(pos, pos.z + 0.1);"                     "\n"
       "}"                                                           "\n");
 
-  unsigned frag = GpuFrag(GPULIB_FRAG_HEADER
+  unsigned frag = GpuProgramFragment(GPULIB_FRAGMENT_HEADER
       "layout(location = 0) in vec2 g_uv;"                          "\n"
       ""                                                            "\n"
       "layout(location = 0) out vec4 g_color;"                      "\n"
@@ -120,7 +120,7 @@ int main() {
       "  g_color = vec4(g_uv.x, g_uv.y, 1, 1);"                     "\n"
       "}"                                                           "\n");
 
-  unsigned ppo = GpuPpo(vert, frag);
+  unsigned ppo = GpuPipeline(vert, frag);
 
   for (Atom quit = XInternAtom(dpy, "WM_DELETE_WINDOW", 0);;) {
     for (XEvent event = {0}; XPending(dpy);) {

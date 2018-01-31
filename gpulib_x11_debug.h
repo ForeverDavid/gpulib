@@ -62,9 +62,9 @@ static inline int GpuDebugProgramCallback(struct ImGuiTextEditCallbackData * dat
   
   gl->DeleteProgram(state->program_id);
   if (state->program_type == 0x8B31) { // GL_VERTEX_SHADER
-    state->program_id = GpuVert(state->program_string);
+    state->program_id = GpuProgramVertex(state->program_string);
   } else if (state->program_type == 0x8B30) { // GL_FRAGMENT_SHADER
-    state->program_id = GpuFrag(state->program_string);
+    state->program_id = GpuProgramFragment(state->program_string);
   } else {
     stdlib_assert(0);
   }
@@ -94,7 +94,7 @@ static inline int GpuDebugProgramEx(unsigned program_type, unsigned * program_id
   return state->program_compiled;
 }
 
-static inline void GpuDebugImgEx(unsigned tex_id, char * name) {
+static inline void GpuDebugImageEx(unsigned tex_id, char * name) {
   __auto_type gl = g_gpulib_libgl;
   __auto_type state = g_gpulib_debug_state;
   
@@ -153,7 +153,7 @@ static inline void GpuDebugImgEx(unsigned tex_id, char * name) {
 
   igCheckbox("Sync pos transform", &state->texture_sync_pos);
 
-  state->texture_id = GpuCastImg(tex_id, (enum gpu_tex_format_e)format, state->texture_layer, 1, state->texture_mipmap_level, 1);
+  state->texture_id = GpuViewImage(tex_id, (enum gpu_tex_format_e)format, state->texture_layer, 1, state->texture_mipmap_level, 1);
 
   {
     int is_srgb = 0;
@@ -231,8 +231,9 @@ static inline void GpuDebugUniformFloat4Ex(unsigned program, int location, int c
   GpuUniformFloat4(program, location, count, value);
 }
 
-#define GpuDebugVert(program_id, string, string_bytes) GpuDebugProgramEx(0x8B31, program_id, string, string_bytes, #program_id) // GL_VERTEX_SHADER
-#define GpuDebugFrag(program_id, string, string_bytes) GpuDebugProgramEx(0x8B30, program_id, string, string_bytes, #program_id) // GL_FRAGMENT_SHADER
-#define GpuDebugImg(tex_id) GpuDebugImgEx(tex_id, #tex_id)
+#define GpuDebugProgramVertex(program_id, string, string_bytes) GpuDebugProgramEx(0x8B31, program_id, string, string_bytes, #program_id) // GL_VERTEX_SHADER
+#define GpuDebugProgramFragment(program_id, string, string_bytes) GpuDebugProgramEx(0x8B30, program_id, string, string_bytes, #program_id) // GL_FRAGMENT_SHADER
+#define GpuDebugProgramCompute(program_id, string, string_bytes) GpuDebugProgramEx(0x91B9, program_id, string, string_bytes, #program_id) // GL_COMPUTE_SHADER
+#define GpuDebugImage(tex_id) GpuDebugImageEx(tex_id, #tex_id)
 #define GpuDebugUniformInt(program, location, count, value) GpuDebugUniformIntEx(program, location, count, value, #value)
 #define GpuDebugUniformFloat4(program, location, count, value) GpuDebugUniformFloat4Ex(program, location, count, value, #value)
