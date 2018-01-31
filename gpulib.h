@@ -35,7 +35,7 @@ enum gpu_draw_mode_e {
   gpu_triangles_e = 0x0004, // GL_TRIANGLES
 };
 
-enum gpu_buf_format_e {
+enum gpu_buffer_format_e {
   gpu_x_b8_e     = 0x8229, // GL_R8
   gpu_x_f16_e    = 0x822D, // GL_R16F
   gpu_x_f32_e    = 0x822E, // GL_R32F
@@ -68,7 +68,7 @@ enum gpu_buf_format_e {
   gpu_xyzw_u32_e = 0x8D70, // GL_RGBA32UI
 };
 
-enum gpu_tex_format_e {
+enum gpu_texture_format_e {
   gpu_d_f32_e    = 0x8CAC, // GL_DEPTH_COMPONENT32F
   gpu_rgb_b8_e   = 0x8051, // GL_RGB8
   gpu_rgba_b8_e  = 0x8058, // GL_RGBA8
@@ -77,7 +77,7 @@ enum gpu_tex_format_e {
   gpu_rgba_f32_e = 0x8814, // GL_RGBA32F
 };
 
-enum gpu_smp_filter_e {
+enum gpu_sampler_filter_e {
   gpu_nearest_e                = 0x2600, // GL_NEAREST
   gpu_linear_e                 = 0x2601, // GL_LINEAR
   gpu_nearest_mipmap_nearest_e = 0x2700, // GL_NEAREST_MIPMAP_NEAREST
@@ -86,7 +86,7 @@ enum gpu_smp_filter_e {
   gpu_linear_mipmap_linear_e   = 0x2703, // GL_LINEAR_MIPMAP_LINEAR
 };
 
-enum gpu_smp_wrapping_e {
+enum gpu_sampler_wrapping_e {
   gpu_repeat_e                 = 0x2901, // GL_REPEAT
   gpu_clamp_to_edge_e          = 0x812F, // GL_CLAMP_TO_EDGE
   gpu_clamp_to_border_e        = 0x812D, // GL_CLAMP_TO_BORDER
@@ -96,7 +96,7 @@ enum gpu_smp_wrapping_e {
   gpu_mirror_clamp_to_border_e = 0x8912, // GL_MIRROR_CLAMP_TO_BORDER
 };
 
-enum gpu_pix_format_e {
+enum gpu_pixel_format_e {
   gpu_d_e    = 0x1902, // GL_DEPTH_COMPONENT
   gpu_rgb_e  = 0x1907, // GL_RGB
   gpu_bgr_e  = 0x80E0, // GL_BGR
@@ -104,7 +104,7 @@ enum gpu_pix_format_e {
   gpu_bgra_e = 0x80E1, // GL_BGRA
 };
 
-enum gpu_pix_type_e {
+enum gpu_pixel_type_e {
   gpu_i8_e  = 0x1400, // GL_BYTE
   gpu_i16_e = 0x1402, // GL_SHORT
   gpu_i32_e = 0x1404, // GL_INT
@@ -365,7 +365,7 @@ static inline void GpuMallocCommandsDeviceLocal(ptrdiff_t count, unsigned * out_
   profE(__func__);
 }
 
-static inline unsigned GpuMallocImage(enum gpu_tex_format_e format, int width, int height, int layer_count, int mipmap_count) {
+static inline unsigned GpuMallocImage(enum gpu_texture_format_e format, int width, int height, int layer_count, int mipmap_count) {
   profB(__func__);
   __auto_type gl = g_gpulib_libgl;
   unsigned tex_id = 0;
@@ -379,7 +379,7 @@ static inline unsigned GpuMallocImage(enum gpu_tex_format_e format, int width, i
   return tex_id;
 }
 
-static inline unsigned GpuMallocCubemap(enum gpu_tex_format_e format, int width, int height, int layer_count, int mipmap_count) {
+static inline unsigned GpuMallocCubemap(enum gpu_texture_format_e format, int width, int height, int layer_count, int mipmap_count) {
   profB(__func__);
   __auto_type gl = g_gpulib_libgl;
   unsigned tex_id = 0;
@@ -393,7 +393,7 @@ static inline unsigned GpuMallocCubemap(enum gpu_tex_format_e format, int width,
   return tex_id;
 }
 
-static inline unsigned GpuMallocMultisampledImage(enum gpu_tex_format_e format, int width, int height, int layer_count, int msaa_samples) {
+static inline unsigned GpuMallocMultisampledImage(enum gpu_texture_format_e format, int width, int height, int layer_count, int msaa_samples) {
   profB(__func__);
   __auto_type gl = g_gpulib_libgl;
   unsigned tex_id = 0;
@@ -427,7 +427,7 @@ static inline struct gpu_cmd_t * GpuMapCommands(ptrdiff_t first, ptrdiff_t count
   return commands_ptr;
 }
 
-static inline unsigned GpuView(unsigned buffer_id, enum gpu_buf_format_e format, ptrdiff_t bytes_first, ptrdiff_t bytes_count) {
+static inline unsigned GpuView(unsigned buffer_id, enum gpu_buffer_format_e format, ptrdiff_t bytes_first, ptrdiff_t bytes_count) {
   profB(__func__);
   __auto_type gl = g_gpulib_libgl;
   unsigned tex_id = 0;
@@ -437,7 +437,7 @@ static inline unsigned GpuView(unsigned buffer_id, enum gpu_buf_format_e format,
   return tex_id;
 }
 
-static inline unsigned GpuViewImage(unsigned tex_id, enum gpu_tex_format_e format, int layer_first, int layer_count, int mipmap_first, int mipmap_count) {
+static inline unsigned GpuViewImage(unsigned tex_id, enum gpu_texture_format_e format, int layer_first, int layer_count, int mipmap_first, int mipmap_count) {
   profB(__func__);
   __auto_type gl = g_gpulib_libgl;
   unsigned new_tex_id = 0;
@@ -447,7 +447,7 @@ static inline unsigned GpuViewImage(unsigned tex_id, enum gpu_tex_format_e forma
   return new_tex_id;
 }
 
-static inline unsigned GpuViewCubemap(unsigned tex_id, enum gpu_tex_format_e format, int layer_first, int layer_count, int mipmap_first, int mipmap_count) {
+static inline unsigned GpuViewCubemap(unsigned tex_id, enum gpu_texture_format_e format, int layer_first, int layer_count, int mipmap_first, int mipmap_count) {
   profB(__func__);
   __auto_type gl = g_gpulib_libgl;
   unsigned new_tex_id = 0;
@@ -457,7 +457,7 @@ static inline unsigned GpuViewCubemap(unsigned tex_id, enum gpu_tex_format_e for
   return new_tex_id;
 }
 
-static inline unsigned GpuViewMultisampledImage(unsigned tex_id, enum gpu_tex_format_e format, int layer_first, int layer_count, int mipmap_first, int mipmap_count) {
+static inline unsigned GpuViewMultisampledImage(unsigned tex_id, enum gpu_texture_format_e format, int layer_first, int layer_count, int mipmap_first, int mipmap_count) {
   profB(__func__);
   __auto_type gl = g_gpulib_libgl;
   unsigned new_tex_id = 0;
@@ -467,7 +467,7 @@ static inline unsigned GpuViewMultisampledImage(unsigned tex_id, enum gpu_tex_fo
   return new_tex_id;
 }
 
-static inline unsigned GpuSampler(int max_anisotropy, enum gpu_smp_filter_e min_filter, enum gpu_smp_filter_e mag_filter, enum gpu_smp_wrapping_e wrapping) {
+static inline unsigned GpuSampler(int max_anisotropy, enum gpu_sampler_filter_e min_filter, enum gpu_sampler_filter_e mag_filter, enum gpu_sampler_wrapping_e wrapping) {
   profB(__func__);
   __auto_type gl = g_gpulib_libgl;
   unsigned smp_id = 0;

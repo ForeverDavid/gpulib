@@ -29,12 +29,12 @@ List of `gpulib.h` enums:
 
 ```c
 enum gpu_draw_mode_e;
-enum gpu_buf_format_e;
-enum gpu_tex_format_e;
-enum gpu_smp_filter_e;
-enum gpu_smp_wrapping_e;
-enum gpu_pix_format_e;
-enum gpu_pix_type_e;
+enum gpu_buffer_format_e;
+enum gpu_texture_format_e;
+enum gpu_sampler_filter_e;
+enum gpu_sampler_wrapping_e;
+enum gpu_pixel_format_e;
+enum gpu_pixel_type_e;
 ```
 
 List of `gpulib.h` global variables:
@@ -55,17 +55,17 @@ static inline unsigned * GpuMallocIndices(ptrdiff_t count, unsigned * out_indice
 static inline void GpuMallocIndicesDeviceLocal(ptrdiff_t count, unsigned * out_indices_id);
 static inline struct gpu_cmd_t * GpuMallocCommands(ptrdiff_t count, unsigned * out_commands_id);
 static inline void GpuMallocCommandsDeviceLocal(ptrdiff_t count, unsigned * out_commands_id);
-static inline unsigned GpuMallocImage(enum gpu_tex_format_e format, int width, int height, int layer_count, int mipmap_count);
-static inline unsigned GpuMallocCubemap(enum gpu_tex_format_e format, int width, int height, int layer_count, int mipmap_count);
-static inline unsigned GpuMallocMultisampledImage(enum gpu_tex_format_e format, int width, int height, int layer_count, int msaa_samples);
+static inline unsigned GpuMallocImage(enum gpu_texture_format_e format, int width, int height, int layer_count, int mipmap_count);
+static inline unsigned GpuMallocCubemap(enum gpu_texture_format_e format, int width, int height, int layer_count, int mipmap_count);
+static inline unsigned GpuMallocMultisampledImage(enum gpu_texture_format_e format, int width, int height, int layer_count, int msaa_samples);
 static inline void * GpuMap(unsigned buffer_id, ptrdiff_t bytes_first, ptrdiff_t bytes_count);
 static inline unsigned * GpuMapIndices(ptrdiff_t first, ptrdiff_t count);
 static inline struct gpu_cmd_t * GpuMapCommands(ptrdiff_t first, ptrdiff_t count);
-static inline unsigned GpuView(unsigned buffer_id, enum gpu_buf_format_e format, ptrdiff_t bytes_first, ptrdiff_t bytes_count);
-static inline unsigned GpuViewImage(unsigned tex_id, enum gpu_tex_format_e format, int layer_first, int layer_count, int mipmap_first, int mipmap_count);
-static inline unsigned GpuViewCubemap(unsigned tex_id, enum gpu_tex_format_e format, int layer_first, int layer_count, int mipmap_first, int mipmap_count);
-static inline unsigned GpuViewMultisampledImage(unsigned tex_id, enum gpu_tex_format_e format, int layer_first, int layer_count, int mipmap_first, int mipmap_count);
-static inline unsigned GpuSampler(int max_anisotropy, enum gpu_smp_filter_e min_filter, enum gpu_smp_filter_e mag_filter, enum gpu_smp_wrapping_e wrapping);
+static inline unsigned GpuView(unsigned buffer_id, enum gpu_buffer_format_e format, ptrdiff_t bytes_first, ptrdiff_t bytes_count);
+static inline unsigned GpuViewImage(unsigned tex_id, enum gpu_texture_format_e format, int layer_first, int layer_count, int mipmap_first, int mipmap_count);
+static inline unsigned GpuViewCubemap(unsigned tex_id, enum gpu_texture_format_e format, int layer_first, int layer_count, int mipmap_first, int mipmap_count);
+static inline unsigned GpuViewMultisampledImage(unsigned tex_id, enum gpu_texture_format_e format, int layer_first, int layer_count, int mipmap_first, int mipmap_count);
+static inline unsigned GpuSampler(int max_anisotropy, enum gpu_sampler_filter_e min_filter, enum gpu_sampler_filter_e mag_filter, enum gpu_sampler_wrapping_e wrapping);
 static inline unsigned GpuProgram(unsigned shader_type, char * shader_string);
 static inline unsigned GpuProgramVertex(char * shader_string);
 static inline unsigned GpuProgramFragment(char * shader_string);

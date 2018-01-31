@@ -153,7 +153,7 @@ static inline void GpuDebugImageEx(unsigned tex_id, char * name) {
 
   igCheckbox("Sync pos transform", &state->texture_sync_pos);
 
-  state->texture_id = GpuViewImage(tex_id, (enum gpu_tex_format_e)format, state->texture_layer, 1, state->texture_mipmap_level, 1);
+  state->texture_id = GpuViewImage(tex_id, (enum gpu_texture_format_e)format, state->texture_layer, 1, state->texture_mipmap_level, 1);
 
   {
     int is_srgb = 0;
