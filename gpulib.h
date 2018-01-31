@@ -1,10 +1,6 @@
 #pragma once
 #include <stddef.h>
 
-#ifndef GPULIB_MAX_PRINT_BYTES
-#define GPULIB_MAX_PRINT_BYTES (4096)
-#endif
-
 #ifndef profB
 #define profB(x)
 #endif
@@ -12,6 +8,57 @@
 #ifndef profE
 #define profE(x)
 #endif
+
+#ifndef GPULIB_MAX_PRINT_BYTES
+#define GPULIB_MAX_PRINT_BYTES (4096)
+#endif
+
+#define GPULIB_VERTEX_HEADER                                   \
+  "#version 330 core"                                     "\n" \
+  "#extension GL_ARB_gpu_shader5                : enable" "\n" \
+  "#extension GL_ARB_compute_shader             : enable" "\n" \
+  "#extension GL_ARB_shader_precision           : enable" "\n" \
+  "#extension GL_ARB_enhanced_layouts           : enable" "\n" \
+  "#extension GL_ARB_texture_cube_map_array     : enable" "\n" \
+  "#extension GL_ARB_shader_image_load_store    : enable" "\n" \
+  "#extension GL_ARB_separate_shader_objects    : enable" "\n" \
+  "#extension GL_ARB_shading_language_420pack   : enable" "\n" \
+  "#extension GL_ARB_shading_language_packing   : enable" "\n" \
+  "#extension GL_ARB_explicit_uniform_location  : enable" "\n" \
+  "#extension GL_ARB_fragment_coord_conventions : enable" "\n" \
+  "out gl_PerVertex { vec4 gl_Position; };"               "\n" \
+  ""                                                      "\n"
+
+#define GPULIB_FRAGMENT_HEADER                                 \
+  "#version 330 core"                                     "\n" \
+  "#extension GL_ARB_gpu_shader5                : enable" "\n" \
+  "#extension GL_ARB_compute_shader             : enable" "\n" \
+  "#extension GL_ARB_shader_precision           : enable" "\n" \
+  "#extension GL_ARB_enhanced_layouts           : enable" "\n" \
+  "#extension GL_ARB_texture_cube_map_array     : enable" "\n" \
+  "#extension GL_ARB_shader_image_load_store    : enable" "\n" \
+  "#extension GL_ARB_separate_shader_objects    : enable" "\n" \
+  "#extension GL_ARB_shading_language_420pack   : enable" "\n" \
+  "#extension GL_ARB_shading_language_packing   : enable" "\n" \
+  "#extension GL_ARB_explicit_uniform_location  : enable" "\n" \
+  "#extension GL_ARB_fragment_coord_conventions : enable" "\n" \
+  "layout(origin_upper_left) in vec4 gl_FragCoord;"       "\n" \
+  ""                                                      "\n"
+
+#define GPULIB_COMPUTE_HEADER                                  \
+  "#version 330 core"                                     "\n" \
+  "#extension GL_ARB_gpu_shader5                : enable" "\n" \
+  "#extension GL_ARB_compute_shader             : enable" "\n" \
+  "#extension GL_ARB_shader_precision           : enable" "\n" \
+  "#extension GL_ARB_enhanced_layouts           : enable" "\n" \
+  "#extension GL_ARB_texture_cube_map_array     : enable" "\n" \
+  "#extension GL_ARB_shader_image_load_store    : enable" "\n" \
+  "#extension GL_ARB_separate_shader_objects    : enable" "\n" \
+  "#extension GL_ARB_shading_language_420pack   : enable" "\n" \
+  "#extension GL_ARB_shading_language_packing   : enable" "\n" \
+  "#extension GL_ARB_explicit_uniform_location  : enable" "\n" \
+  "#extension GL_ARB_fragment_coord_conventions : enable" "\n" \
+  ""                                                      "\n"
 
 struct gpu_cmd_t {
   unsigned count;
@@ -113,53 +160,6 @@ enum gpu_pixel_type_e {
   gpu_u32_e = 0x1405, // GL_UNSIGNED_INT
   gpu_f32_e = 0x1406, // GL_FLOAT
 };
-
-#define GPULIB_VERTEX_HEADER                                   \
-  "#version 330 core"                                     "\n" \
-  "#extension GL_ARB_gpu_shader5                : enable" "\n" \
-  "#extension GL_ARB_compute_shader             : enable" "\n" \
-  "#extension GL_ARB_shader_precision           : enable" "\n" \
-  "#extension GL_ARB_enhanced_layouts           : enable" "\n" \
-  "#extension GL_ARB_texture_cube_map_array     : enable" "\n" \
-  "#extension GL_ARB_shader_image_load_store    : enable" "\n" \
-  "#extension GL_ARB_separate_shader_objects    : enable" "\n" \
-  "#extension GL_ARB_shading_language_420pack   : enable" "\n" \
-  "#extension GL_ARB_shading_language_packing   : enable" "\n" \
-  "#extension GL_ARB_explicit_uniform_location  : enable" "\n" \
-  "#extension GL_ARB_fragment_coord_conventions : enable" "\n" \
-  "out gl_PerVertex { vec4 gl_Position; };"               "\n" \
-  ""                                                      "\n"
-
-#define GPULIB_FRAGMENT_HEADER                                 \
-  "#version 330 core"                                     "\n" \
-  "#extension GL_ARB_gpu_shader5                : enable" "\n" \
-  "#extension GL_ARB_compute_shader             : enable" "\n" \
-  "#extension GL_ARB_shader_precision           : enable" "\n" \
-  "#extension GL_ARB_enhanced_layouts           : enable" "\n" \
-  "#extension GL_ARB_texture_cube_map_array     : enable" "\n" \
-  "#extension GL_ARB_shader_image_load_store    : enable" "\n" \
-  "#extension GL_ARB_separate_shader_objects    : enable" "\n" \
-  "#extension GL_ARB_shading_language_420pack   : enable" "\n" \
-  "#extension GL_ARB_shading_language_packing   : enable" "\n" \
-  "#extension GL_ARB_explicit_uniform_location  : enable" "\n" \
-  "#extension GL_ARB_fragment_coord_conventions : enable" "\n" \
-  "layout(origin_upper_left) in vec4 gl_FragCoord;"       "\n" \
-  ""                                                      "\n"
-
-#define GPULIB_COMPUTE_HEADER                                  \
-  "#version 330 core"                                     "\n" \
-  "#extension GL_ARB_gpu_shader5                : enable" "\n" \
-  "#extension GL_ARB_compute_shader             : enable" "\n" \
-  "#extension GL_ARB_shader_precision           : enable" "\n" \
-  "#extension GL_ARB_enhanced_layouts           : enable" "\n" \
-  "#extension GL_ARB_texture_cube_map_array     : enable" "\n" \
-  "#extension GL_ARB_shader_image_load_store    : enable" "\n" \
-  "#extension GL_ARB_separate_shader_objects    : enable" "\n" \
-  "#extension GL_ARB_shading_language_420pack   : enable" "\n" \
-  "#extension GL_ARB_shading_language_packing   : enable" "\n" \
-  "#extension GL_ARB_explicit_uniform_location  : enable" "\n" \
-  "#extension GL_ARB_fragment_coord_conventions : enable" "\n" \
-  ""                                                      "\n"
 
 struct gpu_libgl_t {
   void (*AttachShader)(unsigned, unsigned);
