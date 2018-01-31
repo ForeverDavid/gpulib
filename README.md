@@ -93,7 +93,7 @@ static inline void GpuBindProgram(unsigned pro_id);
 static inline void GpuDraw(enum gpu_draw_mode_e mode, unsigned first, unsigned count, unsigned instance_count);
 static inline void GpuDrawIndirect(enum gpu_draw_mode_e mode, unsigned binded_commands_first, unsigned binded_commands_count);
 static inline void GpuDispatch(int x, int y, int z);
-static inline void GpuBlit(unsigned source_fbo_id, int source_color_id, int source_x, int source_y, int source_width, int source_height, unsigned target_fbo_id, int target_color_id, int target_x, int target_y, int target_width, int target_height)
+static inline void GpuBlit(unsigned source_fbo_id, int source_color_id, int source_x, int source_y, int source_width, int source_height, unsigned target_fbo_id, int target_color_id, int target_x, int target_y, int target_width, int target_height);
 static inline void GpuClear();
 static inline void GpuEnable(unsigned flags);
 static inline void GpuDisable(unsigned flags);
