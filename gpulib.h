@@ -648,11 +648,9 @@ static inline void GpuUniformFloat4(unsigned program_id, int location, int count
 }
 
 static inline int GpuFenceIsComplete(void * fence) {
-  profB(__func__);
   __auto_type gl = g_gpulib_libgl;
   int fence_status = 0;
   gl->GetSynciv(fence, 0x9114, 1, NULL, &fence_status); // GL_SYNC_STATUS
-  profE(__func__);
   return fence_status == 0x9119 ? 1 : 0; // GL_SIGNALED
 }
 
@@ -671,11 +669,9 @@ static inline void GpuQueryEndTimeElapsed() {
 }
 
 static inline int GpuQueryIsResultAvailable(unsigned query_id) {
-  profB(__func__);
   __auto_type gl = g_gpulib_libgl;
   size_t query_is_result_available = 0;
   gl->GetQueryObjectui64v(query_id, 0x8867, &query_is_result_available); // GL_QUERY_RESULT_AVAILABLE
-  profE(__func__);
   return query_is_result_available == 1 ? 1 : 0;
 }
 
