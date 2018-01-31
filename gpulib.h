@@ -205,7 +205,6 @@ struct gpu_libgl_t {
   void (*DrawArraysInstanced)(unsigned, unsigned, unsigned, unsigned);
   void (*Enable)(unsigned);
   void (*EndQuery)(unsigned);
-  void (*EndTransformFeedback)();
   void * (*FenceSync)(unsigned, unsigned);
   void (*FrontFace)(unsigned);
   void (*GenBuffers)(int, unsigned *);
@@ -526,7 +525,6 @@ static inline unsigned GpuProgram(unsigned shader_type, char * shader_string) {
   gl->ProgramParameteri(pro_id, 0x8258, 1); // GL_PROGRAM_SEPARABLE
 
   gl->AttachShader(pro_id, shader_id);
-
   gl->LinkProgram(pro_id);
 
   {
@@ -561,6 +559,7 @@ static inline unsigned GpuProgram(unsigned shader_type, char * shader_string) {
 
   gl->DetachShader(pro_id, shader_id);
   gl->DeleteShader(shader_id);
+
   profE(__func__);
   return pro_id;
 }
