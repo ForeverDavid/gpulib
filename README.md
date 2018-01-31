@@ -19,22 +19,15 @@ Features:
  * Minimum number of shared library dependencies: `libX11`, `libXrender`, `libXi`, `libdl`.
 
 Supported GPUs with open source Mesa 3D driver:
- * AMD: r600 and higher.
- * Intel: gen7 and higher.
- * Nvidia: nvc0 and higher.
+ * AMD: r600g (Evergreen from 2009 and higher).
+ * Nvidia: nvc0 (Fermi from 2010 and higher).
+ * Intel: gen7 (Ivy Bridge from 2012 and higher).
 
 List of procedures to be declared globally:
 
 ```c
 int stdlib_nprintf(int n, char * fmt, ...);
 int stdlib_log2i(int n);
-```
-
-List of `gpulib.h` global variables:
-
-```c
-struct gpu_libgl_t   g_gpulib_libgl_data;
-struct gpu_libgl_t * g_gpulib_libgl;
 ```
 
 List of `gpulib.h` global defines:
@@ -46,6 +39,13 @@ List of `gpulib.h` global defines:
 #define GPULIB_VERTEX_HEADER
 #define GPULIB_FRAGMENT_HEADER
 #define GPULIB_COMPUTE_HEADER
+```
+
+List of `gpulib.h` global variables:
+
+```c
+struct gpu_libgl_t   g_gpulib_libgl_data;
+struct gpu_libgl_t * g_gpulib_libgl;
 ```
 
 List of `gpulib.h` structs:
@@ -63,8 +63,6 @@ enum gpu_buffer_format_e;
 enum gpu_texture_format_e;
 enum gpu_sampler_filter_e;
 enum gpu_sampler_wrapping_e;
-enum gpu_pixel_format_e;
-enum gpu_pixel_type_e;
 ```
 
 List of `gpulib.h` procedures:
