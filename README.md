@@ -23,6 +23,28 @@ Supported GPUs with open source Mesa 3D driver:
  * Intel: gen7 and higher.
  * Nvidia: nvc0 and higher.
 
+List of procedures to be declared globally:
+
+```c
+int stdlib_nprintf(int n, char * fmt, ...);
+int stdlib_log2i(int n);
+```
+
+List of `gpulib.h` global variables:
+
+```c
+struct gpu_libgl_t   g_gpulib_libgl_data;
+struct gpu_libgl_t * g_gpulib_libgl;
+```
+
+List of `gpulib.h` global defines:
+
+```c
+#ifndef GPULIB_MAX_PRINT_BYTES
+#ifndef profB
+#ifndef profE
+```
+
 List of `gpulib.h` structs:
 
 ```c
@@ -40,13 +62,6 @@ enum gpu_sampler_filter_e;
 enum gpu_sampler_wrapping_e;
 enum gpu_pixel_format_e;
 enum gpu_pixel_type_e;
-```
-
-List of `gpulib.h` global variables:
-
-```c
-struct gpu_libgl_t   g_gpulib_libgl_data;
-struct gpu_libgl_t * g_gpulib_libgl;
 ```
 
 List of `gpulib.h` procedures:
@@ -105,13 +120,6 @@ static inline void GpuDisable(unsigned flags);
 static inline void GpuViewport(int x, int y, int width, int height);
 ```
 
-List of `gpulib_x11_wsi.h` structs:
-
-```c
-struct gpu_libc_t;
-struct gpu_libglx_t;
-```
-
 List of `gpulib_x11_wsi.h` global variables:
 
 ```c
@@ -119,6 +127,13 @@ struct gpu_libc_t     g_gpulib_libc_data;
 struct gpu_libc_t   * g_gpulib_libc;
 struct gpu_libglx_t   g_gpulib_libglx_data;
 struct gpu_libglx_t * g_gpulib_libglx;
+```
+
+List of `gpulib_x11_wsi.h` structs:
+
+```c
+struct gpu_libc_t;
+struct gpu_libglx_t;
 ```
 
 List of `gpulib_x11_wsi.h` procedures:
