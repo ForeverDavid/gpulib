@@ -33,7 +33,7 @@ int main() {
   unsigned textures[16] = {0};
   textures[0] = GpuView(vertices_id, gpu_xyz_f32_e, 0, 3 * sizeof(vec3));
 
-  unsigned vert = GpuProgramVert(GPULIB_VERT_HEADER
+  unsigned vert = GpuProgramVertex(GPULIB_VERTEX_HEADER
       "layout(binding = 0) uniform samplerBuffer s_pos;" "\n"
       ""                                                 "\n"
       "void main() {"                                    "\n"
@@ -41,7 +41,7 @@ int main() {
       "  gl_Position = vec4(pos, 1);"                    "\n"
       "}"                                                "\n");
 
-  unsigned frag = GpuProgramFrag(GPULIB_FRAG_HEADER
+  unsigned frag = GpuProgramFragment(GPULIB_FRAGMENT_HEADER
       "layout(location = 0) out vec4 g_color;" "\n"
       ""                                       "\n"
       "void main() {"                          "\n"
@@ -65,7 +65,7 @@ int main() {
     GpuBindTextures(0, 16, textures);
     GpuBindIndices(indices_id);
     GpuBindCommands(commands_id);
-    GpuDraw(gpu_triangles_e, 0, 1);
+    GpuDrawIndirect(gpu_triangles_e, 0, 1);
     GpuWsiSwap(dpy, win);
   }
 

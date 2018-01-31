@@ -2,6 +2,7 @@
 #undef glBeginQuery
 #undef glBindBuffer
 #undef glBindFramebuffer
+#undef glBindImageTextures
 #undef glBindProgramPipeline
 #undef glBindSamplers
 #undef glBindTextures
@@ -35,6 +36,7 @@
 #undef glDepthRange
 #undef glDetachShader
 #undef glDisable
+#undef glDispatchCompute
 #undef glDrawArraysInstanced
 #undef glEnable
 #undef glEndQuery
@@ -57,6 +59,7 @@
 #undef glLinkProgram
 #undef glMapBufferRange
 #undef glMapNamedBufferRange
+#undef glMemoryBarrier
 #undef glMultiDrawElementsIndirect
 #undef glNamedBufferStorage
 #undef glNamedFramebufferDrawBuffer
@@ -74,5 +77,6 @@
 #undef glTextureStorage3DMultisample
 #undef glTextureSubImage3D
 #undef glTextureView
+#undef glUseProgram
 #undef glUseProgramStages
 #undef glViewport

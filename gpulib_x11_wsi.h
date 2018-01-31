@@ -125,6 +125,7 @@ static inline void GpuWsiGetGLProcedureAddresses() {
   gl->BeginQuery = glx->GetProcAddressARB("glBeginQuery");
   gl->BindBuffer = glx->GetProcAddressARB("glBindBuffer");
   gl->BindFramebuffer = glx->GetProcAddressARB("glBindFramebuffer");
+  gl->BindImageTextures = glx->GetProcAddressARB("glBindImageTextures");
   gl->BindProgramPipeline = glx->GetProcAddressARB("glBindProgramPipeline");
   gl->BindSamplers = glx->GetProcAddressARB("glBindSamplers");
   gl->BindTextures = glx->GetProcAddressARB("glBindTextures");
@@ -158,6 +159,7 @@ static inline void GpuWsiGetGLProcedureAddresses() {
   gl->DepthRange = glx->GetProcAddressARB("glDepthRange");
   gl->DetachShader = glx->GetProcAddressARB("glDetachShader");
   gl->Disable = glx->GetProcAddressARB("glDisable");
+  gl->DispatchCompute = glx->GetProcAddressARB("glDispatchCompute");
   gl->DrawArraysInstanced = glx->GetProcAddressARB("glDrawArraysInstanced");
   gl->Enable = glx->GetProcAddressARB("glEnable");
   gl->EndQuery = glx->GetProcAddressARB("glEndQuery");
@@ -180,6 +182,7 @@ static inline void GpuWsiGetGLProcedureAddresses() {
   gl->LinkProgram = glx->GetProcAddressARB("glLinkProgram");
   gl->MapBufferRange = glx->GetProcAddressARB("glMapBufferRange");
   gl->MapNamedBufferRange = glx->GetProcAddressARB("glMapNamedBufferRange");
+  gl->MemoryBarrier = glx->GetProcAddressARB("glMemoryBarrier");
   gl->MultiDrawElementsIndirect = glx->GetProcAddressARB("glMultiDrawElementsIndirect");
   gl->NamedBufferStorage = glx->GetProcAddressARB("glNamedBufferStorage");
   gl->NamedFramebufferDrawBuffer = glx->GetProcAddressARB("glNamedFramebufferDrawBuffer");
@@ -197,6 +200,7 @@ static inline void GpuWsiGetGLProcedureAddresses() {
   gl->TextureStorage3DMultisample = glx->GetProcAddressARB("glTextureStorage3DMultisample");
   gl->TextureSubImage3D = glx->GetProcAddressARB("glTextureSubImage3D");
   gl->TextureView = glx->GetProcAddressARB("glTextureView");
+  gl->UseProgram = glx->GetProcAddressARB("glUseProgram");
   gl->UseProgramStages = glx->GetProcAddressARB("glUseProgramStages");
   gl->Viewport = glx->GetProcAddressARB("glViewport");
 }
@@ -619,6 +623,7 @@ static inline void GpuWsiWindow(
       "GL_ARB_clip_control",
       "GL_ARB_texture_view",
       "GL_EXT_texture_sRGB",
+      "GL_ARB_compute_shader",
       "GL_ARB_buffer_storage",
       "GL_ARB_texture_storage",
       "GL_ARB_shader_precision",
@@ -630,6 +635,7 @@ static inline void GpuWsiWindow(
       "GL_EXT_texture_mirror_clamp",
       "GL_ARB_get_texture_sub_image",
       "GL_ARB_texture_cube_map_array",
+      "GL_ARB_shader_image_load_store",
       "GL_ARB_separate_shader_objects",
       "GL_ARB_shading_language_420pack",
       "GL_ARB_shading_language_packing",
@@ -720,12 +726,16 @@ static inline unsigned GpuWsiProgram(unsigned shader_type, char * shader_filepat
   return pro_id;
 }
 
-static inline unsigned GpuWsiProgramVert(char * shader_filepath) {
+static inline unsigned GpuWsiProgramVertex(char * shader_filepath) {
   return GpuWsiProgram(0x8B31, shader_filepath); // GL_VERTEX_SHADER
 }
 
-static inline unsigned GpuWsiProgramFrag(char * shader_filepath) {
+static inline unsigned GpuWsiProgramFragment(char * shader_filepath) {
   return GpuWsiProgram(0x8B30, shader_filepath); // GL_FRAGMENT_SHADER
+}
+
+static inline unsigned GpuWsiProgramCompute(char * shader_filepath) {
+  return GpuWsiProgram(0x91B9, shader_filepath); // GL_COMPUTE_SHADER
 }
 
 static inline int GpuWsiBinaryRgbImage(unsigned tex_id, int width, int height, int layer_count, char * img_binary_filepath) {

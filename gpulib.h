@@ -115,12 +115,14 @@ enum gpu_pix_type_e {
   gpu_f32_e = 0x1406, // GL_FLOAT
 };
 
-#define GPULIB_VERT_HEADER                                     \
-  "#version 330"                                          "\n" \
+#define GPULIB_VERTEX_HEADER                                   \
+  "#version 330 core"                                     "\n" \
   "#extension GL_ARB_gpu_shader5                : enable" "\n" \
+  "#extension GL_ARB_compute_shader             : enable" "\n" \
   "#extension GL_ARB_shader_precision           : enable" "\n" \
   "#extension GL_ARB_enhanced_layouts           : enable" "\n" \
   "#extension GL_ARB_texture_cube_map_array     : enable" "\n" \
+  "#extension GL_ARB_shader_image_load_store    : enable" "\n" \
   "#extension GL_ARB_separate_shader_objects    : enable" "\n" \
   "#extension GL_ARB_shading_language_420pack   : enable" "\n" \
   "#extension GL_ARB_shading_language_packing   : enable" "\n" \
@@ -129,12 +131,14 @@ enum gpu_pix_type_e {
   "out gl_PerVertex { vec4 gl_Position; };"               "\n" \
   ""                                                      "\n"
 
-#define GPULIB_FRAG_HEADER                                     \
-  "#version 330"                                          "\n" \
+#define GPULIB_FRAGMENT_HEADER                                 \
+  "#version 330 core"                                     "\n" \
   "#extension GL_ARB_gpu_shader5                : enable" "\n" \
+  "#extension GL_ARB_compute_shader             : enable" "\n" \
   "#extension GL_ARB_shader_precision           : enable" "\n" \
   "#extension GL_ARB_enhanced_layouts           : enable" "\n" \
   "#extension GL_ARB_texture_cube_map_array     : enable" "\n" \
+  "#extension GL_ARB_shader_image_load_store    : enable" "\n" \
   "#extension GL_ARB_separate_shader_objects    : enable" "\n" \
   "#extension GL_ARB_shading_language_420pack   : enable" "\n" \
   "#extension GL_ARB_shading_language_packing   : enable" "\n" \
@@ -143,11 +147,27 @@ enum gpu_pix_type_e {
   "layout(origin_upper_left) in vec4 gl_FragCoord;"       "\n" \
   ""                                                      "\n"
 
+#define GPULIB_COMPUTE_HEADER                                  \
+  "#version 330 core"                                     "\n" \
+  "#extension GL_ARB_gpu_shader5                : enable" "\n" \
+  "#extension GL_ARB_compute_shader             : enable" "\n" \
+  "#extension GL_ARB_shader_precision           : enable" "\n" \
+  "#extension GL_ARB_enhanced_layouts           : enable" "\n" \
+  "#extension GL_ARB_texture_cube_map_array     : enable" "\n" \
+  "#extension GL_ARB_shader_image_load_store    : enable" "\n" \
+  "#extension GL_ARB_separate_shader_objects    : enable" "\n" \
+  "#extension GL_ARB_shading_language_420pack   : enable" "\n" \
+  "#extension GL_ARB_shading_language_packing   : enable" "\n" \
+  "#extension GL_ARB_explicit_uniform_location  : enable" "\n" \
+  "#extension GL_ARB_fragment_coord_conventions : enable" "\n" \
+  ""                                                      "\n"
+
 struct gpu_libgl_t {
   void (*AttachShader)(unsigned, unsigned);
   void (*BeginQuery)(unsigned, unsigned);
   void (*BindBuffer)(unsigned, unsigned);
   void (*BindFramebuffer)(unsigned, unsigned);
+  void (*BindImageTextures)(int, int, unsigned *);
   void (*BindProgramPipeline)(unsigned);
   void (*BindSamplers)(int, int, unsigned *);
   void (*BindTextures)(int, int, unsigned *);
@@ -181,6 +201,7 @@ struct gpu_libgl_t {
   void (*DepthRange)(double, double);
   void (*DetachShader)(unsigned, unsigned);
   void (*Disable)(unsigned);
+  void (*DispatchCompute)(int, int, int);
   void (*DrawArraysInstanced)(unsigned, unsigned, unsigned, unsigned);
   void (*Enable)(unsigned);
   void (*EndQuery)(unsigned);
@@ -204,6 +225,7 @@ struct gpu_libgl_t {
   void (*LinkProgram)(unsigned);
   void * (*MapBufferRange)(unsigned, ptrdiff_t, ptrdiff_t, unsigned);
   void * (*MapNamedBufferRange)(unsigned, ptrdiff_t, ptrdiff_t, unsigned);
+  void (*MemoryBarrier)(unsigned);
   void (*MultiDrawElementsIndirect)(unsigned, unsigned, void *, int, int);
   void (*NamedBufferStorage)(unsigned, ptrdiff_t, void *, unsigned);
   void (*NamedFramebufferDrawBuffer)(unsigned, int);
@@ -221,6 +243,7 @@ struct gpu_libgl_t {
   void (*TextureStorage3DMultisample)(unsigned, int, unsigned, int, int, int, int);
   void (*TextureSubImage3D)(unsigned, int, int, int, int, int, int, int, unsigned, unsigned, void *);
   void (*TextureView)(unsigned, unsigned, unsigned, unsigned, int, int, int, int);
+  void (*UseProgram)(unsigned);
   void (*UseProgramStages)(unsigned, unsigned, unsigned);
   void (*Viewport)(int, int, int, int);
 } g_gpulib_libgl_data = {0};
@@ -277,9 +300,9 @@ static inline void * GpuMalloc(ptrdiff_t bytes, unsigned * out_buffer_id) {
   gl->CreateBuffers(1, &buffer_id);
   out_buffer_id[0] = buffer_id;
   gl->NamedBufferStorage(buffer_id, bytes, NULL, 0xC2); // GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT
-  void * buf_ptr = gl->MapNamedBufferRange(buffer_id, 0, bytes, 0xC2);
+  void * buffer_ptr = gl->MapNamedBufferRange(buffer_id, 0, bytes, 0xC2);
   profE(__func__);
-  return buf_ptr;
+  return buffer_ptr;
 }
 
 static inline void GpuMallocDeviceLocal(ptrdiff_t bytes, unsigned * out_buffer_id) {
@@ -385,25 +408,25 @@ static inline unsigned GpuMallocMultisampledImage(enum gpu_tex_format_e format, 
 static inline void * GpuMap(unsigned buffer_id, ptrdiff_t bytes_first, ptrdiff_t bytes_count) {
   profB(__func__);
   __auto_type gl = g_gpulib_libgl;
-  void * buf_ptr = gl->MapNamedBufferRange(buffer_id, bytes_first, bytes_count, 0xC2); // GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT
+  void * buffer_ptr = gl->MapNamedBufferRange(buffer_id, bytes_first, bytes_count, 0xC2); // GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT
   profE(__func__);
-  return buf_ptr;
+  return buffer_ptr;
 }
 
 static inline unsigned * GpuMapIndices(ptrdiff_t first, ptrdiff_t count) {
   profB(__func__);
   __auto_type gl = g_gpulib_libgl;
-  unsigned * buf_ptr = gl->MapBufferRange(0x8893, first * sizeof(unsigned), count * sizeof(unsigned), 0xC2); // GL_ELEMENT_ARRAY_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT
+  unsigned * indices_ptr = gl->MapBufferRange(0x8893, first * sizeof(unsigned), count * sizeof(unsigned), 0xC2); // GL_ELEMENT_ARRAY_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT
   profE(__func__);
-  return buf_ptr;
+  return indices_ptr;
 }
 
 static inline struct gpu_cmd_t * GpuMapCommands(ptrdiff_t first, ptrdiff_t count) {
   profB(__func__);
   __auto_type gl = g_gpulib_libgl;
-  struct gpu_cmd_t * buf_ptr = gl->MapBufferRange(0x8F3F, first * sizeof(struct gpu_cmd_t), count * sizeof(struct gpu_cmd_t), 0xC2); // GL_DRAW_INDIRECT_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT
+  struct gpu_cmd_t * commands_ptr = gl->MapBufferRange(0x8F3F, first * sizeof(struct gpu_cmd_t), count * sizeof(struct gpu_cmd_t), 0xC2); // GL_DRAW_INDIRECT_BUFFER, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT
   profE(__func__);
-  return buf_ptr;
+  return commands_ptr;
 }
 
 static inline unsigned GpuView(unsigned buffer_id, enum gpu_buf_format_e format, ptrdiff_t bytes_first, ptrdiff_t bytes_count) {
@@ -542,12 +565,16 @@ static inline unsigned GpuProgram(unsigned shader_type, char * shader_string) {
   return pro_id;
 }
 
-static inline unsigned GpuProgramVert(char * shader_string) {
+static inline unsigned GpuProgramVertex(char * shader_string) {
   return GpuProgram(0x8B31, shader_string); // GL_VERTEX_SHADER
 }
 
-static inline unsigned GpuProgramFrag(char * shader_string) {
+static inline unsigned GpuProgramFragment(char * shader_string) {
   return GpuProgram(0x8B30, shader_string); // GL_FRAGMENT_SHADER
+}
+
+static inline unsigned GpuProgramCompute(char * shader_string) {
+  return GpuProgram(0x91B9, shader_string); // GL_COMPUTE_SHADER
 }
 
 static inline unsigned GpuFramebuffer(
@@ -586,6 +613,13 @@ static inline unsigned GpuPipeline(unsigned vert_id, unsigned frag_id) {
   if (frag_id != 0) gl->UseProgramStages(ppo_id, 0x00000002, frag_id); // GL_FRAGMENT_SHADER_BIT
   profE(__func__);
   return ppo_id;
+}
+
+static inline void GpuBarrier() {
+  profB(__func__);
+  __auto_type gl = g_gpulib_libgl;
+  gl->MemoryBarrier(0xFFFFFFFF); // GL_ALL_BARRIER_BITS
+  profE(__func__);
 }
 
 static inline void * GpuFence() {
@@ -677,6 +711,13 @@ static inline void GpuBindCommands(unsigned commands_id) {
   profE(__func__);
 }
 
+static inline void GpuBindSamplers(int first, int count, unsigned * sampler_ids) {
+  profB(__func__);
+  __auto_type gl = g_gpulib_libgl;
+  gl->BindSamplers(first, count, sampler_ids);
+  profE(__func__);
+}
+
 static inline void GpuBindTextures(int first, int count, unsigned * texture_ids) {
   profB(__func__);
   __auto_type gl = g_gpulib_libgl;
@@ -684,10 +725,10 @@ static inline void GpuBindTextures(int first, int count, unsigned * texture_ids)
   profE(__func__);
 }
 
-static inline void GpuBindSamplers(int first, int count, unsigned * sampler_ids) {
+static inline void GpuBindImages(int first, int count, unsigned * texture_ids) {
   profB(__func__);
   __auto_type gl = g_gpulib_libgl;
-  gl->BindSamplers(first, count, sampler_ids);
+  gl->BindImageTextures(first, count, texture_ids);
   profE(__func__);
 }
 
@@ -698,17 +739,31 @@ static inline void GpuBindPipeline(unsigned ppo_id) {
   profE(__func__);
 }
 
-static inline void GpuDraw(enum gpu_draw_mode_e mode, unsigned binded_commands_first, unsigned binded_commands_count) {
+static inline void GpuBindProgram(unsigned pro_id) {
+  profB(__func__);
+  __auto_type gl = g_gpulib_libgl;
+  gl->UseProgram(pro_id);
+  profE(__func__);
+}
+
+static inline void GpuDraw(enum gpu_draw_mode_e mode, unsigned first, unsigned count, unsigned instance_count) {
+  profB(__func__);
+  __auto_type gl = g_gpulib_libgl;
+  gl->DrawArraysInstanced(mode, first, count, instance_count);
+  profE(__func__);
+}
+
+static inline void GpuDrawIndirect(enum gpu_draw_mode_e mode, unsigned binded_commands_first, unsigned binded_commands_count) {
   profB(__func__);
   __auto_type gl = g_gpulib_libgl;
   gl->MultiDrawElementsIndirect(mode, 0x1405, (void *)(binded_commands_first * 5 * sizeof(unsigned)), binded_commands_count, 0); // GL_UNSIGNED_INT
   profE(__func__);
 }
 
-static inline void GpuDrawOnce(enum gpu_draw_mode_e mode, unsigned first, unsigned count, unsigned instance_count) {
+static inline void GpuDispatch(int x, int y, int z) {
   profB(__func__);
   __auto_type gl = g_gpulib_libgl;
-  gl->DrawArraysInstanced(mode, first, count, instance_count);
+  gl->DispatchCompute(x, y, z);
   profE(__func__);
 }
 

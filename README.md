@@ -4,13 +4,13 @@ GpuLib
 <img width="800px" src="https://i.imgur.com/dQEm83w.gif" />
 
 GpuLib is a public domain header-only C library that uses less than a 100 modern AZDO OpenGL functions to draw 3D
-geometry, post-process textures and compute arrays on GPU.
+geometry, post-process images, asynchronously transfer and compute data on GPU.
 
 The contract:
 
  * x64 Linux and X11 only. Doesn't target Windows, macOS, WebGL or OpenGL ES devices.
  * Not all modern OpenGL extensions are used, only those which are supported on low-end GPUs and latest Mesa 3D.
- * Data is guaranteed to be aligned, thus SSBOs and UBOs are not used.
+ * Data is guaranteed to be aligned, wrong alignment bugs are very hard to find, thus SSBOs and UBOs are not used.
 
 Features:
 
