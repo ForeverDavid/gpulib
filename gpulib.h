@@ -143,24 +143,6 @@ enum gpu_sampler_wrapping_e {
   gpu_mirror_clamp_to_border_e = 0x8912, // GL_MIRROR_CLAMP_TO_BORDER
 };
 
-enum gpu_pixel_format_e {
-  gpu_d_e    = 0x1902, // GL_DEPTH_COMPONENT
-  gpu_rgb_e  = 0x1907, // GL_RGB
-  gpu_bgr_e  = 0x80E0, // GL_BGR
-  gpu_rgba_e = 0x1908, // GL_RGBA
-  gpu_bgra_e = 0x80E1, // GL_BGRA
-};
-
-enum gpu_pixel_type_e {
-  gpu_i8_e  = 0x1400, // GL_BYTE
-  gpu_i16_e = 0x1402, // GL_SHORT
-  gpu_i32_e = 0x1404, // GL_INT
-  gpu_u8_e  = 0x1401, // GL_UNSIGNED_BYTE
-  gpu_u16_e = 0x1403, // GL_UNSIGNED_SHORT
-  gpu_u32_e = 0x1405, // GL_UNSIGNED_INT
-  gpu_f32_e = 0x1406, // GL_FLOAT
-};
-
 struct gpu_libgl_t {
   void (*AttachShader)(unsigned, unsigned);
   void (*BeginQuery)(unsigned, unsigned);
