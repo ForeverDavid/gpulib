@@ -18,6 +18,11 @@ Features:
  * 30 kb for 70 lines of Hello Triangle code: `./build.sh -Os && strip --strip-all main`, Ubuntu 18.04, Clang 5.0.1.
  * Minimum number of shared library dependencies: `libX11`, `libXrender`, `libXi`, `libdl`.
 
+Supported GPUs with open source Mesa 3D driver:
+ * AMD: r600 and higher.
+ * Intel: gen7 and higher.
+ * Nvidia: nvc0 and higher.
+
 List of `gpulib.h` structs:
 
 ```c
