@@ -78,11 +78,13 @@ int main() {
       ppo = GpuPipeline(vert, frag);
     }
 
+    GpuViewport(0, 0, dim_x, dim_y);
     GpuBindFramebuffer(fbo);
     GpuClear();
     GpuBindPipeline(ppo);
     GpuDraw(gpu_triangles_e, 0, 3, 1);
     GpuBindFramebuffer(0);
+    GpuViewport(0, 0, 1280, 720);
 
     GpuClear();
     GpuDebugImage(img_tex);
