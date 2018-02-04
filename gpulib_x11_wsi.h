@@ -652,7 +652,7 @@ static inline void GpuWsiWindow(char * window_title, int window_title_bytes, int
   profB("OpenGL state setup");
   {
     gl->Viewport(0, 0, window_width, window_height);
-#ifndef RELEASE
+#ifndef GPULIB_RELEASE
     gl->Enable(0x92E0); // GL_DEBUG_OUTPUT
     gl->Enable(0x8242); // GL_DEBUG_OUTPUT_SYNCHRONOUS
 #endif
