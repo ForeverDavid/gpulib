@@ -3,6 +3,9 @@
 #include "../../stdlib/stdlib.h"
 #define GPULIB_DEBUG_MANUAL
 #include "../../gpulib_x11_debug.h"
+#include "../../gpulib_globals.h"
+#include "../../gpulib_x11_wsi_globals.h"
+#include "../../gpulib_x11_imgui_globals.h"
 
 struct api_t {
   void * (*Init)(Display *, Window, char *,

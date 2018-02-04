@@ -1,6 +1,8 @@
 #include "../../stdlib/stdlib.h"
 #include "../../gpulib.h"
+#include "../../gpulib_globals.h"
 #include "../../gpulib_x11_wsi.h"
+#include "../../gpulib_x11_wsi_globals.h"
 
 int main() {
   Display * dpy = NULL;

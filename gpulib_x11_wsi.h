@@ -71,9 +71,7 @@ struct gpu_libc_t {
   char * (*strrchr)(char *, int);
   long (*strtol)(char *, char **, int);
   int (*usleep)(unsigned);
-} g_gpulib_libc_data = {0};
-
-struct gpu_libc_t * g_gpulib_libc = &g_gpulib_libc_data;
+};
 
 struct gpu_libglx_t {
   void ** (*ChooseFBConfig)(Display *, int, int *, int *);
@@ -82,9 +80,12 @@ struct gpu_libglx_t {
   struct XVisualInfo * (*GetVisualFromFBConfig)(Display *, void *);
   int (*MakeContextCurrent)(Display *, XID, XID, void *);
   void (*SwapBuffers)(Display *, XID);
-} g_gpulib_libglx_data = {0};
+};
 
-struct gpu_libglx_t * g_gpulib_libglx = &g_gpulib_libglx_data;
+extern struct gpu_libc_t     g_gpulib_libc_data;
+extern struct gpu_libc_t   * g_gpulib_libc;
+extern struct gpu_libglx_t   g_gpulib_libglx_data;
+extern struct gpu_libglx_t * g_gpulib_libglx;
 
 static inline void GpuWsiGetLibcProcedureAddresses() {
   __auto_type libc = g_gpulib_libc;
@@ -309,9 +310,11 @@ static inline void GpuWsiCheckExtensions(int extension_count, char ** extensions
   profB(__func__);
   for (int i = 0; i < extension_count; i += 1) {
     if (GpuWsiIsExtensionSupported(extensions[i]) == 0) {
-      char cmd[GPULIB_MAX_PRINT_BYTES];
-      stdlib_snprintf(cmd, GPULIB_MAX_PRINT_BYTES, "notify-send \"[GpuLib] Error: %s is not supported.\"", extensions[i]);
+      int size = stdlib_snprintf(NULL, 0, "notify-send \"[GpuLib] Error: %s is not supported.\"", extensions[i]);
+      char cmd[size + 1];
+      stdlib_snprintf(cmd, size + 1, "notify-send \"[GpuLib] Error: %s is not supported.\"", extensions[i]);
       GpuWsiShell(cmd, NULL);
+      stdlib_printf("[GpuLib] Error: %s is not supported.\n", extensions[i]);
     }
   }
   profE(__func__);
@@ -389,7 +392,7 @@ static inline void GpuWsiX11Window(char * title, int title_bytes, int x, int y, 
         glx->GetFBConfigAttrib(dpy, fbconfigs[i], GLX_DOUBLEBUFFER,   &doublebuffer);
         glx->GetFBConfigAttrib(dpy, fbconfigs[i], GLX_SAMPLE_BUFFERS, &sample_buffers);
         glx->GetFBConfigAttrib(dpy, fbconfigs[i], GLX_SAMPLES,        &samples);
-        stdlib_nprintf(GPULIB_MAX_PRINT_BYTES,
+        stdlib_printf(
           "fbconfigs[%d]: %p, "
           "GLX_RED_SIZE: %d, "
           "GLX_GREEN_SIZE: %d, "
@@ -442,7 +445,7 @@ static inline void GpuWsiX11Window(char * title, int title_bytes, int x, int y, 
     glx->GetFBConfigAttrib(dpy, fbconfig, GLX_DOUBLEBUFFER,   &doublebuffer);
     glx->GetFBConfigAttrib(dpy, fbconfig, GLX_SAMPLE_BUFFERS, &sample_buffers);
     glx->GetFBConfigAttrib(dpy, fbconfig, GLX_SAMPLES,        &samples);
-    stdlib_nprintf(GPULIB_MAX_PRINT_BYTES,
+    stdlib_printf(
       "fbconfig: %p, "
       "GLX_RED_SIZE: %d, "
       "GLX_GREEN_SIZE: %d, "
@@ -599,9 +602,7 @@ static inline void GpuWsiX11Window(char * title, int title_bytes, int x, int y, 
   out_window[0]  = win;
 }
 
-static inline void GpuWsiWindow(
-    char * window_title, int window_title_bytes, int window_width, int window_height, int msaa_samples, char * out_scancodes, Display ** out_dpy, Window * out_win)
-{
+static inline void GpuWsiWindow(char * window_title, int window_title_bytes, int window_width, int window_height, int msaa_samples, char * out_scancodes, Display ** out_dpy, Window * out_win) {
   __auto_type gl = g_gpulib_libgl;
 
   GpuWsiGetLibcProcedureAddresses();
@@ -617,7 +618,9 @@ static inline void GpuWsiWindow(
 
   {
     char * extensions[] = {
+#ifndef GPULIB_RELEASE
       "GL_KHR_debug",
+#endif
       "GL_ARB_multi_bind",
       "GL_ARB_gpu_shader5",
       "GL_ARB_clip_control",

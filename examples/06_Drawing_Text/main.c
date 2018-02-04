@@ -1,6 +1,8 @@
 #include "../../stdlib/stdlib.h"
 #include "../../gpulib.h"
+#include "../../gpulib_globals.h"
 #include "../../gpulib_x11_wsi.h"
+#include "../../gpulib_x11_wsi_globals.h"
 
 #define auto __auto_type
 #define countof(x) (sizeof(x) / sizeof((x)[0]))

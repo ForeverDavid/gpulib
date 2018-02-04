@@ -9,10 +9,7 @@
 #define profE(x)
 #endif
 
-#ifndef GPULIB_MAX_PRINT_BYTES
-#define GPULIB_MAX_PRINT_BYTES (4096)
-#endif
-
+#ifndef GPULIB_VERTEX_HEADER
 #define GPULIB_VERTEX_HEADER                                   \
   "#version 330 core"                                     "\n" \
   "#extension GL_ARB_gpu_shader5                : enable" "\n" \
@@ -28,7 +25,9 @@
   "#extension GL_ARB_fragment_coord_conventions : enable" "\n" \
   "out gl_PerVertex { vec4 gl_Position; };"               "\n" \
   ""                                                      "\n"
+#endif
 
+#ifndef GPULIB_FRAGMENT_HEADER
 #define GPULIB_FRAGMENT_HEADER                                 \
   "#version 330 core"                                     "\n" \
   "#extension GL_ARB_gpu_shader5                : enable" "\n" \
@@ -44,7 +43,9 @@
   "#extension GL_ARB_fragment_coord_conventions : enable" "\n" \
   "layout(origin_upper_left) in vec4 gl_FragCoord;"       "\n" \
   ""                                                      "\n"
+#endif
 
+#ifndef GPULIB_COMPUTE_HEADER
 #define GPULIB_COMPUTE_HEADER                                  \
   "#version 330 core"                                     "\n" \
   "#extension GL_ARB_gpu_shader5                : enable" "\n" \
@@ -59,6 +60,7 @@
   "#extension GL_ARB_explicit_uniform_location  : enable" "\n" \
   "#extension GL_ARB_fragment_coord_conventions : enable" "\n" \
   ""                                                      "\n"
+#endif
 
 struct gpu_cmd_t {
   unsigned count;
@@ -226,17 +228,25 @@ struct gpu_libgl_t {
   void (*UseProgram)(unsigned);
   void (*UseProgramStages)(unsigned, unsigned, unsigned);
   void (*Viewport)(int, int, int, int);
-} g_gpulib_libgl_data = {0};
+};
 
-struct gpu_libgl_t * g_gpulib_libgl = &g_gpulib_libgl_data;
+extern struct gpu_libgl_t   g_gpulib_libgl_data;
+extern struct gpu_libgl_t * g_gpulib_libgl;
 
+#ifndef GPULIB_RELEASE
 static inline void GpuSetDebugCallback(void * callback) {
   profB(__func__);
   __auto_type gl = g_gpulib_libgl;
   gl->DebugMessageCallback(callback, NULL);
   profE(__func__);
 }
+#else
+#ifndef GpuSetDebugCallback
+#define GpuSetDebugCallback(callback)
+#endif
+#endif
 
+#ifndef GPULIB_RELEASE
 static inline void GpuDebugCallback(unsigned source, unsigned type, unsigned id, unsigned severity, int length, char * message, void * user_data) {
   char * GL_ERROR_SOURCE[] = {
     "API",
@@ -263,7 +273,7 @@ static inline void GpuDebugCallback(unsigned source, unsigned type, unsigned id,
     "OTHER"
   };
 
-  stdlib_nprintf(GPULIB_MAX_PRINT_BYTES,
+  stdlib_printf(
     "[GpuLib] OpenGL Debug Callback: ID: %u, Source: %s, Severity: %s, Type: %s\n"
     "[GpuLib] Message: %s\n\n",
     id,
@@ -272,6 +282,7 @@ static inline void GpuDebugCallback(unsigned source, unsigned type, unsigned id,
     GL_ERROR_TYPE[type - 0x824C], // GL_DEBUG_TYPE_ERROR
     message);
 }
+#endif
 
 static inline void * GpuMalloc(ptrdiff_t bytes, unsigned * out_buffer_id) {
   profB(__func__);
@@ -352,10 +363,12 @@ static inline unsigned GpuMallocImage(enum gpu_texture_format_e format, int widt
   __auto_type gl = g_gpulib_libgl;
   unsigned tex_id = 0;
   gl->CreateTextures(0x8C1A, 1, &tex_id); // GL_TEXTURE_2D_ARRAY
+#ifndef GPULIB_RELEASE
   if (width != height && mipmap_count > 1)
-    stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Warning: Rectangle image (width: %d, height: %d) is set to have more than one mipmap (mipmap_count: %d).\n\n", width, height, mipmap_count);
+    stdlib_printf("[GpuLib] Warning: Rectangle image (width: %d, height: %d) is set to have more than one mipmap (mipmap_count: %d).\n\n", width, height, mipmap_count);
   if (width / (1 << (mipmap_count - 1)) < 1)
-    stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Warning: Image (width: %d) mipmap count (mipmap_count: %d) is greater than the max count of %d.\n\n", width, mipmap_count, stdlib_log2i(width) + 1);
+    stdlib_printf("[GpuLib] Warning: Image (width: %d) mipmap count (mipmap_count: %d) is greater than the max count of %d.\n\n", width, mipmap_count, stdlib_log2i(width) + 1);
+#endif
   gl->TextureStorage3D(tex_id, mipmap_count, format, width, height, layer_count);
   profE(__func__);
   return tex_id;
@@ -366,10 +379,12 @@ static inline unsigned GpuMallocCubemap(enum gpu_texture_format_e format, int wi
   __auto_type gl = g_gpulib_libgl;
   unsigned tex_id = 0;
   gl->CreateTextures(0x9009, 1, &tex_id); // GL_TEXTURE_CUBE_MAP_ARRAY
+#ifndef GPULIB_RELEASE
   if (width != height)
-    stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Warning: Rectangle cubemap (width: %d, height: %d).\n\n", width, height);
+    stdlib_printf("[GpuLib] Warning: Rectangle cubemap (width: %d, height: %d).\n\n", width, height);
   if (width / (1 << (mipmap_count - 1)) < 1)
-    stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Warning: Cubemap (width: %d) mipmap count (mipmap_count: %d) is greater than the max count of %d.\n\n", width, mipmap_count, stdlib_log2i(width) + 1);
+    stdlib_printf("[GpuLib] Warning: Cubemap (width: %d) mipmap count (mipmap_count: %d) is greater than the max count of %d.\n\n", width, mipmap_count, stdlib_log2i(width) + 1);
+#endif
   gl->TextureStorage3D(tex_id, mipmap_count, format, width, height, layer_count * 6);
   profE(__func__);
   return tex_id;
@@ -477,26 +492,28 @@ static inline unsigned GpuProgram(unsigned shader_type, char * shader_string) {
     int is_compiled = 0;
     gl->GetShaderiv(shader_id, 0x8B81, &is_compiled); // GL_COMPILE_STATUS
     if (!is_compiled) {
+#ifndef GPULIB_RELEASE
       int info_len = 0;
       gl->GetShaderiv(shader_id, 0x8B84, &info_len); // GL_INFO_LOG_LENGTH
       if (info_len > 1) {
         char info_log[info_len + 1];
         info_log[info_len] = 0;
         gl->GetShaderInfoLog(shader_id, info_len, NULL, info_log);
-        stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Shader compiler: %s\n", info_log);
+        stdlib_printf("[GpuLib] Shader compiler: %s\n", info_log);
         {
           int line = 1;
-          stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] %05d: ", line);
+          stdlib_printf("[GpuLib] %05d: ", line);
           for (char c = *shader_string; c != '\0'; c = *++shader_string) {
-            stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "%c", c);
+            stdlib_printf("%c", c);
             if (c == '\n') {
               line += 1;
-              stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] %05d: ", line);
+              stdlib_printf("[GpuLib] %05d: ", line);
             }
           }
-          stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "\n\n");
+          stdlib_printf("%s", "\n\n");
         }
       }
+#endif
       gl->DeleteShader(shader_id);
       return 0;
     }
@@ -512,26 +529,28 @@ static inline unsigned GpuProgram(unsigned shader_type, char * shader_string) {
     int is_linked = 0;
     gl->GetProgramiv(pro_id, 0x8B82, &is_linked); // GL_LINK_STATUS
     if (!is_linked) {
+#ifndef GPULIB_RELEASE
       int info_len = 0;
       gl->GetProgramiv(pro_id, 0x8B84, &info_len); // GL_INFO_LOG_LENGTH
       if (info_len > 1) {
         char info_log[info_len + 1];
         info_log[info_len] = 0;
         gl->GetProgramInfoLog(pro_id, info_len, NULL, info_log);
-        stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] Program linker: %s\n", info_log);
+        stdlib_printf("[GpuLib] Program linker: %s\n", info_log);
         {
           int line = 1;
-          stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] %05d: ", line);
+          stdlib_printf("[GpuLib] %05d: ", line);
           for (char c = *shader_string; c != '\0'; c = *++shader_string) {
-            stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "%c", c);
+            stdlib_printf("%c", c);
             if (c == '\n') {
               line += 1;
-              stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "[GpuLib] %05d: ", line);
+              stdlib_printf("[GpuLib] %05d: ", line);
             }
           }
-          stdlib_nprintf(GPULIB_MAX_PRINT_BYTES, "\n\n");
+          stdlib_printf("%s", "\n\n");
         }
       }
+#endif
       gl->DetachShader(pro_id, shader_id);
       gl->DeleteShader(shader_id);
       return 0;

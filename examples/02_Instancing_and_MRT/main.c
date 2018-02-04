@@ -14,7 +14,9 @@ void (*ProfFree)(void *);
 #include "../../tinyprofiler.h"
 
 #include "../../gpulib.h"
+#include "../../gpulib_globals.h"
 #include "../../gpulib_x11_wsi.h"
+#include "../../gpulib_x11_wsi_globals.h"
 
 typedef struct { float x, y, z; }    vec3;
 typedef struct { float x, y, z, w; } vec4;

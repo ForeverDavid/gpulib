@@ -1,8 +1,8 @@
 #include "../../stdlib/stdlib.h"
 #include "../../gpulib.h"
+#include "../../gpulib_globals.h"
 #include "../../gpulib_x11_wsi.h"
-
-enum {MAX_STR = 10000};
+#include "../../gpulib_x11_wsi_globals.h"
 
 typedef struct { float x, y, z, w; } vec4;
 
@@ -77,8 +77,8 @@ int main() {
   for (int fence_is_complete = 0; fence_is_complete == 0;) {
     GpuWsiSwap(dpy, win);
     fence_is_complete = GpuFenceIsComplete(fence);
-    stdlib_nprintf(MAX_STR, "[GpuLib] Fence is complete: %d\n", fence_is_complete);
-    stdlib_nprintf(MAX_STR,
+    stdlib_printf("[GpuLib] Fence is complete: %d\n", fence_is_complete);
+    stdlib_printf(
       "[GpuLib] Returned values:" "\n"
       "v3[0].xyz: %.1f %.1f %.1f" "\n"
       "v3[1].xyz: %.1f %.1f %.1f" "\n"
@@ -91,7 +91,7 @@ int main() {
   }
 
   if (GpuQueryIsResultAvailable(query) == 1) {
-    stdlib_nprintf(MAX_STR, "[GpuLib] Query time elapsed: %zu\n\n", GpuQueryGetResult(query));
+    stdlib_printf("[GpuLib] Query time elapsed: %zu\n\n", GpuQueryGetResult(query));
   }
 
   XDestroyWindow(dpy, win);

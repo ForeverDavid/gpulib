@@ -205,11 +205,10 @@ struct ig_state_t {
   char    * clipboard_copy;
   char    * clipboard_paste;
   unsigned  clipboard_paste_sleep_microseconds;
-} g_ig_state_data = {
-  .clipboard_paste_sleep_microseconds = 100000, // 1/10 of a second
 };
 
-struct ig_state_t * g_ig_state = &g_ig_state_data;
+extern struct ig_state_t   g_ig_state_data;
+extern struct ig_state_t * g_ig_state;
 
 void ImguiRenderDrawList(struct ImDrawData * draw_data) {
   __auto_type gl = g_gpulib_libgl;
@@ -524,9 +523,11 @@ static inline void ImguiCreateDeviceObjects() {
   char * vert_string =
       "#version 330"                                                                   "\n"
       "#extension GL_ARB_gpu_shader5                : enable"                          "\n"
+      "#extension GL_ARB_compute_shader             : enable"                          "\n"
       "#extension GL_ARB_shader_precision           : enable"                          "\n"
       "#extension GL_ARB_enhanced_layouts           : enable"                          "\n"
       "#extension GL_ARB_texture_cube_map_array     : enable"                          "\n"
+      "#extension GL_ARB_shader_image_load_store    : enable"                          "\n"
       "#extension GL_ARB_separate_shader_objects    : enable"                          "\n"
       "#extension GL_ARB_shading_language_420pack   : enable"                          "\n"
       "#extension GL_ARB_shading_language_packing   : enable"                          "\n"
@@ -559,9 +560,11 @@ static inline void ImguiCreateDeviceObjects() {
   char * frag_string =
       "#version 330"                                              "\n"
       "#extension GL_ARB_gpu_shader5                : enable"     "\n"
+      "#extension GL_ARB_compute_shader             : enable"     "\n"
       "#extension GL_ARB_shader_precision           : enable"     "\n"
       "#extension GL_ARB_enhanced_layouts           : enable"     "\n"
       "#extension GL_ARB_texture_cube_map_array     : enable"     "\n"
+      "#extension GL_ARB_shader_image_load_store    : enable"     "\n"
       "#extension GL_ARB_separate_shader_objects    : enable"     "\n"
       "#extension GL_ARB_shading_language_420pack   : enable"     "\n"
       "#extension GL_ARB_shading_language_packing   : enable"     "\n"
@@ -580,32 +583,8 @@ static inline void ImguiCreateDeviceObjects() {
       "  g_color = g_colour * texture(s_texture, vec3(g_uv, 0));" "\n"
       "}"                                                         "\n";
 
-  unsigned vert_shader_id = gl->CreateShader(0x8B31); // GL_VERTEX_SHADER
-  unsigned frag_shader_id = gl->CreateShader(0x8B30); // GL_FRAGMENT_SHADER
-
-  gl->ShaderSource(vert_shader_id, 1, (char **)&vert_string, NULL);
-  gl->ShaderSource(frag_shader_id, 1, (char **)&frag_string, NULL);
-
-  gl->CompileShader(vert_shader_id);
-  gl->CompileShader(frag_shader_id);
-
-  g_ig_state->vert = gl->CreateProgram();
-  g_ig_state->frag = gl->CreateProgram();
-
-  gl->ProgramParameteri(g_ig_state->vert, 0x8258, 1); // GL_PROGRAM_SEPARABLE
-  gl->ProgramParameteri(g_ig_state->frag, 0x8258, 1); // GL_PROGRAM_SEPARABLE
-
-  gl->AttachShader(g_ig_state->vert, vert_shader_id);
-  gl->AttachShader(g_ig_state->frag, frag_shader_id);
-
-  gl->LinkProgram(g_ig_state->vert);
-  gl->LinkProgram(g_ig_state->frag);
-
-  gl->DetachShader(g_ig_state->vert, vert_shader_id);
-  gl->DetachShader(g_ig_state->frag, frag_shader_id);
-
-  gl->DeleteShader(vert_shader_id);
-  gl->DeleteShader(frag_shader_id);
+  g_ig_state->vert = GpuProgramVertex(vert_string);
+  g_ig_state->frag = GpuProgramFragment(frag_string);
 
   gl->CreateProgramPipelines(1, &g_ig_state->ppo);
 
