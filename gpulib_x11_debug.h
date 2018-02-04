@@ -61,13 +61,7 @@ static inline int GpuDebugProgramCallback(struct ImGuiTextEditCallbackData * dat
   __auto_type state = g_gpulib_debug_state;
   
   gl->DeleteProgram(state->program_id);
-  if (state->program_type == 0x8B31) { // GL_VERTEX_SHADER
-    state->program_id = GpuProgramVertex(state->program_string);
-  } else if (state->program_type == 0x8B30) { // GL_FRAGMENT_SHADER
-    state->program_id = GpuProgramFragment(state->program_string);
-  } else {
-    stdlib_assert(0);
-  }
+  state->program_id = GpuProgram(state->program_type, state->program_string);
   state->program_compiled = 1;
   return 0;
 }
