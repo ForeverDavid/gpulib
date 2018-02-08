@@ -111,6 +111,7 @@ static inline void GpuWsiGetLibcProcedureAddresses() {
 static inline void GpuWsiGetGLXProcedureAddresses() {
   __auto_type glx = g_gpulib_libglx;
   void * libgl = dlopen("libGL.so", 1);
+  stdlib_assert(libgl != NULL);
   glx->ChooseFBConfig = dlsym(libgl, "glXChooseFBConfig");
   glx->GetFBConfigAttrib = dlsym(libgl, "glXGetFBConfigAttrib");
   glx->GetProcAddressARB = dlsym(libgl, "glXGetProcAddressARB");
