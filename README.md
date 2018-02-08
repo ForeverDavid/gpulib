@@ -23,6 +23,8 @@ Supported GPUs with open source Mesa 3D driver:
  * Nvidia: nvc0 (Fermi from 2010 and higher).
  * Intel: gen7 (Ivy Bridge from 2012 and higher).
 
+Install: `sudo apt install clang libgl1-mesa-dev libxrender-dev libxi-dev`
+
 List of procedures expected by `gpulib.h` to be declared globally (not used when `GPULIB_RELEASE` is defined):
 
 ```c
