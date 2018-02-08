@@ -3,6 +3,7 @@
 #include "../../gpulib_globals.h"
 #include "../../gpulib_x11_wsi_globals.h"
 #include "../../gpulib_x11_imgui_globals.h"
+#include "../../gpulib_x11_debug_globals.h"
 
 enum {MAX_STR = 10000};
 

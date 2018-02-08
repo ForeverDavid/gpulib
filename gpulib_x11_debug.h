@@ -49,12 +49,10 @@ struct gpu_debug_state_t {
   bool     program_compiled;
   bool     program_compile_on_tab;
   bool     texture_sync_pos;
-} g_gpulib_debug_state_data = {
-  .texture_scale = {1, 1},
-  .texture_sync_pos = 1,
 };
 
-struct gpu_debug_state_t * g_gpulib_debug_state = &g_gpulib_debug_state_data;
+extern struct gpu_debug_state_t   g_gpulib_debug_state_data;
+extern struct gpu_debug_state_t * g_gpulib_debug_state;
 
 static inline int GpuDebugProgramCallback(struct ImGuiTextEditCallbackData * data) {
   __auto_type gl = g_gpulib_libgl;
